@@ -46,8 +46,10 @@ char max_project_length(task *);
 char task_count(task *);
 char *pad_string(char *, int, int, int, char);
 void edit_task(task *, short);
+void complete_task(task *, short);
 void wipe_screen(short, int[2]);
 void reload_tasks(task **);
+void check_curs_pos(short *, char);
 /* }}} */
 
 /* main {{{ */
@@ -333,6 +335,7 @@ nc_main(task *head)
                                         selline--;
                                         redraw = 1;
                                 }
+                                check_curs_pos(&selline, taskcount);
                                 break;
                         case 'j': // scroll down
                                 if (selline<taskcount-1)
@@ -340,6 +343,7 @@ nc_main(task *head)
                                         selline++;
                                         redraw = 1;
                                 }
+                                check_curs_pos(&selline, taskcount);
                                 break;
                         case 'e': // edit task
                                 def_prog_mode();
@@ -347,12 +351,14 @@ nc_main(task *head)
                                 edit_task(head, selline);
                                 reload_tasks(&head);
                                 refresh();
+                                wipe_screen(1, size);
                                 redraw = 1;
                                 break;
                         case 'r': // reload task list
                                 reload_tasks(&head);
                                 wipe_screen(1, size);
                                 taskcount = task_count(head);
+                                check_curs_pos(&selline, taskcount);
                                 redraw = 1;
                                 break;
                         case 'u': // undo
@@ -363,6 +369,19 @@ nc_main(task *head)
                                 wipe_screen(1, size);
                                 reload_tasks(&head);
                                 taskcount = task_count(head);
+                                check_curs_pos(&selline, taskcount);
+                                redraw = 1;
+                                break;
+                        case 'd': // complete
+                        case 'c':
+                                def_prog_mode();
+                                endwin();
+                                complete_task(head, selline);
+                                refresh();
+                                reload_tasks(&head);
+                                taskcount = task_count(head);
+                                check_curs_pos(&selline, taskcount);
+                                wipe_screen(1, size);
                                 redraw = 1;
                                 break;
                         case 'q': // quit
@@ -564,6 +583,29 @@ edit_task(task *head, short pos)
 }
 /* }}} */
 
+/* complete_task {{{ */
+void
+complete_task(task *head, short pos)
+{
+        /* spawn a command to complete a task */
+        task *cur;
+        short p;
+        char *cmd;
+        
+        /* move to correct task */
+        cur = head;
+        for (p=0; p<pos; p++)
+                cur = cur->next;
+
+        /* generate and run command */
+        cmd = malloc(32*sizeof(char));
+        sprintf(cmd, "task done %d", cur->index);
+        puts(cmd);
+        system(cmd);
+        free(cmd);
+}
+/* }}} */
+
 /* wipe_screen {{{ */
 void
 wipe_screen(short start, int size[2])
@@ -572,7 +614,8 @@ wipe_screen(short start, int size[2])
         int pos;
         char *blank;
         
-        blank = pad_string(" ", size[0]-1, 0, 0, 'r');
+        attrset(COLOR_PAIR(0));
+        blank = pad_string(" ", size[0], 0, 0, 'r');
 
         for (pos=start; pos<size[1]; pos++)
         {
@@ -597,5 +640,17 @@ reload_tasks(task **headptr)
         }
 
         (*headptr) = get_tasks();
+}
+/* }}} */
+
+/* check_curs_pos {{{ */
+void
+check_curs_pos(short *pos, char tasks) 
+{
+        /* check if the cursor is in a valid position */
+        if ((*pos)<0)
+                *pos = 0;
+        if ((*pos)>=tasks)
+                *pos = tasks-1;
 }
 /* }}} */
