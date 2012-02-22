@@ -298,7 +298,9 @@ nc_main(task *head)
 
         /* print main screen */
         color_line(0, size[0], 1);
-        mvaddstr(0, 0, "task ncurses - by mjheagle");
+        char *title = pad_string("task ncurses - by mjheagle", size[0], 0, 0, 'l');
+        mvaddstr(0, 0, title);
+        free(title);
         pos = malloc(8*sizeof(char));
         sprintf(pos, "(%d, %d)", size[0], size[1]);
         mvaddstr(0, 30, pos);
