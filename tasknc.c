@@ -373,6 +373,16 @@ nc_main(task *head)
                                 redraw = 1;
                                 break;
                         case 'd': // complete
+                                def_prog_mode();
+                                endwin();
+                                task_action(head, selline, ACTION_DELETE);
+                                refresh();
+                                reload_tasks(&head);
+                                taskcount = task_count(head);
+                                check_curs_pos(&selline, taskcount);
+                                wipe_screen(1, size);
+                                redraw = 1;
+                                break;
                         case 'c':
                                 def_prog_mode();
                                 endwin();
