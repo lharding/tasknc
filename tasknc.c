@@ -46,6 +46,8 @@ char max_project_length(task *);
 char task_count(task *);
 char *pad_string(char *, int, int, int, char);
 void edit_task(task *, short);
+void wipe_screen(short, int[2]);
+void reload_tasks(task **);
 /* }}} */
 
 /* main {{{ */
@@ -343,7 +345,14 @@ nc_main(task *head)
                                 def_prog_mode();
                                 endwin();
                                 edit_task(head, selline);
+                                reload_tasks(&head);
                                 refresh();
+                                redraw = 1;
+                                break;
+                        case 'r': // reload task list
+                                reload_tasks(&head);
+                                wipe_screen(1, size);
+                                taskcount = task_count(head);
                                 redraw = 1;
                                 break;
                         case 'q': // quit
@@ -542,5 +551,41 @@ edit_task(task *head, short pos)
         puts(cmd);
         system(cmd);
         free(cmd);
+}
+/* }}} */
+
+/* wipe_screen {{{ */
+void
+wipe_screen(short start, int size[2])
+{
+        /* clear the screen */
+        int pos;
+        char *blank;
+        
+        blank = pad_string(" ", size[0]-1, 0, 0, 'r');
+
+        for (pos=start; pos<size[1]; pos++)
+        {
+                mvaddstr(pos, 0, blank);
+        }
+        free(blank);
+}
+/* }}} */
+
+/* reload_tasks {{{ */
+void
+reload_tasks(task **headptr)
+{
+        task *cur, *next;
+
+        cur = *headptr;
+        while (cur!=NULL)
+        {
+                next = cur->next;
+                free_task(cur);
+                cur = next;
+        }
+
+        (*headptr) = get_tasks();
 }
 /* }}} */
