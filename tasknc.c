@@ -15,6 +15,7 @@
 /* struct definitions {{{ */
 struct _task
 {
+        unsigned short index;
         char *uuid;
         char *tags;
         unsigned int start;
@@ -43,7 +44,8 @@ void print_task_list(task *, short, short, short);
 void nc_end(int);
 char max_project_length(task *);
 char task_count(task *);
-char *pad_string(char*, int, int, int, char);
+char *pad_string(char *, int, int, int, char);
+void edit_task(task *, short);
 /* }}} */
 
 /* main {{{ */
@@ -79,7 +81,7 @@ get_tasks()
 {
         FILE *cmd;
         char line[TOTALLENGTH];
-        short counter = 0;
+        unsigned short counter = 0;
         task *head, *last;
 
         // run command
@@ -92,7 +94,10 @@ get_tasks()
         {
                 task *this;
                 if (counter>0)
+                {
                         this = parse_task(line);
+                        this->index = counter;
+                }
                 if (counter==1)
                         head = this;
                 if (counter>1)
@@ -320,24 +325,31 @@ nc_main(task *head)
 
                 switch (c)
                 {
-                        case 'k':
+                        case 'k': // scroll up
                                 if (selline>0)
                                 {
                                         selline--;
                                         redraw = 1;
                                 }
                                 break;
-                        case 'j':
+                        case 'j': // scroll down
                                 if (selline<taskcount-1)
                                 {
                                         selline++;
                                         redraw = 1;
                                 }
                                 break;
-                        case 'q':
+                        case 'e': // edit task
+                                def_prog_mode();
+                                endwin();
+                                edit_task(head, selline);
+                                refresh();
+                                redraw = 1;
+                                break;
+                        case 'q': // quit
                                 done = 1;
                                 break;
-                        default:
+                        default: // unhandled
                                 break;
                 }
                 char cstr[] = {c, NULL};
@@ -507,5 +519,28 @@ pad_string(char *str, int length, int lpad, int rpad, char align)
         free(ft);
 
         return ret;
+}
+/* }}} */
+
+/* edit_task {{{ */
+void
+edit_task(task *head, short pos)
+{
+        /* spawn a command to edit a task */
+        task *cur;
+        short p;
+        char *cmd;
+        
+        /* move to correct task */
+        cur = head;
+        for (p=0; p<pos; p++)
+                cur = cur->next;
+
+        /* generate and run command */
+        cmd = malloc(32*sizeof(char));
+        sprintf(cmd, "task edit %d", cur->index);
+        puts(cmd);
+        system(cmd);
+        free(cmd);
 }
 /* }}} */
