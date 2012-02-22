@@ -297,6 +297,7 @@ nc_main(task *head)
         taskcount = task_count(head);
 
         /* print main screen */
+        curs_set(0);
         color_line(0, size[0], 1);
         char *title = pad_string("task ncurses - by mjheagle", size[0], 0, 0, 'l');
         mvaddstr(0, 0, title);
