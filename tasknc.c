@@ -39,9 +39,11 @@ char *utc_date(unsigned int);
 void nc_main(task *);
 void nc_colors();
 void color_line(char, char, char);
-void print_task_list(task *);
+void print_task_list(task *, short, short, short);
 void nc_end(int);
 char max_project_length(task *);
+char task_count(task *);
+char *pad_string(char*, int, int, int, char);
 /* }}} */
 
 /* main {{{ */
@@ -103,7 +105,7 @@ get_tasks()
 }
 /* }}} */
 
-/* malloc task {{{ */
+/* malloc_task {{{ */
 task *
 malloc_task()
 {
@@ -266,11 +268,17 @@ print_task(task *tsk)
 void
 nc_main(task *head)
 {
+        /* ncurses main function */
         WINDOW *stdscr;
         int c;
         int size[2];
         char *pos;
+        short selline = 0;
+        char taskcount;
+        short projlen = max_project_length(head);
+        short desclen;
 
+        /* initialize ncurses */
         puts("starting ncurses...");
         stdscr = signal(SIGINT, nc_end);
         if ((stdscr = initscr()) == NULL ) {
@@ -283,8 +291,12 @@ nc_main(task *head)
         noecho();               /* dont echo input */
         nc_colors();            /* initialize colors */
 
+        /* set variables */
         getmaxyx(stdscr, size[1], size[0]);
+        desclen = size[0]-projlen-1;
+        taskcount = task_count(head);
 
+        /* print main screen */
         color_line(0, size[0], 1);
         mvaddstr(0, 0, "task ncurses - by mjheagle");
         pos = malloc(8*sizeof(char));
@@ -292,11 +304,78 @@ nc_main(task *head)
         mvaddstr(0, 30, pos);
         free(pos);
         attrset(COLOR_PAIR(0));
-        print_task_list(head);
+        print_task_list(head, selline, projlen, desclen);
         refresh();
-        c = getch();
+
+        /* main loop */
+        while (1)
+        {
+                char done = 0;
+                char redraw = 0;
+
+                c = getch();
+
+                switch (c)
+                {
+                        case 'k':
+                                if (selline>0)
+                                {
+                                        selline--;
+                                        redraw = 1;
+                                }
+                                break;
+                        case 'j':
+                                if (selline<taskcount-1)
+                                {
+                                        selline++;
+                                        redraw = 1;
+                                }
+                                break;
+                        case 'q':
+                                done = 1;
+                                break;
+                        default:
+                                break;
+                }
+                char cstr[] = {c, NULL};
+                mvaddstr(0, 40, cstr);
+                if (done==1)
+                        break;
+                if (redraw==1)
+                        print_task_list(head, selline, projlen, desclen);
+                        refresh();
+        }
 
         delwin(stdscr);
+}
+/* }}} */
+
+/* nc_colors {{{ */
+void
+nc_colors()
+{
+        if (has_colors())
+        {
+                start_color();
+                use_default_colors();
+                init_pair(1, COLOR_BLUE,        COLOR_BLACK);   /* title bar */
+                init_pair(2, COLOR_GREEN,       -1);            /* project */
+                init_pair(3, COLOR_CYAN,        -1);            /* description */
+                init_pair(4, COLOR_YELLOW,      -1);
+                init_pair(5, COLOR_BLACK,       COLOR_GREEN);
+                init_pair(6, COLOR_BLACK,       COLOR_CYAN);
+                init_pair(7, COLOR_BLACK,       COLOR_YELLOW);
+        }
+}
+/* }}} */
+
+/* nc_end {{{ */
+void
+nc_end(int sig)
+{
+        endwin();
+        /* free all structs here */
+        exit(0);
 }
 /* }}} */
 
@@ -315,56 +394,33 @@ color_line(char lineno, char width, char color)
 }
 /* }}} */
 
-/* nc_colors {{{ */
-void
-nc_colors()
-{
-        if (has_colors())
-        {
-                start_color();
-                use_default_colors();
-                init_pair(1, COLOR_BLUE,        COLOR_BLACK);   /* title bar */
-                init_pair(2, COLOR_GREEN,       -1);            /* project */
-                init_pair(3, COLOR_CYAN,        -1);            /* description */
-                init_pair(4, COLOR_BLUE,        COLOR_BLACK);
-                init_pair(5, COLOR_CYAN,        COLOR_BLACK);
-                init_pair(6, COLOR_MAGENTA,     COLOR_BLACK);
-                init_pair(7, COLOR_WHITE,       COLOR_BLACK);
-        }
-}
-/* }}} */
-
 /* print_task_list {{{ */
 void
-print_task_list(task *head)
+print_task_list(task *head, short selected, short projlen, short desclen)
 {
         task *cur;
-        char counter = 0;
-        char *line;
-        char projlen = max_project_length(head);
+        short counter = 0;
+        char sel = 0;
+        char *bufstr;
 
         cur = head;
         while (cur!=NULL)
         {
-                attrset(COLOR_PAIR(2));
-                mvaddstr(counter+1, 0, cur->project);
-                attrset(COLOR_PAIR(3));
-                mvaddstr(counter+1, projlen+2, cur->description);
+                if (counter==selected)
+                        sel = 1;
+                else
+                        sel = 0;
+                attrset(COLOR_PAIR(2+3*sel));
+                bufstr = pad_string(cur->project, projlen, 0, 1, 'r');
+                mvaddstr(counter+1, 0, bufstr);
+                free(bufstr);
+                attrset(COLOR_PAIR(3+3*sel));
+                bufstr = pad_string(cur->description, desclen, 0, 0, 'l');
+                mvaddstr(counter+1, projlen+1, bufstr);
+                free(bufstr);
                 counter++;
                 cur = cur->next;
         }
-
-        return;
-}
-/* }}} */
-
-/* nc_end {{{ */
-void
-nc_end(int sig)
-{
-        endwin();
-        /* free all structs here */
-        exit(0);
 }
 /* }}} */
 
@@ -385,5 +441,68 @@ max_project_length(task *head)
         }
 
         return len;
+}
+/* }}} */
+
+/* task_count {{{ */
+char
+task_count(task *head)
+{
+        char count = 0;
+        task *cur;
+
+        cur = head;
+        while (cur!=NULL)
+        {
+                count++;
+                cur = cur->next;
+        }
+
+        return count;
+}
+/* }}} */
+
+/* pad_string {{{ */
+char *
+pad_string(char *str, int length, int lpad, int rpad, char align)
+{
+        /* function to add padding to strings and align them with spaces */
+        char *ft;
+        char *ret;
+
+        /* handle left alignment */
+        if (align=='l')
+        {
+                int slen = strlen(str);
+                rpad = rpad + length - slen;
+                length = slen;
+        }
+
+        /* generate format strings and return value */
+        ret = malloc((length+lpad+rpad+1)*sizeof(char));
+        ft = malloc(16*sizeof(char));
+        if (lpad>0 && rpad>0)
+        {
+                sprintf(ft, "%%%ds%%%ds%%%ds", lpad, length, rpad);
+                sprintf(ret, ft, " ", str, " ");
+        }
+        else if (lpad>0)
+        {
+                sprintf(ft, "%%%ds%%%ds", lpad, length);
+                sprintf(ret, ft, " ", str);
+        }
+        else if (rpad>0)
+        {
+                sprintf(ft, "%%%ds%%%ds", length, rpad);
+                sprintf(ret, ft, str, " ");
+        }
+        else
+        {
+                sprintf(ft, "%%%ds", length);
+                sprintf(ret, ft, str);
+        }
+        free(ft);
+
+        return ret;
 }
 /* }}} */
