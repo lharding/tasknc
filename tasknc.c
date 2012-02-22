@@ -37,6 +37,8 @@ char free_task(task *);
 void print_task(task *);
 char *utc_date(unsigned int);
 void nc_main(task *);
+void nc_colors();
+void color_line(char, char, char);
 void print_task_list(task *);
 void nc_end(int);
 char max_project_length(task *);
@@ -279,19 +281,56 @@ nc_main(task *head)
         nonl();                 /* tell curses not to do NL->CR/NL on output */
         cbreak();               /* take input chars one at a time, no wait for \n */
         noecho();               /* dont echo input */
+        nc_colors();            /* initialize colors */
 
         getmaxyx(stdscr, size[1], size[0]);
 
+        color_line(0, size[0], 1);
         mvaddstr(0, 0, "task ncurses - by mjheagle");
         pos = malloc(8*sizeof(char));
         sprintf(pos, "(%d, %d)", size[0], size[1]);
         mvaddstr(0, 30, pos);
         free(pos);
+        attrset(COLOR_PAIR(0));
         print_task_list(head);
         refresh();
         c = getch();
 
         delwin(stdscr);
+}
+/* }}} */
+
+/* color_line {{{ */
+void
+color_line(char lineno, char width, char color)
+{
+        char *str;
+        char i;
+
+        str = malloc((width+1)*sizeof(char));
+        for (i=0; i<width; i++)
+                str[i] = ' ';
+        attrset(COLOR_PAIR(color));
+        mvaddstr(lineno, 0, str);
+}
+/* }}} */
+
+/* nc_colors {{{ */
+void
+nc_colors()
+{
+        if (has_colors())
+        {
+                start_color();
+                use_default_colors();
+                init_pair(1, COLOR_BLUE,        COLOR_BLACK);   /* title bar */
+                init_pair(2, COLOR_GREEN,       -1);            /* project */
+                init_pair(3, COLOR_CYAN,        -1);            /* description */
+                init_pair(4, COLOR_BLUE,        COLOR_BLACK);
+                init_pair(5, COLOR_CYAN,        COLOR_BLACK);
+                init_pair(6, COLOR_MAGENTA,     COLOR_BLACK);
+                init_pair(7, COLOR_WHITE,       COLOR_BLACK);
+        }
 }
 /* }}} */
 
@@ -307,7 +346,9 @@ print_task_list(task *head)
         cur = head;
         while (cur!=NULL)
         {
+                attrset(COLOR_PAIR(2));
                 mvaddstr(counter+1, 0, cur->project);
+                attrset(COLOR_PAIR(3));
                 mvaddstr(counter+1, projlen+2, cur->description);
                 counter++;
                 cur = cur->next;
