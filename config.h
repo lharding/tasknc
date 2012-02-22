@@ -17,3 +17,6 @@ by mjheagle
 
 /* static */
 #define UUIDLENGTH 33
+#define ACTION_EDIT 0
+#define ACTION_COMPLETE 1
+#define ACTION_DELETE 2

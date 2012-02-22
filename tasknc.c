@@ -45,8 +45,7 @@ void nc_end(int);
 char max_project_length(task *);
 char task_count(task *);
 char *pad_string(char *, int, int, int, char);
-void edit_task(task *, short);
-void complete_task(task *, short);
+void task_action(task *, short, char);
 void wipe_screen(short, int[2]);
 void reload_tasks(task **);
 void check_curs_pos(short *, char);
@@ -348,7 +347,8 @@ nc_main(task *head)
                         case 'e': // edit task
                                 def_prog_mode();
                                 endwin();
-                                edit_task(head, selline);
+                                /* edit_task(head, selline); */
+                                task_action(head, selline, ACTION_EDIT);
                                 reload_tasks(&head);
                                 refresh();
                                 wipe_screen(1, size);
@@ -376,7 +376,7 @@ nc_main(task *head)
                         case 'c':
                                 def_prog_mode();
                                 endwin();
-                                complete_task(head, selline);
+                                task_action(head, selline, ACTION_COMPLETE);
                                 refresh();
                                 reload_tasks(&head);
                                 taskcount = task_count(head);
@@ -560,46 +560,43 @@ pad_string(char *str, int length, int lpad, int rpad, char align)
 }
 /* }}} */
 
-/* edit_task {{{ */
+/* task_action {{{ */
 void
-edit_task(task *head, short pos)
-{
-        /* spawn a command to edit a task */
-        task *cur;
-        short p;
-        char *cmd;
-        
-        /* move to correct task */
-        cur = head;
-        for (p=0; p<pos; p++)
-                cur = cur->next;
-
-        /* generate and run command */
-        cmd = malloc(32*sizeof(char));
-        sprintf(cmd, "task edit %d", cur->index);
-        puts(cmd);
-        system(cmd);
-        free(cmd);
-}
-/* }}} */
-
-/* complete_task {{{ */
-void
-complete_task(task *head, short pos)
+task_action(task *head, short pos, char action)
 {
         /* spawn a command to complete a task */
         task *cur;
         short p;
         char *cmd;
+        char *actionstr;
         
         /* move to correct task */
         cur = head;
         for (p=0; p<pos; p++)
                 cur = cur->next;
 
+        /* determine action */
+        actionstr = malloc(5*sizeof(char));
+        switch(action)
+        {
+                case ACTION_EDIT:
+                        strncpy(actionstr, "edit", 5);
+                        break;
+                case ACTION_COMPLETE:
+                        strncpy(actionstr, "done", 5);
+                        break;
+                case ACTION_DELETE:
+                        strncpy(actionstr, "del", 4);
+                        break;
+                default:
+                        strncpy(actionstr, "view", 5);
+                        break;
+        }
+
         /* generate and run command */
         cmd = malloc(32*sizeof(char));
-        sprintf(cmd, "task done %d", cur->index);
+        sprintf(cmd, "task %s %d", actionstr, cur->index);
+        free(actionstr);
         puts(cmd);
         system(cmd);
         free(cmd);
