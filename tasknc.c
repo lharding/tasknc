@@ -33,6 +33,7 @@ task *malloc_task();
 task *parse_task(char *);
 char free_task(task *);
 void print_task(task *);
+char *utc_date(unsigned int);
 /* }}} */
 
 /* main {{{ */
@@ -205,15 +206,38 @@ free_task(task *tsk)
 }
 /* }}} */
 
+/* utc_date {{{ */
+char *
+utc_date(unsigned int timeint)
+{
+        /* convert a utc time uint to a string */
+        struct tm tmr;
+        char *timestr, *srcstr;
+
+        srcstr = malloc(16*sizeof(char));
+        timestr = malloc(TIMELENGTH*sizeof(char));
+        sprintf(srcstr, "%d", timeint);
+        strptime(srcstr, "%s", &tmr);
+        free(srcstr);
+        strftime(timestr, TIMELENGTH, "%F %H:%M:%S", &tmr);
+
+        return timestr;
+}
+/* }}} */
+
 /* print_task {{{ */
 void
 print_task(task *tsk)
 {
         /* print a task to stdio */
+        char *timestr;
+
         printf("==============================\n");
         printf("uuid: %s\n", tsk->uuid);
         printf("tags: %s\n", tsk->tags);
-        printf("entry: %d\n", tsk->entry);
+        timestr = utc_date(tsk->entry);
+        printf("entry: %s\n", timestr);
+        free(timestr);
         printf("due: %d\n", tsk->due);
         printf("project: %s\n", tsk->project);
         printf("priority: %c\n", tsk->priority);

@@ -13,6 +13,7 @@ by mjheagle
 #define TAGSLENGTH 128
 #define PROJECTLENGTH 64
 #define DESCRIPTIONLENGTH 512
+#define TIMELENGTH 32
 
 /* static */
 #define UUIDLENGTH 33
