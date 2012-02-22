@@ -305,7 +305,7 @@ nc_main(task *head)
 
         /* print main screen */
         curs_set(0);
-        color_line(0, size[0], 1);
+        attrset(COLOR_PAIR(1));
         char *title = pad_string("task ncurses - by mjheagle", size[0], 0, 0, 'l');
         mvaddstr(0, 0, title);
         free(title);
@@ -352,6 +352,16 @@ nc_main(task *head)
                         case 'r': // reload task list
                                 reload_tasks(&head);
                                 wipe_screen(1, size);
+                                taskcount = task_count(head);
+                                redraw = 1;
+                                break;
+                        case 'u': // undo
+                                def_prog_mode();
+                                endwin();
+                                system("task undo");
+                                refresh();
+                                wipe_screen(1, size);
+                                reload_tasks(&head);
                                 taskcount = task_count(head);
                                 redraw = 1;
                                 break;
