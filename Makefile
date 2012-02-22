@@ -9,7 +9,7 @@ cflags = -Wall -g -Wextra
 all: tasknc
 
 tasknc: tasknc.c config.h
-		$(cc) $(cflags) tasknc.c -o tasknc
+		$(cc) $(cflags) tasknc.c -o tasknc -lncurses
 
 clean:
 		rm tasknc

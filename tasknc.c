@@ -3,11 +3,13 @@
  * by mjheagle
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <curses.h>
+#include <signal.h>
 #include "config.h"
 
 /* struct definitions {{{ */
@@ -34,6 +36,10 @@ task *parse_task(char *);
 char free_task(task *);
 void print_task(task *);
 char *utc_date(unsigned int);
+void nc_main(task *);
+void print_task_list(task *);
+void nc_end(int);
+char max_project_length(task *);
 /* }}} */
 
 /* main {{{ */
@@ -42,13 +48,21 @@ main(int argc, char **argv)
 {
         task *head, *cur;
 
+        /* build task list */
         head = get_tasks();
+
+        /* test uusing stdio */
         cur = head;
         while (cur!=NULL)
         {
-                print_task(cur);
+                /* print_task(cur); */
                 cur = cur->next;
         }
+
+        /* run ncurses */
+        nc_main(head);
+        nc_end(0);
+
 
         // done
         return 0;
@@ -243,5 +257,92 @@ print_task(task *tsk)
         printf("priority: %c\n", tsk->priority);
         printf("description: %s\n", tsk->description);
         puts("\n");
+}
+/* }}} */
+
+/* nc_main {{{ */
+void
+nc_main(task *head)
+{
+        WINDOW *stdscr;
+        int c;
+        int size[2];
+        char *pos;
+
+        puts("starting ncurses...");
+        stdscr = signal(SIGINT, nc_end);
+        if ((stdscr = initscr()) == NULL ) {
+            fprintf(stderr, "Error initialising ncurses.\n");
+            exit(EXIT_FAILURE);
+        }
+        keypad(stdscr, TRUE);   /* enable keyboard mapping */
+        nonl();                 /* tell curses not to do NL->CR/NL on output */
+        cbreak();               /* take input chars one at a time, no wait for \n */
+        noecho();               /* dont echo input */
+
+        getmaxyx(stdscr, size[1], size[0]);
+
+        mvaddstr(0, 0, "task ncurses - by mjheagle");
+        pos = malloc(8*sizeof(char));
+        sprintf(pos, "(%d, %d)", size[0], size[1]);
+        mvaddstr(0, 30, pos);
+        free(pos);
+        print_task_list(head);
+        refresh();
+        c = getch();
+
+        delwin(stdscr);
+}
+/* }}} */
+
+/* print_task_list {{{ */
+void
+print_task_list(task *head)
+{
+        task *cur;
+        char counter = 0;
+        char *line;
+        char projlen = max_project_length(head);
+
+        cur = head;
+        while (cur!=NULL)
+        {
+                mvaddstr(counter+1, 0, cur->project);
+                mvaddstr(counter+1, projlen+2, cur->description);
+                counter++;
+                cur = cur->next;
+        }
+
+        return;
+}
+/* }}} */
+
+/* nc_end {{{ */
+void
+nc_end(int sig)
+{
+        endwin();
+        /* free all structs here */
+        exit(0);
+}
+/* }}} */
+
+/* max_project_length {{{ */
+char 
+max_project_length(task *head)
+{
+        char len = 0;
+        task *cur;
+
+        cur = head;
+        while (cur!=NULL)
+        {
+                char l = strlen(cur->project);
+                if (l>len)
+                        len = l;
+                cur = cur->next;
+        }
+
+        return len;
 }
 /* }}} */
