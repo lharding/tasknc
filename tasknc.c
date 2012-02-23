@@ -13,7 +13,7 @@
 #include "config.h"
 
 /* struct definitions {{{ */
-struct _task
+typedef struct _task
 {
         unsigned short index;
         char *uuid;
@@ -25,9 +25,9 @@ struct _task
         char *project;
         char priority;
         char *description;
+        struct _task *prev;
         struct _task *next;
-};
-typedef struct _task task;
+} task;
 /* }}} */
 
 /* function declarations {{{ */
@@ -100,6 +100,7 @@ get_tasks()
                 {
                         this = parse_task(line);
                         this->index = counter;
+                        this->prev = last;
                 }
                 if (counter==1)
                         head = this;
