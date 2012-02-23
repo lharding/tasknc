@@ -40,7 +40,7 @@ char *utc_date(unsigned int);
 void nc_main(task *);
 void nc_colors();
 void color_line(char, char, char);
-void print_task_list(task *, short, short, short);
+void print_task_list(task *, short, short, short, short);
 void nc_end(int);
 char max_project_length(task *);
 char task_count(task *);
@@ -245,7 +245,7 @@ utc_date(unsigned int timeint)
         sprintf(srcstr, "%d", timeint);
         strptime(srcstr, "%s", &tmr);
         free(srcstr);
-        strftime(timestr, TIMELENGTH, "%F %H:%M:%S", &tmr);
+        strftime(timestr, TIMELENGTH, "%F", &tmr);
 
         return timestr;
 }
@@ -285,6 +285,7 @@ nc_main(task *head)
         char taskcount;
         short projlen = max_project_length(head);
         short desclen;
+        short datelen = DATELENGTH;
 
         /* initialize ncurses */
         puts("starting ncurses...");
@@ -301,7 +302,7 @@ nc_main(task *head)
 
         /* set variables */
         getmaxyx(stdscr, size[1], size[0]);
-        desclen = size[0]-projlen-1;
+        desclen = size[0]-projlen-1-datelen;
         taskcount = task_count(head);
 
         /* print main screen */
@@ -315,7 +316,7 @@ nc_main(task *head)
         mvaddstr(0, 30, pos);
         free(pos);
         attrset(COLOR_PAIR(0));
-        print_task_list(head, selline, projlen, desclen);
+        print_task_list(head, selline, projlen, desclen, datelen);
         refresh();
 
         /* main loop */
@@ -405,7 +406,7 @@ nc_main(task *head)
                 if (done==1)
                         break;
                 if (redraw==1)
-                        print_task_list(head, selline, projlen, desclen);
+                        print_task_list(head, selline, projlen, desclen, datelen);
                         refresh();
         }
 
@@ -459,7 +460,7 @@ color_line(char lineno, char width, char color)
 
 /* print_task_list {{{ */
 void
-print_task_list(task *head, short selected, short projlen, short desclen)
+print_task_list(task *head, short selected, short projlen, short desclen, short datelen)
 {
         task *cur;
         short counter = 0;
@@ -478,8 +479,28 @@ print_task_list(task *head, short selected, short projlen, short desclen)
                 mvaddstr(counter+1, 0, bufstr);
                 free(bufstr);
                 attrset(COLOR_PAIR(3+3*sel));
-                bufstr = pad_string(cur->description, desclen, 0, 0, 'l');
+                bufstr = pad_string(cur->description, desclen, 0, 1, 'l');
                 mvaddstr(counter+1, projlen+1, bufstr);
+                free(bufstr);
+                attrset(COLOR_PAIR(4+3*sel));
+                if (cur->due)
+                {
+                        char *tmp;
+                        tmp = utc_date(cur->due);
+                        bufstr = pad_string(tmp, datelen, 0, 0, 'r');
+                        free(tmp);
+                }
+                else if (cur->priority)
+                {
+                        char *tmp;
+                        tmp = malloc(2*sizeof(char));
+                        sprintf(tmp, "%c", cur->priority);
+                        bufstr = pad_string(tmp, datelen, 0, 0, 'r');
+                        free(tmp);
+                }
+                else
+                        bufstr = pad_string(" ", datelen, 0, 0, 'r');
+                mvaddstr(counter+1, projlen+desclen+1, bufstr);
                 free(bufstr);
                 counter++;
                 cur = cur->next;
