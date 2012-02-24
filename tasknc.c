@@ -54,6 +54,7 @@ void swap_tasks(task *, task *);
 void log(const char *);
 char *strip_quotes(char *);
 void task_add(char);
+void print_title(int);
 /* }}} */
 
 /* main {{{ */
@@ -331,6 +332,7 @@ nc_main(task *head)
         cbreak();               /* take input chars one at a time, no wait for \n */
         noecho();               /* dont echo input */
         nc_colors();            /* initialize colors */
+        curs_set(0);            /* set cursor invisible */
 
         /* set variables */
         getmaxyx(stdscr, size[1], size[0]);
@@ -338,15 +340,7 @@ nc_main(task *head)
         taskcount = task_count(head);
 
         /* print main screen */
-        curs_set(0);
-        attrset(COLOR_PAIR(1));
-        char *title = pad_string("task ncurses - by mjheagle", size[0], 0, 0, 'l');
-        mvaddstr(0, 0, title);
-        free(title);
-        pos = malloc(16*sizeof(char));
-        sprintf(pos, "(%d, %d)", size[0], size[1]);
-        mvaddstr(0, 30, pos);
-        free(pos);
+        print_title(size[0]);
         attrset(COLOR_PAIR(0));
         print_task_list(head, selline, projlen, desclen, datelen);
         refresh();
@@ -445,13 +439,14 @@ nc_main(task *head)
                         default: // unhandled
                                 break;
                 }
-                char cstr[] = {c, NULL};
-                mvaddstr(0, 40, cstr);
                 if (done==1)
                         break;
                 if (redraw==1)
+                {
+                        print_title(size[0]);
                         print_task_list(head, selline, projlen, desclen, datelen);
                         refresh();
+                }
         }
 
         delwin(stdscr);
@@ -857,5 +852,17 @@ strip_quotes(char *base)
                 base[len-1] = '\0';
 
         return base;
+}
+/* }}} */
+
+/* print_title {{{ */
+void
+print_title(int width)
+{
+        /* print the title of the window */
+        attrset(COLOR_PAIR(1));
+        char *title = pad_string("task ncurses - by mjheagle", width, 0, 0, 'l');
+        mvaddstr(0, 0, title);
+        free(title);
 }
 /* }}} */
