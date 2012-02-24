@@ -53,6 +53,7 @@ void check_curs_pos(short *, char);
 void swap_tasks(task *, task *);
 void log(const char *);
 char *strip_quotes(char *);
+void task_add(char);
 /* }}} */
 
 /* main {{{ */
@@ -404,7 +405,7 @@ nc_main(task *head)
                                 check_curs_pos(&selline, taskcount);
                                 redraw = 1;
                                 break;
-                        case 'd': // complete
+                        case 'd': // delete
                                 def_prog_mode();
                                 endwin();
                                 task_action(head, selline, ACTION_DELETE);
@@ -415,10 +416,22 @@ nc_main(task *head)
                                 wipe_screen(1, size);
                                 redraw = 1;
                                 break;
-                        case 'c':
+                        case 'c': // complete
                                 def_prog_mode();
                                 endwin();
                                 task_action(head, selline, ACTION_COMPLETE);
+                                refresh();
+                                reload_tasks(&head);
+                                taskcount = task_count(head);
+                                check_curs_pos(&selline, taskcount);
+                                wipe_screen(1, size);
+                                redraw = 1;
+                                break;
+                        case 'a': // add new
+                        case 'n':
+                                def_prog_mode();
+                                endwin();
+                                task_add(taskcount);
                                 refresh();
                                 reload_tasks(&head);
                                 taskcount = task_count(head);
@@ -468,7 +481,22 @@ nc_colors()
 void
 nc_end(int sig)
 {
+        /* terminate ncurses */
         endwin();
+        
+        switch (sig)
+        {
+                case SIGINT:
+                        puts("aborted");
+                        break;
+                case SIGSEGV:
+                        puts("SEGFAULT");
+                        break;
+                default:
+                        puts("done");
+                        break;
+        }
+
         /* free all structs here */
         exit(0);
 }
@@ -665,6 +693,28 @@ task_action(task *head, short pos, char action)
 }
 /* }}} */
 
+/* task_add {{{ */
+void
+task_add(char taskcount)
+{
+        /* create a new task by adding a generic task
+         * then letting the user edit it
+         */
+        char *cmd;
+
+        /* add new task */
+        puts("task add new task");
+        system("task add new task");
+
+        /* edit task */
+        cmd = malloc(32*sizeof(char));
+        sprintf(cmd, "task edit %d", taskcount+1);
+        puts(cmd);
+        system(cmd);
+        free(cmd);
+}
+/* }}} */
+
 /* wipe_screen {{{ */
 void
 wipe_screen(short start, int size[2])
@@ -794,7 +844,6 @@ char *
 strip_quotes(char *base)
 {
         /* remove the first and last character from a string (quotes) */
-        char *pos;
         int len;
 
         /* remove first char */
@@ -802,10 +851,10 @@ strip_quotes(char *base)
         len = strlen(base);
 
         /* remove last char - TODO: clean this up */
-        if (base[strlen(base)-1] != '\'')
-                base[strlen(base)-2] = '\0';
+        if (base[len-1] != '\'')
+                base[len-2] = '\0';
         else
-                base[strlen(base)-1] = '\0';
+                base[len-1] = '\0';
 
         return base;
 }
