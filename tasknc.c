@@ -49,6 +49,7 @@ void task_action(task *, short, char);
 void wipe_screen(short, int[2]);
 void reload_tasks(task **);
 void check_curs_pos(short *, char);
+void swap_tasks(task *, task *);
 /* }}} */
 
 /* main {{{ */
@@ -681,5 +682,57 @@ check_curs_pos(short *pos, char tasks)
                 *pos = 0;
         if ((*pos)>=tasks)
                 *pos = tasks-1;
+}
+/* }}} */
+
+/* swap_tasks {{{ */
+void
+swap_tasks(task *a, task *b)
+{
+        /* swap the contents of two tasks */
+        unsigned short ustmp;
+        unsigned int uitmp;
+        char *strtmp;
+        char ctmp;
+
+        ustmp = a->index;
+        a->index = b->index;
+        b->index = ustmp;
+
+        strtmp = a->uuid;
+        a->uuid = b->uuid;
+        b->uuid = strtmp;
+
+        strtmp = a->tags;
+        a->tags = b->tags;
+        b->tags = strtmp;
+
+        uitmp = a->start;
+        a->start = b->start;
+        b->start = uitmp;
+
+        uitmp = a->end;
+        a->end = b->end;
+        b->end = uitmp;
+
+        uitmp = a->entry;
+        a->entry = b->entry;
+        b->entry = uitmp;
+
+        uitmp = a->due;
+        a->due = b->due;
+        b->due = uitmp;
+
+        strtmp = a->project;
+        a->project = b->project;
+        b->project = strtmp;
+
+        ctmp = a->priority;
+        a->priority = b->priority;
+        b->priority = ctmp;
+
+        strtmp = a->description;
+        a->description = b->description;
+        b->description = strtmp;
 }
 /* }}} */
