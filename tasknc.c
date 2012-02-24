@@ -124,6 +124,9 @@ get_tasks()
 task *
 malloc_task()
 {
+        /* allocate memory for a new task 
+         * and initialize values where ncessary 
+         */
         task *tsk = malloc(sizeof(task));
 
         tsk->uuid = NULL;
@@ -131,6 +134,12 @@ malloc_task()
         tsk->project = NULL;
         tsk->description = NULL;
         tsk->next = NULL;
+        tsk->start = 0;
+        tsk->due = 0;
+        tsk->end = 0;
+        tsk->entry = 0;
+        tsk->index = 0;
+        tsk->priority = 0;
 
         return tsk;
 }
@@ -546,7 +555,7 @@ max_project_length(task *head)
                 cur = cur->next;
         }
 
-        return len;
+        return len+1;
 }
 /* }}} */
 
@@ -793,7 +802,7 @@ strip_quotes(char *base)
         len = strlen(base);
 
         /* remove last char - TODO: clean this up */
-        if (base[strlen(base)-1] != "'")
+        if (base[strlen(base)-1] != '\'')
                 base[strlen(base)-2] = '\0';
         else
                 base[strlen(base)-1] = '\0';
