@@ -281,14 +281,13 @@ nc_main(task *head)
 {
         /* ncurses main function */
         WINDOW *stdscr;
-        int c;
-        int size[2];
+        int c, tmp, size[2], oldsize[2];
         char *pos;
         short selline = 0;
         char taskcount;
         short projlen = max_project_length(head);
         short desclen;
-        short datelen = DATELENGTH;
+        const short datelen = DATELENGTH;
 
         /* initialize ncurses */
         puts("starting ncurses...");
@@ -305,13 +304,11 @@ nc_main(task *head)
         nc_colors();            /* initialize colors */
         curs_set(0);            /* set cursor invisible */
 
-        /* set variables */
-        getmaxyx(stdscr, size[1], size[0]);
-        desclen = size[0]-projlen-1-datelen;
-        taskcount = task_count(head);
-
         /* print main screen */
-        print_title(size[0]);
+        getmaxyx(stdscr, oldsize[1], oldsize[0]);
+        desclen = oldsize[0]-projlen-1-datelen;
+        taskcount = task_count(head);
+        print_title(oldsize[0]);
         attrset(COLOR_PAIR(0));
         print_task_list(head, selline, projlen, desclen, datelen);
         refresh();
@@ -321,6 +318,11 @@ nc_main(task *head)
         {
                 char done = 0;
                 char redraw = 0;
+                getmaxyx(stdscr, size[1], size[0]);
+                if (size[0]!=oldsize[0] || size[1]!=oldsize[1])
+                        redraw = 1;
+                for (tmp=0; tmp<2; tmp++)
+                        oldsize[tmp] = size[tmp];
 
                 c = getch();
 
@@ -422,6 +424,8 @@ nc_main(task *head)
                         break;
                 if (redraw==1)
                 {
+                        projlen = max_project_length(head);
+                        desclen = size[0]-projlen-1-datelen;
                         print_title(size[0]);
                         print_task_list(head, selline, projlen, desclen, datelen);
                         refresh();
