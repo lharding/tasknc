@@ -35,6 +35,7 @@ task *get_tasks();
 task *malloc_task();
 task *parse_task(char *);
 char free_task(task *);
+void free_tasks(task *);
 void print_task(task *);
 char *utc_date(unsigned int);
 void nc_main(task *);
@@ -72,9 +73,9 @@ main(int argc, char **argv)
         /* run ncurses */
         nc_main(head);
         nc_end(0);
-
-
+        
         // done
+        free_tasks(head);
         return 0;
 }
 /* }}} */
@@ -110,6 +111,7 @@ get_tasks()
                 last = this;
                 counter++;
         }
+        pclose(cmd);
 
         return head;
 }
@@ -121,10 +123,10 @@ malloc_task()
 {
         task *tsk = malloc(sizeof(task));
 
-        tsk->uuid = malloc(UUIDLENGTH*sizeof(char));
-        tsk->tags = malloc(TAGSLENGTH*sizeof(char));
-        tsk->project = malloc(PROJECTLENGTH*sizeof(char));
-        tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
+        tsk->uuid = NULL;
+        tsk->tags = NULL;
+        tsk->project = NULL;
+        tsk->description = NULL;
         tsk->next = NULL;
 
         return tsk;
@@ -149,6 +151,7 @@ parse_task(char *line)
                 switch (counter)
                 {
                         case 0: // uuid
+                                tsk->uuid = malloc(UUIDLENGTH*sizeof(char));
                                 ret = sscanf(token, "'%[^\']'", tsk->uuid);
                                 if (ret==0)
                                 {
@@ -159,6 +162,7 @@ parse_task(char *line)
                         case 1: // status
                                 break;
                         case 2: // tags
+                                tsk->tags = malloc(TAGSLENGTH*sizeof(char));
                                 ret = sscanf(token, "'%[^\']'", tsk->tags);
                                 if (ret==0)
                                 {
@@ -186,6 +190,7 @@ parse_task(char *line)
                                 ret = sscanf(token, "%d", &tsk->end);
                                 break;
                         case 8: // project
+                                tsk->project = malloc(PROJECTLENGTH*sizeof(char));
                                 ret = sscanf(token, "'%[^\']'", tsk->project);
                                 if (ret==0)
                                 {
@@ -201,6 +206,7 @@ parse_task(char *line)
                         case 11: // bg
                                 break;
                         case 12: // description
+                                tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
                                 ret = sscanf(token, "'%[^\']'", tsk->description);
                                 break;
                         default:
@@ -231,6 +237,23 @@ free_task(task *tsk)
         free(tsk);
 
         return ret;
+}
+/* }}} */
+
+/* free_tasks {{{ */
+void
+free_tasks(task *head)
+{
+        /* free the task stack */
+        task *cur, *next;
+        
+        cur = head;
+        while (cur!=NULL)
+        {
+                next = cur->next;
+                free_task(cur);
+                cur = next;
+        }
 }
 /* }}} */
 
@@ -291,7 +314,8 @@ nc_main(task *head)
 
         /* initialize ncurses */
         puts("starting ncurses...");
-        stdscr = signal(SIGINT, nc_end);
+        signal(SIGINT, nc_end);
+        signal(SIGSEGV, nc_end);
         if ((stdscr = initscr()) == NULL ) {
             fprintf(stderr, "Error initialising ncurses.\n");
             exit(EXIT_FAILURE);
@@ -313,7 +337,7 @@ nc_main(task *head)
         char *title = pad_string("task ncurses - by mjheagle", size[0], 0, 0, 'l');
         mvaddstr(0, 0, title);
         free(title);
-        pos = malloc(8*sizeof(char));
+        pos = malloc(16*sizeof(char));
         sprintf(pos, "(%d, %d)", size[0], size[1]);
         mvaddstr(0, 30, pos);
         free(pos);
@@ -485,7 +509,7 @@ print_task_list(task *head, short selected, short projlen, short desclen, short 
                 mvaddstr(counter+1, projlen+1, bufstr);
                 free(bufstr);
                 attrset(COLOR_PAIR(4+3*sel));
-                if (cur->due)
+                if (cur->due!=NULL)
                 {
                         char *tmp;
                         tmp = utc_date(cur->due);
@@ -662,12 +686,7 @@ reload_tasks(task **headptr)
         task *cur, *next;
 
         cur = *headptr;
-        while (cur!=NULL)
-        {
-                next = cur->next;
-                free_task(cur);
-                cur = next;
-        }
+        free_tasks(cur);
 
         (*headptr) = get_tasks();
 }

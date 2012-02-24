@@ -16,7 +16,7 @@ by mjheagle
 #define TIMELENGTH 32
 
 /* static */
-#define UUIDLENGTH 33
+#define UUIDLENGTH 38
 #define DATELENGTH 10
 #define ACTION_EDIT 0
 #define ACTION_COMPLETE 1
