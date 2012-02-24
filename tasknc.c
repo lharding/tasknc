@@ -329,6 +329,7 @@ nc_main(task *head)
                 switch (c)
                 {
                         case 'k': // scroll up
+                        case KEY_UP:
                                 if (selline>0)
                                 {
                                         selline--;
@@ -337,6 +338,7 @@ nc_main(task *head)
                                 check_curs_pos(&selline, taskcount);
                                 break;
                         case 'j': // scroll down
+                        case KEY_DOWN:
                                 if (selline<taskcount-1)
                                 {
                                         selline++;
