@@ -371,6 +371,14 @@ nc_main(task *head)
                                 }
                                 check_curs_pos(&selline, taskcount);
                                 break;
+                        case KEY_HOME: // go to first entry
+                                selline = 0;
+                                redraw = 1;
+                                break;
+                        case KEY_END: // go to last entry
+                                selline = taskcount-1;
+                                redraw = 1;
+                                break;
                         case 'e': // edit task
                                 def_prog_mode();
                                 endwin();
