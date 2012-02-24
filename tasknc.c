@@ -66,14 +66,6 @@ main(int argc, char **argv)
         /* build task list */
         head = get_tasks();
 
-        /* test uusing stdio */
-        cur = head;
-        while (cur!=NULL)
-        {
-                /* print_task(cur); */
-                cur = cur->next;
-        }
-
         /* run ncurses */
         log("running gui");
         nc_main(head);
@@ -280,27 +272,6 @@ utc_date(unsigned int timeint)
         strftime(timestr, TIMELENGTH, "%F", &tmr);
 
         return timestr;
-}
-/* }}} */
-
-/* print_task {{{ */
-void
-print_task(task *tsk)
-{
-        /* print a task to stdio */
-        char *timestr;
-
-        printf("==============================\n");
-        printf("uuid: %s\n", tsk->uuid);
-        printf("tags: %s\n", tsk->tags);
-        timestr = utc_date(tsk->entry);
-        printf("entry: %s\n", timestr);
-        free(timestr);
-        printf("due: %d\n", tsk->due);
-        printf("project: %s\n", tsk->project);
-        printf("priority: %c\n", tsk->priority);
-        printf("description: %s\n", tsk->description);
-        puts("\n");
 }
 /* }}} */
 
@@ -537,7 +508,10 @@ print_task_list(task *head, short selected, short projlen, short desclen, short 
                 else
                         sel = 0;
                 attrset(COLOR_PAIR(2+3*sel));
-                bufstr = pad_string(cur->project, projlen, 0, 1, 'r');
+                if (cur->project==NULL)
+                        bufstr = pad_string(" ", projlen, 0, 1, 'r');
+                else
+                        bufstr = pad_string(cur->project, projlen, 0, 1, 'r');
                 mvaddstr(counter+1, 0, bufstr);
                 free(bufstr);
                 attrset(COLOR_PAIR(3+3*sel));
@@ -580,9 +554,12 @@ max_project_length(task *head)
         cur = head;
         while (cur!=NULL)
         {
-                char l = strlen(cur->project);
-                if (l>len)
-                        len = l;
+                if (cur->project!=NULL)
+                {
+                        char l = strlen(cur->project);
+                        if (l>len)
+                                len = l;
+                }
                 cur = cur->next;
         }
 
