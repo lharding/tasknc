@@ -14,9 +14,10 @@ by mjheagle
 #define PROJECTLENGTH 64
 #define DESCRIPTIONLENGTH 512
 #define TIMELENGTH 32
+#define LOGFILE "runlog"
 
 /* static */
-#define UUIDLENGTH 38
+#define UUIDLENGTH 64 /* only needs to be 38, added for debug */
 #define DATELENGTH 10
 #define ACTION_EDIT 0
 #define ACTION_COMPLETE 1

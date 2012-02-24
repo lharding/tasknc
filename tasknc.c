@@ -51,6 +51,8 @@ void wipe_screen(short, int[2]);
 void reload_tasks(task **);
 void check_curs_pos(short *, char);
 void swap_tasks(task *, task *);
+void log(const char *);
+char *strip_quotes(char *);
 /* }}} */
 
 /* main {{{ */
@@ -71,10 +73,11 @@ main(int argc, char **argv)
         }
 
         /* run ncurses */
+        log("running gui");
         nc_main(head);
         nc_end(0);
-        
-        // done
+
+        /* done */
         free_tasks(head);
         return 0;
 }
@@ -144,7 +147,7 @@ parse_task(char *line)
         token = strtok(line, ",");
         while (token != NULL)
         {
-                int ret;
+                int tmp;
                 lastchar = token;
                 while (*(--lastchar) == ',')
                         counter++;
@@ -152,54 +155,42 @@ parse_task(char *line)
                 {
                         case 0: // uuid
                                 tsk->uuid = malloc(UUIDLENGTH*sizeof(char));
-                                ret = sscanf(token, "'%[^\']'", tsk->uuid);
-                                if (ret==0)
-                                {
-                                        free_task(tsk);
-                                        return NULL;
-                                }
+                                token = strip_quotes(token);
+                                sprintf(tsk->uuid, "%s", token);
                                 break;
                         case 1: // status
                                 break;
                         case 2: // tags
                                 tsk->tags = malloc(TAGSLENGTH*sizeof(char));
-                                ret = sscanf(token, "'%[^\']'", tsk->tags);
-                                if (ret==0)
-                                {
-                                        free(tsk->tags);
-                                        tsk->tags = NULL;
-                                }
+                                token = strip_quotes(token);
+                                sprintf(tsk->tags, "%s", token);
                                 break;
                         case 3: // entry
-                                ret = sscanf(token, "%d", &tsk->entry);
-                                if (ret==0)
+                                tmp = sscanf(token, "%d", &tsk->entry);
+                                if (tmp==0)
                                 {
                                         free_task(tsk);
                                         return NULL;
                                 }
                                 break;
                         case 4: // start
-                                ret = sscanf(token, "%d", &tsk->start);
+                                tmp = sscanf(token, "%d", &tsk->start);
                                 break;
                         case 5: // due
-                                ret = sscanf(token, "%d", &tsk->due);
+                                tmp = sscanf(token, "%d", &tsk->due);
                                 break;
                         case 6: // recur
                                 break;
                         case 7: // end
-                                ret = sscanf(token, "%d", &tsk->end);
+                                tmp = sscanf(token, "%d", &tsk->end);
                                 break;
                         case 8: // project
                                 tsk->project = malloc(PROJECTLENGTH*sizeof(char));
-                                ret = sscanf(token, "'%[^\']'", tsk->project);
-                                if (ret==0)
-                                {
-                                        free(tsk->project);
-                                        tsk->project = NULL;
-                                }
+                                token = strip_quotes(token);
+                                sprintf(tsk->project, "%s", token);
                                 break;
                         case 9: // priority
-                                ret = sscanf(token, "'%c'", &tsk->priority);
+                                tmp = sscanf(token, "'%c'", &tsk->priority);
                                 break;
                         case 10: // fg
                                 break;
@@ -207,7 +198,9 @@ parse_task(char *line)
                                 break;
                         case 12: // description
                                 tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
-                                ret = sscanf(token, "'%[^\']'", tsk->description);
+                                token = strip_quotes(token);
+                                log(token);
+                                sprintf(tsk->description, "%s", token);
                                 break;
                         default:
                                 break;
@@ -215,6 +208,9 @@ parse_task(char *line)
                 token = strtok(NULL, ",");
                 counter++;
         }
+        
+        if (tsk->description==NULL || tsk->entry==0 || tsk->uuid==NULL)
+                return NULL;
 
         return tsk;
 }
@@ -683,12 +679,27 @@ wipe_screen(short start, int size[2])
 void
 reload_tasks(task **headptr)
 {
-        task *cur, *next;
+        /* reset head with a new list of tasks */
+        task *cur;
+
+        log("reloading tasks"); // debug
 
         cur = *headptr;
         free_tasks(cur);
 
         (*headptr) = get_tasks();
+
+        /* debug */
+        cur = *headptr;
+        while (cur!=NULL)
+        {
+                char *buffer;
+                buffer = malloc(16*1024*sizeof(char));
+                sprintf(buffer, "%d,%s,%s,%d,%d,%d,%d,%s,%c,%s", cur->index, cur->uuid, cur->tags, cur->start, cur->end, cur->entry, cur->due, cur->project, cur->priority, cur->description);
+                log(buffer);
+                free(buffer);
+                cur = cur->next;
+        }
 }
 /* }}} */
 
@@ -753,5 +764,40 @@ swap_tasks(task *a, task *b)
         strtmp = a->description;
         a->description = b->description;
         b->description = strtmp;
+}
+/* }}} */
+
+/* log {{{ */
+void
+log(const char *msg)
+{
+        /* log a message to a file */
+        FILE *fp;
+
+        fp = fopen(LOGFILE, "a");
+        fprintf(fp, "%s\n", msg);
+        fclose(fp);
+}
+/* }}} */
+
+/* strip_quotes {{{ */
+char *
+strip_quotes(char *base)
+{
+        /* remove the first and last character from a string (quotes) */
+        char *pos;
+        int len;
+
+        /* remove first char */
+        base++;
+        len = strlen(base);
+
+        /* remove last char - TODO: clean this up */
+        if (base[strlen(base)-1] != "'")
+                base[strlen(base)-2] = '\0';
+        else
+                base[strlen(base)-1] = '\0';
+
+        return base;
 }
 /* }}} */
