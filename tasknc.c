@@ -33,28 +33,26 @@ typedef struct _task
 /* function declarations {{{ */
 task *get_tasks();
 task *malloc_task();
-task *parse_task(char *);
+task *parse_task(const char *);
 char free_task(task *);
 void free_tasks(task *);
-void print_task(task *);
-char *utc_date(unsigned int);
+char *utc_date(const unsigned int);
 void nc_main(task *);
 void nc_colors();
-void color_line(char, char, char);
-void print_task_list(task *, short, short, short, short);
+void print_task_list(const task *, const short, const short, const short, const short);
 void nc_end(int);
-char max_project_length(task *);
-char task_count(task *);
-char *pad_string(char *, int, int, int, char);
-void task_action(task *, short, char);
-void wipe_screen(short, int[2]);
+char max_project_length(const task *);
+char task_count(const task *);
+char *pad_string(char *, int, const int, int, const char);
+void task_action(task *, const short, const char);
+void wipe_screen(const short, const int[2]);
 void reload_tasks(task **);
-void check_curs_pos(short *, char);
+void check_curs_pos(short *, const char);
 void swap_tasks(task *, task *);
 void log(const char *, const char);
 char *strip_quotes(char *);
-void task_add(char);
-void print_title(int);
+void task_add(const char);
+void print_title(const int);
 void help();
 /* }}} */
 
@@ -194,7 +192,7 @@ malloc_task()
 
 /* parse_task {{{ */
 task *
-parse_task(char *line)
+parse_task(const char *line)
 {
         task *tsk = malloc_task();
         char *token, *lastchar;
@@ -310,7 +308,7 @@ free_tasks(task *head)
 
 /* utc_date {{{ */
 char *
-utc_date(unsigned int timeint)
+utc_date(const unsigned int timeint)
 {
         /* convert a utc time uint to a string */
         struct tm tmr;
@@ -534,24 +532,9 @@ nc_end(int sig)
 }
 /* }}} */
 
-/* color_line {{{ */
-void
-color_line(char lineno, char width, char color)
-{
-        char *str;
-        char i;
-
-        str = malloc((width+1)*sizeof(char));
-        for (i=0; i<width; i++)
-                str[i] = ' ';
-        attrset(COLOR_PAIR(color));
-        mvaddstr(lineno, 0, str);
-}
-/* }}} */
-
 /* print_task_list {{{ */
 void
-print_task_list(task *head, short selected, short projlen, short desclen, short datelen)
+print_task_list(const task *head, const short selected, const short projlen, const short desclen, const short datelen)
 {
         task *cur;
         short counter = 0;
@@ -604,7 +587,7 @@ print_task_list(task *head, short selected, short projlen, short desclen, short 
 
 /* max_project_length {{{ */
 char 
-max_project_length(task *head)
+max_project_length(const task *head)
 {
         char len = 0;
         task *cur;
@@ -627,7 +610,7 @@ max_project_length(task *head)
 
 /* task_count {{{ */
 char
-task_count(task *head)
+task_count(const task *head)
 {
         char count = 0;
         task *cur;
@@ -645,7 +628,7 @@ task_count(task *head)
 
 /* pad_string {{{ */
 char *
-pad_string(char *str, int length, int lpad, int rpad, char align)
+pad_string(char *str, int length, const int lpad, int rpad, const char align)
 {
         /* function to add padding to strings and align them with spaces */
         char *ft;
@@ -690,7 +673,7 @@ pad_string(char *str, int length, int lpad, int rpad, char align)
 
 /* task_action {{{ */
 void
-task_action(task *head, short pos, char action)
+task_action(task *head, const short pos, const char action)
 {
         /* spawn a command to complete a task */
         task *cur;
@@ -733,7 +716,7 @@ task_action(task *head, short pos, char action)
 
 /* task_add {{{ */
 void
-task_add(char taskcount)
+task_add(const char taskcount)
 {
         /* create a new task by adding a generic task
          * then letting the user edit it
@@ -755,7 +738,7 @@ task_add(char taskcount)
 
 /* wipe_screen {{{ */
 void
-wipe_screen(short start, int size[2])
+wipe_screen(const short start, const int size[2])
 {
         /* clear the screen */
         int pos;
@@ -802,7 +785,7 @@ reload_tasks(task **headptr)
 
 /* check_curs_pos {{{ */
 void
-check_curs_pos(short *pos, char tasks) 
+check_curs_pos(short *pos, const char tasks) 
 {
         /* check if the cursor is in a valid position */
         if ((*pos)<0)
@@ -905,7 +888,7 @@ strip_quotes(char *base)
 
 /* print_title {{{ */
 void
-print_title(int width)
+print_title(const int width)
 {
         /* print the title of the window */
         attrset(COLOR_PAIR(1));
