@@ -51,29 +51,82 @@ void wipe_screen(short, int[2]);
 void reload_tasks(task **);
 void check_curs_pos(short *, char);
 void swap_tasks(task *, task *);
-void log(const char *);
+void log(const char *, const char);
 char *strip_quotes(char *);
 void task_add(char);
 void print_title(int);
+void help();
+/* }}} */
+
+/* global variables {{{ */
+char loglvl = 0;
 /* }}} */
 
 /* main {{{ */
 int
 main(int argc, char **argv)
 {
-        task *head, *cur;
+        /* declare variables */
+        task *head;
+        int c;
+
+        /* handle arguments */
+        while ((c = getopt(argc, argv, "l:hv")) != -1)
+        {
+                switch (c)
+                {
+                        case 'l':
+                                loglvl = (char) atoi(optarg);
+                                printf("loglevel: %d\n", (int)loglvl);
+                                break;
+                        case 'v':
+                                version();
+                                return 0;
+                                break;
+                        case 'h':
+                        case '?':
+                                help();
+                                return 0;
+                                break;
+                        default:
+                                return 1;
+                }
+        }
 
         /* build task list */
         head = get_tasks();
 
         /* run ncurses */
-        log("running gui");
+        log("running gui", 1);
         nc_main(head);
         nc_end(0);
 
         /* done */
         free_tasks(head);
+        log("exiting", 1);
         return 0;
+}
+/* }}} */
+
+/* help {{{ */
+void
+help()
+{
+        /* print a list of options and program info */
+        version();
+        puts("\noptions:");
+        puts("  -l [value]: set log level");
+        puts("  -h: print this help message");
+        puts("  -v: print the version of tasknc");
+}
+/* }}} */
+
+/* version {{{ */
+void
+version()
+{
+        /* print info about the currently running program */
+        printf("%s v%s by %s\n", NAME, VERSION, AUTHOR);
 }
 /* }}} */
 
@@ -202,7 +255,6 @@ parse_task(char *line)
                         case 12: // description
                                 tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
                                 token = strip_quotes(token);
-                                log(token);
                                 sprintf(tsk->description, "%s", token);
                                 break;
                         default:
@@ -727,7 +779,7 @@ reload_tasks(task **headptr)
         /* reset head with a new list of tasks */
         task *cur;
 
-        log("reloading tasks"); // debug
+        log("reloading tasks", 1);
 
         cur = *headptr;
         free_tasks(cur);
@@ -741,7 +793,7 @@ reload_tasks(task **headptr)
                 char *buffer;
                 buffer = malloc(16*1024*sizeof(char));
                 sprintf(buffer, "%d,%s,%s,%d,%d,%d,%d,%s,%c,%s", cur->index, cur->uuid, cur->tags, cur->start, cur->end, cur->entry, cur->due, cur->project, cur->priority, cur->description);
-                log(buffer);
+                log(buffer, 2);
                 free(buffer);
                 cur = cur->next;
         }
@@ -814,11 +866,16 @@ swap_tasks(task *a, task *b)
 
 /* log {{{ */
 void
-log(const char *msg)
+log(const char *msg, const char minloglvl)
 {
         /* log a message to a file */
         FILE *fp;
 
+        /* determine if msg should be logged */
+        if (minloglvl>loglvl)
+                return;
+
+        /* write log */
         fp = fopen(LOGFILE, "a");
         fprintf(fp, "%s\n", msg);
         fclose(fp);

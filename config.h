@@ -1,9 +1,9 @@
 /*
-mplayer now playing - config
-by mjheagle
+ * tasknc config
+ * by mjheagle
 */
 
-#define NAME "task ncurses"
+#define NAME "taskwarrior ncurses shell"
 #define VERSION "0.1"
 #define AUTHOR "mjheagle"
 
