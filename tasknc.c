@@ -56,6 +56,9 @@ void task_add(const char);
 void print_title(const int);
 void help();
 void print_version();
+void sort_wrapper(task *);
+void sort_tasks(task *, task *);
+char compare_tasks(const task *, const task *);
 /* }}} */
 
 /* global variables {{{ */
@@ -95,6 +98,7 @@ main(int argc, char **argv)
 
         /* build task list */
         head = get_tasks();
+        sort_wrapper(head);
 
         /* run ncurses */
         logmsg("running gui", 1);
@@ -896,5 +900,90 @@ print_title(const int width)
         char *title = pad_string("task ncurses - by mjheagle", width, 0, 0, 'l');
         mvaddstr(0, 0, title);
         free(title);
+}
+/* }}} */
+
+/* sort_wrapper {{{ */
+void
+sort_wrapper(task *first)
+{
+        /* a wrapper around sort_tasks that finds the last element
+         * to pass to that function
+         */
+        task *last;
+
+        /* loop through looking for last item */
+        last = first;
+        while (last->next != NULL)
+                last = last->next;
+
+        /* run sort with last value */
+        sort_tasks(first, last);
+}
+/* }}} */
+
+/* sort_tasks {{{ */
+void
+sort_tasks(task *first, task *last)
+{
+        /* sort the list of tasks */
+        task *start, *cur, *oldcur;
+
+        /* check if we are done */
+        if (first==last)
+                return;
+
+        /* set start and current */
+        start = first;
+        cur = start->next;
+
+        /* iterate through to right end, sorting as we go */
+        while (1)
+        {
+                if (compare_tasks(start, cur)==1)
+                        swap_tasks(start, cur);
+                if (cur==last)
+                        break;
+                cur = cur->next;
+        }
+
+        /* swap first and cur */
+        swap_tasks(first, cur);
+
+        /* save this cur */
+        oldcur = cur;
+
+        /* sort left side */
+        cur = cur->prev;
+        if (cur != NULL)
+        {
+                if ((first->prev != cur) && (cur->next != first))
+                        sort_tasks(first, cur);
+        }
+
+        /* sort right side */
+        cur = oldcur->next;
+	if (cur != NULL)
+	{
+		if ((cur->prev != last) && (last->next != cur))
+                        sort_tasks(cur, last);
+	}
+}
+/* }}} */
+
+/* compare_tasks {{{ */
+char
+compare_tasks(const task *a, const task *b)
+{
+        /* compare two tasks to determine order */
+        char ret = 0;
+        int tmp;
+
+        /* TODO: improve comparison methods */
+        tmp = strcmp(a->project, b->project);
+        if (tmp<0)
+                ret = 1;
+
+        return ret;
 }
 /* }}} */
