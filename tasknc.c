@@ -416,7 +416,6 @@ nc_main(task *head)
                         case 'e': // edit task
                                 def_prog_mode();
                                 endwin();
-                                /* edit_task(head, selline); */
                                 task_action(head, selline, ACTION_EDIT);
                                 reload_tasks(&head);
                                 refresh();
@@ -474,6 +473,12 @@ nc_main(task *head)
                                 check_curs_pos(&selline, taskcount);
                                 wipe_screen(1, size);
                                 redraw = 1;
+                                break;
+                        case 'v': // view info
+                                def_prog_mode();
+                                endwin();
+                                task_action(head, selline, ACTION_VIEW);
+                                refresh();
                                 break;
                         case 'q': // quit
                                 done = 1;
@@ -687,8 +692,7 @@ task_action(task *head, const short pos, const char action)
         /* spawn a command to complete a task */
         task *cur;
         short p;
-        char *cmd;
-        char *actionstr;
+        char *cmd, *actionstr, wait;
         
         /* move to correct task */
         cur = head;
@@ -697,6 +701,7 @@ task_action(task *head, const short pos, const char action)
 
         /* determine action */
         actionstr = malloc(5*sizeof(char));
+        wait = 0;
         switch(action)
         {
                 case ACTION_EDIT:
@@ -708,8 +713,10 @@ task_action(task *head, const short pos, const char action)
                 case ACTION_DELETE:
                         strncpy(actionstr, "del", 4);
                         break;
+                case ACTION_VIEW:
                 default:
-                        strncpy(actionstr, "view", 5);
+                        strncpy(actionstr, "info", 5);
+                        wait = 1;
                         break;
         }
 
@@ -720,6 +727,11 @@ task_action(task *head, const short pos, const char action)
         puts(cmd);
         system(cmd);
         free(cmd);
+        if (wait)
+        {
+                puts("press ENTER to return");
+                getch();
+        }
 }
 /* }}} */
 
@@ -856,7 +868,7 @@ swap_tasks(task *a, task *b)
 }
 /* }}} */
 
-/* log {{{ */
+/* logmsg {{{ */
 void
 logmsg(const char *msg, const char minloglvl)
 {

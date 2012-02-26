@@ -22,3 +22,4 @@
 #define ACTION_EDIT 0
 #define ACTION_COMPLETE 1
 #define ACTION_DELETE 2
+#define ACTION_VIEW 3
