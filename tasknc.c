@@ -58,11 +58,12 @@ void help();
 void print_version();
 void sort_wrapper(task *);
 void sort_tasks(task *, task *);
-char compare_tasks(const task *, const task *);
+char compare_tasks(const task *, const task *, const char);
 /* }}} */
 
 /* global variables {{{ */
-char loglvl = 0;
+char loglvl = 0;        /* used by logmsg to determine whether msgs should be written to logfile */
+char sortmode = 'd';    /* used by compare_tasks to determine what algorithm to use to compare tasks */
 /* }}} */
 
 /* main {{{ */
@@ -143,10 +144,10 @@ get_tasks()
         unsigned short counter = 0;
         task *head, *last;
 
-        // run command
+        /* run command */
         cmd = popen("task export.csv status:pending", "r");
 
-        // parse output
+        /* parse output */
         last = NULL;
         head = NULL;
         while (fgets(line, sizeof(line)-1, cmd) != NULL)
@@ -166,6 +167,9 @@ get_tasks()
                 counter++;
         }
         pclose(cmd);
+
+        /* sort tasks */
+        sort_wrapper(head);
 
         return head;
 }
@@ -940,7 +944,7 @@ sort_tasks(task *first, task *last)
         /* iterate through to right end, sorting as we go */
         while (1)
         {
-                if (compare_tasks(start, cur)==1)
+                if (compare_tasks(start, cur, sortmode)==1)
                         swap_tasks(start, cur);
                 if (cur==last)
                         break;
@@ -973,16 +977,85 @@ sort_tasks(task *first, task *last)
 
 /* compare_tasks {{{ */
 char
-compare_tasks(const task *a, const task *b)
+compare_tasks(const task *a, const task *b, const char sort_mode)
 {
-        /* compare two tasks to determine order */
+        /* compare two tasks to determine order
+         * a return of 1 means that the tasks should be swapped (b comes before a)
+         */
         char ret = 0;
         int tmp;
 
-        /* TODO: improve comparison methods */
-        tmp = strcmp(a->project, b->project);
-        if (tmp<0)
-                ret = 1;
+        /* determine sort algorithm and apply it */
+        switch (sort_mode)
+        {
+                case 'n':       // sort by index
+                        if (a->index>b->index)
+                                ret = 1;
+                        break;
+                default:
+                case 'p':       // sort by project name => index
+                        if (a->project == NULL)
+                        {
+                                if (b->project != NULL)
+                                        ret = 1;
+                                break;
+                        }
+                        if (b->project == NULL)
+                                break;
+                        tmp = strcmp(a->project, b->project);
+                        if (tmp<0)
+                                ret = 1;
+                        if (tmp==0)
+                                ret = compare_tasks(a, b, 'n');
+                        break;
+                case 'd':       // sort by due date => priority => project => index
+                        if (a->due == NULL)
+                        {
+                                if (b->due == NULL)
+                                        ret = compare_tasks(a, b, 'r');
+                                break;
+                        }
+                        if (b->due == NULL)
+                        {
+                                ret = 1;
+                                break;
+                        }
+                        if (a->due<b->due)
+                                ret = 1;
+                        break;
+                case 'r':       // sort by priority => project => index
+                        if (a->priority == NULL)
+                        {
+                                if (b->priority == NULL)
+                                        ret = compare_tasks(a, b, 'p');
+                                break;
+                        }
+                        if (b->priority == NULL)
+                        {
+                                ret = 1;
+                                break;
+                        }
+                        if (a->priority == b->priority)
+                        {
+                                ret = compare_tasks(a, b, 'p');
+                                break;
+                        }
+                        switch (b->priority)
+                        {
+                                case 'H':
+                                default:
+                                        break;
+                                case 'M':
+                                        if (a->priority=='H')
+                                                ret = 1;
+                                        break;
+                                case 'L':
+                                        if (a->priority=='M' || a->priority=='H')
+                                                ret = 1;
+                                        break;
+                        }
+                        break;
+        }
 
         return ret;
 }
