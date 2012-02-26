@@ -3,13 +3,14 @@
  * by mjheagle
  */
 
+#define _XOPEN_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include <time.h>
 #include <curses.h>
 #include <signal.h>
+#include <time.h>
 #include "config.h"
 
 /* struct definitions {{{ */
@@ -49,11 +50,12 @@ void wipe_screen(const short, const int[2]);
 void reload_tasks(task **);
 void check_curs_pos(short *, const char);
 void swap_tasks(task *, task *);
-void log(const char *, const char);
+void logmsg(const char *, const char);
 char *strip_quotes(char *);
 void task_add(const char);
 void print_title(const int);
 void help();
+void print_version();
 /* }}} */
 
 /* global variables {{{ */
@@ -78,7 +80,7 @@ main(int argc, char **argv)
                                 printf("loglevel: %d\n", (int)loglvl);
                                 break;
                         case 'v':
-                                version();
+                                print_version();
                                 return 0;
                                 break;
                         case 'h':
@@ -95,13 +97,13 @@ main(int argc, char **argv)
         head = get_tasks();
 
         /* run ncurses */
-        log("running gui", 1);
+        logmsg("running gui", 1);
         nc_main(head);
         nc_end(0);
 
         /* done */
         free_tasks(head);
-        log("exiting", 1);
+        logmsg("exiting", 1);
         return 0;
 }
 /* }}} */
@@ -111,7 +113,7 @@ void
 help()
 {
         /* print a list of options and program info */
-        version();
+        print_version();
         puts("\noptions:");
         puts("  -l [value]: set log level");
         puts("  -h: print this help message");
@@ -119,9 +121,9 @@ help()
 }
 /* }}} */
 
-/* version {{{ */
+/* print_version {{{ */
 void
-version()
+print_version()
 {
         /* print info about the currently running program */
         printf("%s v%s by %s\n", NAME, VERSION, AUTHOR);
@@ -332,7 +334,6 @@ nc_main(task *head)
         /* ncurses main function */
         WINDOW *stdscr;
         int c, tmp, size[2], oldsize[2];
-        char *pos;
         short selline = 0;
         char taskcount;
         short projlen = max_project_length(head);
@@ -560,7 +561,7 @@ print_task_list(const task *head, const short selected, const short projlen, con
                 mvaddstr(counter+1, projlen+1, bufstr);
                 free(bufstr);
                 attrset(COLOR_PAIR(4+3*sel));
-                if (cur->due!=NULL)
+                if (cur->due!=(unsigned int)NULL)
                 {
                         char *tmp;
                         tmp = utc_date(cur->due);
@@ -762,7 +763,7 @@ reload_tasks(task **headptr)
         /* reset head with a new list of tasks */
         task *cur;
 
-        log("reloading tasks", 1);
+        logmsg("reloading tasks", 1);
 
         cur = *headptr;
         free_tasks(cur);
@@ -776,7 +777,7 @@ reload_tasks(task **headptr)
                 char *buffer;
                 buffer = malloc(16*1024*sizeof(char));
                 sprintf(buffer, "%d,%s,%s,%d,%d,%d,%d,%s,%c,%s", cur->index, cur->uuid, cur->tags, cur->start, cur->end, cur->entry, cur->due, cur->project, cur->priority, cur->description);
-                log(buffer, 2);
+                logmsg(buffer, 2);
                 free(buffer);
                 cur = cur->next;
         }
@@ -849,7 +850,7 @@ swap_tasks(task *a, task *b)
 
 /* log {{{ */
 void
-log(const char *msg, const char minloglvl)
+logmsg(const char *msg, const char minloglvl)
 {
         /* log a message to a file */
         FILE *fp;
