@@ -34,16 +34,16 @@ typedef struct _task
 /* function declarations {{{ */
 task *get_tasks();
 task *malloc_task();
-task *parse_task(const char *);
+task *parse_task(char *);
 char free_task(task *);
 void free_tasks(task *);
 char *utc_date(const unsigned int);
 void nc_main(task *);
 void nc_colors();
-void print_task_list(const task *, const short, const short, const short, const short);
+void print_task_list(task *, const short, const short, const short, const short);
 void nc_end(int);
-char max_project_length(const task *);
-char task_count(const task *);
+char max_project_length(task *);
+char task_count(task *);
 char *pad_string(char *, int, const int, int, const char);
 void task_action(task *, const short, const char);
 void wipe_screen(const short, const int[2]);
@@ -202,7 +202,7 @@ malloc_task()
 
 /* parse_task {{{ */
 task *
-parse_task(const char *line)
+parse_task(char *line)
 {
         task *tsk = malloc_task();
         char *token, *lastchar;
@@ -597,7 +597,7 @@ nc_end(int sig)
 
 /* print_task_list {{{ */
 void
-print_task_list(const task *head, const short selected, const short projlen, const short desclen, const short datelen)
+print_task_list(task *head, const short selected, const short projlen, const short desclen, const short datelen)
 {
         task *cur;
         short counter = 0;
@@ -650,7 +650,7 @@ print_task_list(const task *head, const short selected, const short projlen, con
 
 /* max_project_length {{{ */
 char 
-max_project_length(const task *head)
+max_project_length(task *head)
 {
         char len = 0;
         task *cur;
@@ -673,7 +673,7 @@ max_project_length(const task *head)
 
 /* task_count {{{ */
 char
-task_count(const task *head)
+task_count(task *head)
 {
         char count = 0;
         task *cur;
