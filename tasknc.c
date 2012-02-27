@@ -347,6 +347,7 @@ nc_main(task *head)
         short projlen = max_project_length(head);
         short desclen;
         const short datelen = DATELENGTH;
+        time_t timeout = 0;
 
         /* initialize ncurses */
         puts("starting ncurses...");
@@ -486,6 +487,36 @@ nc_main(task *head)
                                 task_action(head, selline, ACTION_VIEW);
                                 refresh();
                                 break;
+                        case 's': // re-sort list
+                                attrset(COLOR_PAIR(0));
+                                mvaddstr(size[1]-1, 0, "enter sort mode: iNdex, Project, Due, pRiority");
+                                c = getch();
+                                switch (c)
+                                {
+                                        case 'n':
+                                        case 'p':
+                                        case 'd':
+                                        case 'r':
+                                                sortmode = c;
+                                                sort_wrapper(head);
+                                                wipe_screen(size[1]-1, size);
+                                                break;
+                                        case 'N':
+                                        case 'P':
+                                        case 'D':
+                                        case 'R':
+                                                sortmode = c+32;
+                                                sort_wrapper(head);
+                                                wipe_screen(size[1]-1, size);
+                                                break;
+                                        default:
+                                                wipe_screen(size[1]-1, size);
+                                                mvaddstr(size[1]-1, 0, "invalid sort mode");
+                                                timeout = time(NULL) + 3;
+                                                break;
+                                }
+                                redraw = 1;
+                                break;
                         case 'q': // quit
                                 done = 1;
                                 break;
@@ -501,6 +532,11 @@ nc_main(task *head)
                         print_title(size[0]);
                         print_task_list(head, selline, projlen, desclen, datelen);
                         refresh();
+                }
+                if (timeout>0 && timeout<time(NULL))
+                {
+                        timeout = 0;
+                        wipe_screen(size[1]-1, size);
                 }
         }
 
@@ -1007,7 +1043,7 @@ compare_tasks(const task *a, const task *b, const char sort_mode)
         switch (sort_mode)
         {
                 case 'n':       // sort by index
-                        if (a->index>b->index)
+                        if (a->index<b->index)
                                 ret = 1;
                         break;
                 default:
