@@ -384,6 +384,10 @@ nc_main(task *head)
                         oldsize[tmp] = size[tmp];
 
                 c = getch();
+                char *charn = malloc(8*sizeof(char));
+                sprintf(charn, "%7d", (int)c);
+                mvaddstr(size[1]-1, size[0]-10, charn);
+                free(charn);
 
                 switch (c)
                 {
@@ -475,6 +479,8 @@ nc_main(task *head)
                                 redraw = 1;
                                 break;
                         case 'v': // view info
+                        case KEY_ENTER:
+                        case 13:
                                 def_prog_mode();
                                 endwin();
                                 task_action(head, selline, ACTION_VIEW);
@@ -730,7 +736,7 @@ task_action(task *head, const short pos, const char action)
         if (wait)
         {
                 puts("press ENTER to return");
-                getch();
+                getchar();
         }
 }
 /* }}} */
