@@ -517,6 +517,13 @@ nc_main(task *head)
                                 }
                                 redraw = 1;
                                 break;
+                        case 'y': // sync
+                                def_prog_mode();
+                                endwin();
+                                system("task merge");
+                                system("task push");
+                                refresh();
+                                break;
                         case 'q': // quit
                                 done = 1;
                                 break;
