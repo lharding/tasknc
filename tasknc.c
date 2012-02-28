@@ -967,15 +967,28 @@ char task_count(task *head) /* {{{ */
 char *utc_date(const unsigned int timeint) /* {{{ */
 {
         /* convert a utc time uint to a string */
-        struct tm tmr;
+        struct tm tmr, *now;
+        time_t cur;
         char *timestr, *srcstr;
 
+        /* convert the input timeint to a string */
         srcstr = malloc(16*sizeof(char));
-        timestr = malloc(TIMELENGTH*sizeof(char));
         sprintf(srcstr, "%d", timeint);
+
+        /* extract time struct from string */
         strptime(srcstr, "%s", &tmr);
         free(srcstr);
-        strftime(timestr, TIMELENGTH, "%F", &tmr);
+
+        /* get current time */
+        time(&cur);
+        now = localtime(&cur);
+
+        /* convert thte time to a formatted string */
+        timestr = malloc(TIMELENGTH*sizeof(char));
+        if (now->tm_year != tmr.tm_year)
+                strftime(timestr, TIMELENGTH, "%F", &tmr);
+        else
+                strftime(timestr, TIMELENGTH, "%b-%d", &tmr);
 
         return timestr;
 } /* }}} */
