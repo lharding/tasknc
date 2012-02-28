@@ -31,34 +31,34 @@ typedef struct _task
 } task;
 /* }}} */
 
-/* function declarations {{{ */
-task *get_tasks();
-task *malloc_task();
-task *parse_task(char *);
-char free_task(task *);
-void free_tasks(task *);
-char *utc_date(const unsigned int);
-void nc_main(task *);
-void nc_colors();
-void print_task_list(task *, const short, const short, const short, const short);
-void nc_end(int);
-char max_project_length(task *);
-char task_count(task *);
-char *pad_string(char *, int, const int, int, const char);
-void task_action(task *, const short, const char);
-void wipe_screen(const short, const int[2]);
-void reload_tasks(task **);
-void check_curs_pos(short *, const char);
-void swap_tasks(task *, task *);
-void logmsg(const char *, const char);
-char *strip_quotes(char *);
-void task_add(const char);
-void print_title(const int);
-void help();
-void print_version();
-void sort_wrapper(task *);
-void sort_tasks(task *, task *);
-char compare_tasks(const task *, const task *, const char);
+/* function prototypes {{{ */
+static void check_curs_pos(short *, const char);
+static char compare_tasks(const task *, const task *, const char);
+static char free_task(task *);
+static void free_tasks(task *);
+static task *get_tasks(void);
+static void help(void);
+static void logmsg(const char *, const char);
+static task *malloc_task(void);
+static char max_project_length(task *);
+static void nc_colors(void);
+static void nc_end(int);
+static void nc_main(task *);
+static char *pad_string(char *, int, const int, int, const char);
+static task *parse_task(char *);
+static void print_task_list(task *, const short, const short, const short, const short);
+static void print_title(const int);
+static void print_version(void);
+static void reload_tasks(task **);
+static void sort_tasks(task *, task *);
+static void sort_wrapper(task *);
+static char *strip_quotes(char *);
+static void swap_tasks(task *, task *);
+static void task_action(task *, const short, const char);
+static void task_add(const char);
+static char task_count(task *);
+static char *utc_date(const unsigned int);
+static void wipe_screen(const short, const int[2]);
 /* }}} */
 
 /* global variables {{{ */
@@ -66,78 +66,130 @@ char loglvl = 0;        /* used by logmsg to determine whether msgs should be wr
 char sortmode = 'd';    /* used by compare_tasks to determine what algorithm to use to compare tasks */
 /* }}} */
 
-/* main {{{ */
-int
-main(int argc, char **argv)
+void check_curs_pos(short *pos, const char tasks) /* {{{ */
 {
-        /* declare variables */
-        task *head;
-        int c;
+        /* check if the cursor is in a valid position */
+        if ((*pos)<0)
+                *pos = 0;
+        if ((*pos)>=tasks)
+                *pos = tasks-1;
+} /* }}} */
 
-        /* handle arguments */
-        while ((c = getopt(argc, argv, "l:hv")) != -1)
+char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
+{
+        /* compare two tasks to determine order
+         * a return of 1 means that the tasks should be swapped (b comes before a)
+         */
+        char ret = 0;
+        int tmp;
+
+        /* determine sort algorithm and apply it */
+        switch (sort_mode)
         {
-                switch (c)
-                {
-                        case 'l':
-                                loglvl = (char) atoi(optarg);
-                                printf("loglevel: %d\n", (int)loglvl);
+                case 'n':       // sort by index
+                        if (a->index<b->index)
+                                ret = 1;
+                        break;
+                default:
+                case 'p':       // sort by project name => index
+                        if (a->project == NULL)
+                        {
+                                if (b->project != NULL)
+                                        ret = 1;
                                 break;
-                        case 'v':
-                                print_version();
-                                return 0;
+                        }
+                        if (b->project == NULL)
                                 break;
-                        case 'h':
-                        case '?':
-                                help();
-                                return 0;
+                        tmp = strcmp(a->project, b->project);
+                        if (tmp<0)
+                                ret = 1;
+                        if (tmp==0)
+                                ret = compare_tasks(a, b, 'n');
+                        break;
+                case 'd':       // sort by due date => priority => project => index
+                        if (a->due == NULL)
+                        {
+                                if (b->due == NULL)
+                                        ret = compare_tasks(a, b, 'r');
                                 break;
-                        default:
-                                return 1;
-                }
+                        }
+                        if (b->due == NULL)
+                        {
+                                ret = 1;
+                                break;
+                        }
+                        if (a->due<b->due)
+                                ret = 1;
+                        break;
+                case 'r':       // sort by priority => project => index
+                        if (a->priority == NULL)
+                        {
+                                if (b->priority == NULL)
+                                        ret = compare_tasks(a, b, 'p');
+                                break;
+                        }
+                        if (b->priority == NULL)
+                        {
+                                ret = 1;
+                                break;
+                        }
+                        if (a->priority == b->priority)
+                        {
+                                ret = compare_tasks(a, b, 'p');
+                                break;
+                        }
+                        switch (b->priority)
+                        {
+                                case 'H':
+                                default:
+                                        break;
+                                case 'M':
+                                        if (a->priority=='H')
+                                                ret = 1;
+                                        break;
+                                case 'L':
+                                        if (a->priority=='M' || a->priority=='H')
+                                                ret = 1;
+                                        break;
+                        }
+                        break;
         }
 
-        /* build task list */
-        head = get_tasks();
-        sort_wrapper(head);
+        return ret;
+} /* }}} */
 
-        /* run ncurses */
-        logmsg("running gui", 1);
-        nc_main(head);
-        nc_end(0);
-
-        /* done */
-        free_tasks(head);
-        logmsg("exiting", 1);
-        return 0;
-}
-/* }}} */
-
-/* help {{{ */
-void
-help()
+char free_task(task *tsk) /* {{{ */
 {
-        /* print a list of options and program info */
-        print_version();
-        puts("\noptions:");
-        puts("  -l [value]: set log level");
-        puts("  -h: print this help message");
-        puts("  -v: print the version of tasknc");
-}
-/* }}} */
+        /* free the memory allocated to a task */
+        char ret = 0;
 
-/* print_version {{{ */
-void
-print_version()
+        free(tsk->uuid);
+        if (tsk->tags!=NULL)
+                free(tsk->tags);
+        if (tsk->project!=NULL)
+                free(tsk->project);
+        if (tsk->description!=NULL)
+                free(tsk->description);
+        free(tsk);
+
+        return ret;
+} /* }}} */
+
+void free_tasks(task *head) /* {{{ */
 {
-        /* print info about the currently running program */
-        printf("%s v%s by %s\n", NAME, VERSION, AUTHOR);
-}
-/* }}} */
+        /* free the task stack */
+        task *cur, *next;
+        
+        cur = head;
+        while (cur!=NULL)
+        {
+                next = cur->next;
+                free_task(cur);
+                cur = next;
+        }
+} /* }}} */
 
-/* get_tasks {{{ */
-task *
-get_tasks()
+task *get_tasks(void) /* {{{ */
 {
         FILE *cmd;
         char line[TOTALLENGTH];
@@ -172,12 +224,34 @@ get_tasks()
         sort_wrapper(head);
 
         return head;
-}
-/* }}} */
+} /* }}} */
 
-/* malloc_task {{{ */
-task *
-malloc_task()
+void help(void) /* {{{ */
+{
+        /* print a list of options and program info */
+        print_version();
+        puts("\noptions:");
+        puts("  -l [value]: set log level");
+        puts("  -h: print this help message");
+        puts("  -v: print the version of tasknc");
+} /* }}} */
+
+void logmsg(const char *msg, const char minloglvl) /* {{{ */
+{
+        /* log a message to a file */
+        FILE *fp;
+
+        /* determine if msg should be logged */
+        if (minloglvl>loglvl)
+                return;
+
+        /* write log */
+        fp = fopen(LOGFILE, "a");
+        fprintf(fp, "%s\n", msg);
+        fclose(fp);
+} /* }}} */
+
+task * malloc_task(void) /* {{{ */
 {
         /* allocate memory for a new task 
          * and initialize values where ncessary 
@@ -197,147 +271,67 @@ malloc_task()
         tsk->priority = 0;
 
         return tsk;
-}
-/* }}} */
+} /* }}} */
 
-/* parse_task {{{ */
-task *
-parse_task(char *line)
+char max_project_length(task *head) /* {{{ */
 {
-        task *tsk = malloc_task();
-        char *token, *lastchar;
-        short counter = 0;
+        char len = 0;
+        task *cur;
 
-        token = strtok(line, ",");
-        while (token != NULL)
-        {
-                int tmp;
-                lastchar = token;
-                while (*(--lastchar) == ',')
-                        counter++;
-                switch (counter)
-                {
-                        case 0: // uuid
-                                tsk->uuid = malloc(UUIDLENGTH*sizeof(char));
-                                token = strip_quotes(token);
-                                sprintf(tsk->uuid, "%s", token);
-                                break;
-                        case 1: // status
-                                break;
-                        case 2: // tags
-                                tsk->tags = malloc(TAGSLENGTH*sizeof(char));
-                                token = strip_quotes(token);
-                                sprintf(tsk->tags, "%s", token);
-                                break;
-                        case 3: // entry
-                                tmp = sscanf(token, "%d", &tsk->entry);
-                                if (tmp==0)
-                                {
-                                        free_task(tsk);
-                                        return NULL;
-                                }
-                                break;
-                        case 4: // start
-                                tmp = sscanf(token, "%d", &tsk->start);
-                                break;
-                        case 5: // due
-                                tmp = sscanf(token, "%d", &tsk->due);
-                                break;
-                        case 6: // recur
-                                break;
-                        case 7: // end
-                                tmp = sscanf(token, "%d", &tsk->end);
-                                break;
-                        case 8: // project
-                                tsk->project = malloc(PROJECTLENGTH*sizeof(char));
-                                token = strip_quotes(token);
-                                sprintf(tsk->project, "%s", token);
-                                break;
-                        case 9: // priority
-                                tmp = sscanf(token, "'%c'", &tsk->priority);
-                                break;
-                        case 10: // fg
-                                break;
-                        case 11: // bg
-                                break;
-                        case 12: // description
-                                tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
-                                token = strip_quotes(token);
-                                sprintf(tsk->description, "%s", token);
-                                break;
-                        default:
-                                break;
-                }
-                token = strtok(NULL, ",");
-                counter++;
-        }
-        
-        if (tsk->description==NULL || tsk->entry==0 || tsk->uuid==NULL)
-                return NULL;
-
-        return tsk;
-}
-/* }}} */
-
-/* free_task {{{ */
-char
-free_task(task *tsk)
-{
-        /* free the memory allocated to a task */
-        char ret = 0;
-
-        free(tsk->uuid);
-        if (tsk->tags!=NULL)
-                free(tsk->tags);
-        if (tsk->project!=NULL)
-                free(tsk->project);
-        if (tsk->description!=NULL)
-                free(tsk->description);
-        free(tsk);
-
-        return ret;
-}
-/* }}} */
-
-/* free_tasks {{{ */
-void
-free_tasks(task *head)
-{
-        /* free the task stack */
-        task *cur, *next;
-        
         cur = head;
         while (cur!=NULL)
         {
-                next = cur->next;
-                free_task(cur);
-                cur = next;
+                if (cur->project!=NULL)
+                {
+                        char l = strlen(cur->project);
+                        if (l>len)
+                                len = l;
+                }
+                cur = cur->next;
         }
-}
-/* }}} */
 
-/* utc_date {{{ */
-char *
-utc_date(const unsigned int timeint)
+        return len+1;
+} /* }}} */
+
+void nc_colors(void) /* {{{ */
 {
-        /* convert a utc time uint to a string */
-        struct tm tmr;
-        char *timestr, *srcstr;
+        if (has_colors())
+        {
+                start_color();
+                use_default_colors();
+                init_pair(1, COLOR_BLUE,        COLOR_BLACK);   /* title bar */
+                init_pair(2, COLOR_GREEN,       -1);            /* project */
+                init_pair(3, COLOR_CYAN,        -1);            /* description */
+                init_pair(4, COLOR_YELLOW,      -1);
+                init_pair(5, COLOR_BLACK,       COLOR_GREEN);
+                init_pair(6, COLOR_BLACK,       COLOR_CYAN);
+                init_pair(7, COLOR_BLACK,       COLOR_YELLOW);
+        }
+} /* }}} */
 
-        srcstr = malloc(16*sizeof(char));
-        timestr = malloc(TIMELENGTH*sizeof(char));
-        sprintf(srcstr, "%d", timeint);
-        strptime(srcstr, "%s", &tmr);
-        free(srcstr);
-        strftime(timestr, TIMELENGTH, "%F", &tmr);
+void nc_end(int sig) /* {{{ */
+{
+        /* terminate ncurses */
+        endwin();
+        
+        switch (sig)
+        {
+                case SIGINT:
+                        puts("aborted");
+                        break;
+                case SIGSEGV:
+                        puts("SEGFAULT");
+                        break;
+                default:
+                        puts("done");
+                        break;
+        }
 
-        return timestr;
-}
-/* }}} */
+        /* free all structs here */
+        exit(0);
+} /* }}} */
 
-/* nc_main {{{ */
-void
-nc_main(task *head)
+void nc_main(task *head) /* {{{ */
 {
         /* ncurses main function */
         WINDOW *stdscr;
@@ -535,56 +529,127 @@ nc_main(task *head)
         }
 
         delwin(stdscr);
-}
-/* }}} */
+} /* }}} */
 
-/* nc_colors {{{ */
-void
-nc_colors()
+char * pad_string(char *str, int length, const int lpad, int rpad, const char align) /* {{{ */
 {
-        if (has_colors())
+        /* function to add padding to strings and align them with spaces */
+        char *ft;
+        char *ret;
+
+        /* handle left alignment */
+        if (align=='l')
         {
-                start_color();
-                use_default_colors();
-                init_pair(1, COLOR_BLUE,        COLOR_BLACK);   /* title bar */
-                init_pair(2, COLOR_GREEN,       -1);            /* project */
-                init_pair(3, COLOR_CYAN,        -1);            /* description */
-                init_pair(4, COLOR_YELLOW,      -1);
-                init_pair(5, COLOR_BLACK,       COLOR_GREEN);
-                init_pair(6, COLOR_BLACK,       COLOR_CYAN);
-                init_pair(7, COLOR_BLACK,       COLOR_YELLOW);
+                int slen = strlen(str);
+                rpad = rpad + length - slen;
+                length = slen;
         }
-}
-/* }}} */
 
-/* nc_end {{{ */
-void
-nc_end(int sig)
+        /* generate format strings and return value */
+        ret = malloc((length+lpad+rpad+1)*sizeof(char));
+        ft = malloc(16*sizeof(char));
+        if (lpad>0 && rpad>0)
+        {
+                sprintf(ft, "%%%ds%%%ds%%%ds", lpad, length, rpad);
+                sprintf(ret, ft, " ", str, " ");
+        }
+        else if (lpad>0)
+        {
+                sprintf(ft, "%%%ds%%%ds", lpad, length);
+                sprintf(ret, ft, " ", str);
+        }
+        else if (rpad>0)
+        {
+                sprintf(ft, "%%%ds%%%ds", length, rpad);
+                sprintf(ret, ft, str, " ");
+        }
+        else
+        {
+                sprintf(ft, "%%%ds", length);
+                sprintf(ret, ft, str);
+        }
+        free(ft);
+
+        return ret;
+} /* }}} */
+
+task * parse_task(char *line) /* {{{ */
 {
-        /* terminate ncurses */
-        endwin();
+        task *tsk = malloc_task();
+        char *token, *lastchar;
+        short counter = 0;
+
+        token = strtok(line, ",");
+        while (token != NULL)
+        {
+                int tmp;
+                lastchar = token;
+                while (*(--lastchar) == ',')
+                        counter++;
+                switch (counter)
+                {
+                        case 0: // uuid
+                                tsk->uuid = malloc(UUIDLENGTH*sizeof(char));
+                                token = strip_quotes(token);
+                                sprintf(tsk->uuid, "%s", token);
+                                break;
+                        case 1: // status
+                                break;
+                        case 2: // tags
+                                tsk->tags = malloc(TAGSLENGTH*sizeof(char));
+                                token = strip_quotes(token);
+                                sprintf(tsk->tags, "%s", token);
+                                break;
+                        case 3: // entry
+                                tmp = sscanf(token, "%d", &tsk->entry);
+                                if (tmp==0)
+                                {
+                                        free_task(tsk);
+                                        return NULL;
+                                }
+                                break;
+                        case 4: // start
+                                tmp = sscanf(token, "%d", &tsk->start);
+                                break;
+                        case 5: // due
+                                tmp = sscanf(token, "%d", &tsk->due);
+                                break;
+                        case 6: // recur
+                                break;
+                        case 7: // end
+                                tmp = sscanf(token, "%d", &tsk->end);
+                                break;
+                        case 8: // project
+                                tsk->project = malloc(PROJECTLENGTH*sizeof(char));
+                                token = strip_quotes(token);
+                                sprintf(tsk->project, "%s", token);
+                                break;
+                        case 9: // priority
+                                tmp = sscanf(token, "'%c'", &tsk->priority);
+                                break;
+                        case 10: // fg
+                                break;
+                        case 11: // bg
+                                break;
+                        case 12: // description
+                                tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
+                                token = strip_quotes(token);
+                                sprintf(tsk->description, "%s", token);
+                                break;
+                        default:
+                                break;
+                }
+                token = strtok(NULL, ",");
+                counter++;
+        }
         
-        switch (sig)
-        {
-                case SIGINT:
-                        puts("aborted");
-                        break;
-                case SIGSEGV:
-                        puts("SEGFAULT");
-                        break;
-                default:
-                        puts("done");
-                        break;
-        }
+        if (tsk->description==NULL || tsk->entry==0 || tsk->uuid==NULL)
+                return NULL;
 
-        /* free all structs here */
-        exit(0);
-}
-/* }}} */
+        return tsk;
+} /* }}} */
 
-/* print_task_list {{{ */
-void
-print_task_list(task *head, const short selected, const short projlen, const short desclen, const short datelen)
+void print_task_list(task *head, const short selected, const short projlen, const short desclen, const short datelen) /* {{{ */
 {
         task *cur;
         short counter = 0;
@@ -632,189 +697,24 @@ print_task_list(task *head, const short selected, const short projlen, const sho
                 counter++;
                 cur = cur->next;
         }
-}
-/* }}} */
+} /* }}} */
 
-/* max_project_length {{{ */
-char 
-max_project_length(task *head)
+void print_title(const int width) /* {{{ */
 {
-        char len = 0;
-        task *cur;
+        /* print the title of the window */
+        attrset(COLOR_PAIR(1));
+        char *title = pad_string("task ncurses - by mjheagle", width, 0, 0, 'l');
+        mvaddstr(0, 0, title);
+        free(title);
+} /* }}} */
 
-        cur = head;
-        while (cur!=NULL)
-        {
-                if (cur->project!=NULL)
-                {
-                        char l = strlen(cur->project);
-                        if (l>len)
-                                len = l;
-                }
-                cur = cur->next;
-        }
-
-        return len+1;
-}
-/* }}} */
-
-/* task_count {{{ */
-char
-task_count(task *head)
+void print_version(void) /* {{{ */
 {
-        char count = 0;
-        task *cur;
+        /* print info about the currently running program */
+        printf("%s v%s by %s\n", NAME, VERSION, AUTHOR);
+} /* }}} */
 
-        cur = head;
-        while (cur!=NULL)
-        {
-                count++;
-                cur = cur->next;
-        }
-
-        return count;
-}
-/* }}} */
-
-/* pad_string {{{ */
-char *
-pad_string(char *str, int length, const int lpad, int rpad, const char align)
-{
-        /* function to add padding to strings and align them with spaces */
-        char *ft;
-        char *ret;
-
-        /* handle left alignment */
-        if (align=='l')
-        {
-                int slen = strlen(str);
-                rpad = rpad + length - slen;
-                length = slen;
-        }
-
-        /* generate format strings and return value */
-        ret = malloc((length+lpad+rpad+1)*sizeof(char));
-        ft = malloc(16*sizeof(char));
-        if (lpad>0 && rpad>0)
-        {
-                sprintf(ft, "%%%ds%%%ds%%%ds", lpad, length, rpad);
-                sprintf(ret, ft, " ", str, " ");
-        }
-        else if (lpad>0)
-        {
-                sprintf(ft, "%%%ds%%%ds", lpad, length);
-                sprintf(ret, ft, " ", str);
-        }
-        else if (rpad>0)
-        {
-                sprintf(ft, "%%%ds%%%ds", length, rpad);
-                sprintf(ret, ft, str, " ");
-        }
-        else
-        {
-                sprintf(ft, "%%%ds", length);
-                sprintf(ret, ft, str);
-        }
-        free(ft);
-
-        return ret;
-}
-/* }}} */
-
-/* task_action {{{ */
-void
-task_action(task *head, const short pos, const char action)
-{
-        /* spawn a command to complete a task */
-        task *cur;
-        short p;
-        char *cmd, *actionstr, wait;
-        
-        /* move to correct task */
-        cur = head;
-        for (p=0; p<pos; p++)
-                cur = cur->next;
-
-        /* determine action */
-        actionstr = malloc(5*sizeof(char));
-        wait = 0;
-        switch(action)
-        {
-                case ACTION_EDIT:
-                        strncpy(actionstr, "edit", 5);
-                        break;
-                case ACTION_COMPLETE:
-                        strncpy(actionstr, "done", 5);
-                        break;
-                case ACTION_DELETE:
-                        strncpy(actionstr, "del", 4);
-                        break;
-                case ACTION_VIEW:
-                default:
-                        strncpy(actionstr, "info", 5);
-                        wait = 1;
-                        break;
-        }
-
-        /* generate and run command */
-        cmd = malloc(32*sizeof(char));
-        sprintf(cmd, "task %s %d", actionstr, cur->index);
-        free(actionstr);
-        puts(cmd);
-        system(cmd);
-        free(cmd);
-        if (wait)
-        {
-                puts("press ENTER to return");
-                getchar();
-        }
-}
-/* }}} */
-
-/* task_add {{{ */
-void
-task_add(const char taskcount)
-{
-        /* create a new task by adding a generic task
-         * then letting the user edit it
-         */
-        char *cmd;
-
-        /* add new task */
-        puts("task add new task");
-        system("task add new task");
-
-        /* edit task */
-        cmd = malloc(32*sizeof(char));
-        sprintf(cmd, "task edit %d", taskcount+1);
-        puts(cmd);
-        system(cmd);
-        free(cmd);
-}
-/* }}} */
-
-/* wipe_screen {{{ */
-void
-wipe_screen(const short start, const int size[2])
-{
-        /* clear the screen */
-        int pos;
-        char *blank;
-        
-        attrset(COLOR_PAIR(0));
-        blank = pad_string(" ", size[0], 0, 0, 'r');
-
-        for (pos=start; pos<size[1]; pos++)
-        {
-                mvaddstr(pos, 0, blank);
-        }
-        free(blank);
-}
-/* }}} */
-
-/* reload_tasks {{{ */
-void
-reload_tasks(task **headptr)
+void reload_tasks(task **headptr) /* {{{ */
 {
         /* reset head with a new list of tasks */
         task *cur;
@@ -837,24 +737,89 @@ reload_tasks(task **headptr)
                 free(buffer);
                 cur = cur->next;
         }
-}
-/* }}} */
+} /* }}} */
 
-/* check_curs_pos {{{ */
-void
-check_curs_pos(short *pos, const char tasks) 
+void sort_tasks(task *first, task *last) /* {{{ */
 {
-        /* check if the cursor is in a valid position */
-        if ((*pos)<0)
-                *pos = 0;
-        if ((*pos)>=tasks)
-                *pos = tasks-1;
-}
-/* }}} */
+        /* sort the list of tasks */
+        task *start, *cur, *oldcur;
 
-/* swap_tasks {{{ */
-void
-swap_tasks(task *a, task *b)
+        /* check if we are done */
+        if (first==last)
+                return;
+
+        /* set start and current */
+        start = first;
+        cur = start->next;
+
+        /* iterate through to right end, sorting as we go */
+        while (1)
+        {
+                if (compare_tasks(start, cur, sortmode)==1)
+                        swap_tasks(start, cur);
+                if (cur==last)
+                        break;
+                cur = cur->next;
+        }
+
+        /* swap first and cur */
+        swap_tasks(first, cur);
+
+        /* save this cur */
+        oldcur = cur;
+
+        /* sort left side */
+        cur = cur->prev;
+        if (cur != NULL)
+        {
+                if ((first->prev != cur) && (cur->next != first))
+                        sort_tasks(first, cur);
+        }
+
+        /* sort right side */
+        cur = oldcur->next;
+	if (cur != NULL)
+	{
+		if ((cur->prev != last) && (last->next != cur))
+                        sort_tasks(cur, last);
+	}
+} /* }}} */
+
+void sort_wrapper(task *first) /* {{{ */
+{
+        /* a wrapper around sort_tasks that finds the last element
+         * to pass to that function
+         */
+        task *last;
+
+        /* loop through looking for last item */
+        last = first;
+        while (last->next != NULL)
+                last = last->next;
+
+        /* run sort with last value */
+        sort_tasks(first, last);
+} /* }}} */
+
+char * strip_quotes(char *base) /* {{{ */
+{
+        /* remove the first and last character from a string (quotes) */
+        int len;
+
+        /* remove first char */
+        base++;
+        len = strlen(base);
+
+        /* remove last char - TODO: clean this up */
+        if (base[len-1] != '\'')
+                base[len-2] = '\0';
+        else
+                base[len-1] = '\0';
+
+        return base;
+} /* }}} */
+
+void swap_tasks(task *a, task *b) /* {{{ */
 {
         /* swap the contents of two tasks */
         unsigned short ustmp;
@@ -901,210 +866,161 @@ swap_tasks(task *a, task *b)
         strtmp = a->description;
         a->description = b->description;
         b->description = strtmp;
-}
-/* }}} */
+} /* }}} */
 
-/* logmsg {{{ */
-void
-logmsg(const char *msg, const char minloglvl)
+void task_action(task *head, const short pos, const char action) /* {{{ */
 {
-        /* log a message to a file */
-        FILE *fp;
+        /* spawn a command to complete a task */
+        task *cur;
+        short p;
+        char *cmd, *actionstr, wait;
+        
+        /* move to correct task */
+        cur = head;
+        for (p=0; p<pos; p++)
+                cur = cur->next;
 
-        /* determine if msg should be logged */
-        if (minloglvl>loglvl)
-                return;
-
-        /* write log */
-        fp = fopen(LOGFILE, "a");
-        fprintf(fp, "%s\n", msg);
-        fclose(fp);
-}
-/* }}} */
-
-/* strip_quotes {{{ */
-char *
-strip_quotes(char *base)
-{
-        /* remove the first and last character from a string (quotes) */
-        int len;
-
-        /* remove first char */
-        base++;
-        len = strlen(base);
-
-        /* remove last char - TODO: clean this up */
-        if (base[len-1] != '\'')
-                base[len-2] = '\0';
-        else
-                base[len-1] = '\0';
-
-        return base;
-}
-/* }}} */
-
-/* print_title {{{ */
-void
-print_title(const int width)
-{
-        /* print the title of the window */
-        attrset(COLOR_PAIR(1));
-        char *title = pad_string("task ncurses - by mjheagle", width, 0, 0, 'l');
-        mvaddstr(0, 0, title);
-        free(title);
-}
-/* }}} */
-
-/* sort_wrapper {{{ */
-void
-sort_wrapper(task *first)
-{
-        /* a wrapper around sort_tasks that finds the last element
-         * to pass to that function
-         */
-        task *last;
-
-        /* loop through looking for last item */
-        last = first;
-        while (last->next != NULL)
-                last = last->next;
-
-        /* run sort with last value */
-        sort_tasks(first, last);
-}
-/* }}} */
-
-/* sort_tasks {{{ */
-void
-sort_tasks(task *first, task *last)
-{
-        /* sort the list of tasks */
-        task *start, *cur, *oldcur;
-
-        /* check if we are done */
-        if (first==last)
-                return;
-
-        /* set start and current */
-        start = first;
-        cur = start->next;
-
-        /* iterate through to right end, sorting as we go */
-        while (1)
+        /* determine action */
+        actionstr = malloc(5*sizeof(char));
+        wait = 0;
+        switch(action)
         {
-                if (compare_tasks(start, cur, sortmode)==1)
-                        swap_tasks(start, cur);
-                if (cur==last)
+                case ACTION_EDIT:
+                        strncpy(actionstr, "edit", 5);
                         break;
+                case ACTION_COMPLETE:
+                        strncpy(actionstr, "done", 5);
+                        break;
+                case ACTION_DELETE:
+                        strncpy(actionstr, "del", 4);
+                        break;
+                case ACTION_VIEW:
+                default:
+                        strncpy(actionstr, "info", 5);
+                        wait = 1;
+                        break;
+        }
+
+        /* generate and run command */
+        cmd = malloc(32*sizeof(char));
+        sprintf(cmd, "task %s %d", actionstr, cur->index);
+        free(actionstr);
+        puts(cmd);
+        system(cmd);
+        free(cmd);
+        if (wait)
+        {
+                puts("press ENTER to return");
+                getchar();
+        }
+} /* }}} */
+
+void task_add(const char taskcount) /* {{{ */
+{
+        /* create a new task by adding a generic task
+         * then letting the user edit it
+         */
+        char *cmd;
+
+        /* add new task */
+        puts("task add new task");
+        system("task add new task");
+
+        /* edit task */
+        cmd = malloc(32*sizeof(char));
+        sprintf(cmd, "task edit %d", taskcount+1);
+        puts(cmd);
+        system(cmd);
+        free(cmd);
+} /* }}} */
+
+char task_count(task *head) /* {{{ */
+{
+        char count = 0;
+        task *cur;
+
+        cur = head;
+        while (cur!=NULL)
+        {
+                count++;
                 cur = cur->next;
         }
 
-        /* swap first and cur */
-        swap_tasks(first, cur);
+        return count;
+} /* }}} */
 
-        /* save this cur */
-        oldcur = cur;
-
-        /* sort left side */
-        cur = cur->prev;
-        if (cur != NULL)
-        {
-                if ((first->prev != cur) && (cur->next != first))
-                        sort_tasks(first, cur);
-        }
-
-        /* sort right side */
-        cur = oldcur->next;
-	if (cur != NULL)
-	{
-		if ((cur->prev != last) && (last->next != cur))
-                        sort_tasks(cur, last);
-	}
-}
-/* }}} */
-
-/* compare_tasks {{{ */
-char
-compare_tasks(const task *a, const task *b, const char sort_mode)
+char *utc_date(const unsigned int timeint) /* {{{ */
 {
-        /* compare two tasks to determine order
-         * a return of 1 means that the tasks should be swapped (b comes before a)
-         */
-        char ret = 0;
-        int tmp;
+        /* convert a utc time uint to a string */
+        struct tm tmr;
+        char *timestr, *srcstr;
 
-        /* determine sort algorithm and apply it */
-        switch (sort_mode)
+        srcstr = malloc(16*sizeof(char));
+        timestr = malloc(TIMELENGTH*sizeof(char));
+        sprintf(srcstr, "%d", timeint);
+        strptime(srcstr, "%s", &tmr);
+        free(srcstr);
+        strftime(timestr, TIMELENGTH, "%F", &tmr);
+
+        return timestr;
+} /* }}} */
+
+void wipe_screen(const short start, const int size[2]) /* {{{ */
+{
+        /* clear the screen */
+        int pos;
+        char *blank;
+        
+        attrset(COLOR_PAIR(0));
+        blank = pad_string(" ", size[0], 0, 0, 'r');
+
+        for (pos=start; pos<size[1]; pos++)
         {
-                case 'n':       // sort by index
-                        if (a->index<b->index)
-                                ret = 1;
-                        break;
-                default:
-                case 'p':       // sort by project name => index
-                        if (a->project == NULL)
-                        {
-                                if (b->project != NULL)
-                                        ret = 1;
+                mvaddstr(pos, 0, blank);
+        }
+        free(blank);
+} /* }}} */
+
+int main(int argc, char **argv)
+{
+        /* declare variables */
+        task *head;
+        int c;
+
+        /* handle arguments */
+        while ((c = getopt(argc, argv, "l:hv")) != -1)
+        {
+                switch (c)
+                {
+                        case 'l':
+                                loglvl = (char) atoi(optarg);
+                                printf("loglevel: %d\n", (int)loglvl);
                                 break;
-                        }
-                        if (b->project == NULL)
+                        case 'v':
+                                print_version();
+                                return 0;
                                 break;
-                        tmp = strcmp(a->project, b->project);
-                        if (tmp<0)
-                                ret = 1;
-                        if (tmp==0)
-                                ret = compare_tasks(a, b, 'n');
-                        break;
-                case 'd':       // sort by due date => priority => project => index
-                        if (a->due == NULL)
-                        {
-                                if (b->due == NULL)
-                                        ret = compare_tasks(a, b, 'r');
+                        case 'h':
+                        case '?':
+                                help();
+                                return 0;
                                 break;
-                        }
-                        if (b->due == NULL)
-                        {
-                                ret = 1;
-                                break;
-                        }
-                        if (a->due<b->due)
-                                ret = 1;
-                        break;
-                case 'r':       // sort by priority => project => index
-                        if (a->priority == NULL)
-                        {
-                                if (b->priority == NULL)
-                                        ret = compare_tasks(a, b, 'p');
-                                break;
-                        }
-                        if (b->priority == NULL)
-                        {
-                                ret = 1;
-                                break;
-                        }
-                        if (a->priority == b->priority)
-                        {
-                                ret = compare_tasks(a, b, 'p');
-                                break;
-                        }
-                        switch (b->priority)
-                        {
-                                case 'H':
-                                default:
-                                        break;
-                                case 'M':
-                                        if (a->priority=='H')
-                                                ret = 1;
-                                        break;
-                                case 'L':
-                                        if (a->priority=='M' || a->priority=='H')
-                                                ret = 1;
-                                        break;
-                        }
-                        break;
+                        default:
+                                return 1;
+                }
         }
 
-        return ret;
+        /* build task list */
+        head = get_tasks();
+        sort_wrapper(head);
+
+        /* run ncurses */
+        logmsg("running gui", 1);
+        nc_main(head);
+        nc_end(0);
+
+        /* done */
+        free_tasks(head);
+        logmsg("exiting", 1);
+        return 0;
 }
-/* }}} */
