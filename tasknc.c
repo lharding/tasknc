@@ -378,6 +378,7 @@ nc_main(task *head)
         {
                 char done = 0;
                 char redraw = 0;
+                char reload = 0;
                 getmaxyx(stdscr, size[1], size[0]);
                 if (size[0]!=oldsize[0] || size[1]!=oldsize[1])
                         redraw = 1;
@@ -422,17 +423,10 @@ nc_main(task *head)
                                 def_prog_mode();
                                 endwin();
                                 task_action(head, selline, ACTION_EDIT);
-                                reload_tasks(&head);
-                                refresh();
-                                wipe_screen(1, size);
-                                redraw = 1;
+                                reload = 1;
                                 break;
                         case 'r': // reload task list
-                                reload_tasks(&head);
-                                wipe_screen(1, size);
-                                taskcount = task_count(head);
-                                check_curs_pos(&selline, taskcount);
-                                redraw = 1;
+                                reload = 1;
                                 break;
                         case 'u': // undo
                                 def_prog_mode();
@@ -440,32 +434,21 @@ nc_main(task *head)
                                 system("task undo");
                                 refresh();
                                 wipe_screen(1, size);
-                                reload_tasks(&head);
-                                taskcount = task_count(head);
-                                check_curs_pos(&selline, taskcount);
-                                redraw = 1;
+                                reload = 1;
                                 break;
                         case 'd': // delete
                                 def_prog_mode();
                                 endwin();
                                 task_action(head, selline, ACTION_DELETE);
                                 refresh();
-                                reload_tasks(&head);
-                                taskcount = task_count(head);
-                                check_curs_pos(&selline, taskcount);
-                                wipe_screen(1, size);
-                                redraw = 1;
+                                reload = 1;
                                 break;
                         case 'c': // complete
                                 def_prog_mode();
                                 endwin();
                                 task_action(head, selline, ACTION_COMPLETE);
                                 refresh();
-                                reload_tasks(&head);
-                                taskcount = task_count(head);
-                                check_curs_pos(&selline, taskcount);
-                                wipe_screen(1, size);
-                                redraw = 1;
+                                reload = 1;
                                 break;
                         case 'a': // add new
                         case 'n':
@@ -473,11 +456,7 @@ nc_main(task *head)
                                 endwin();
                                 task_add(taskcount);
                                 refresh();
-                                reload_tasks(&head);
-                                taskcount = task_count(head);
-                                check_curs_pos(&selline, taskcount);
-                                wipe_screen(1, size);
-                                redraw = 1;
+                                reload = 1;
                                 break;
                         case 'v': // view info
                         case KEY_ENTER:
@@ -532,6 +511,14 @@ nc_main(task *head)
                 }
                 if (done==1)
                         break;
+                if (reload==1)
+                {
+                        reload_tasks(&head);
+                        taskcount = task_count(head);
+                        check_curs_pos(&selline, taskcount);
+                        wipe_screen(1, size);
+                        redraw = 1;
+                }
                 if (redraw==1)
                 {
                         projlen = max_project_length(head);
