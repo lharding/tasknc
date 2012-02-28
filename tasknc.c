@@ -531,11 +531,25 @@ void nc_main(task *head) /* {{{ */
         delwin(stdscr);
 } /* }}} */
 
-char * pad_string(char *str, int length, const int lpad, int rpad, const char align) /* {{{ */
+char * pad_string(char *argstr, int length, const int lpad, int rpad, const char align) /* {{{ */
 {
         /* function to add padding to strings and align them with spaces */
         char *ft;
         char *ret;
+        char *str;
+
+        /* copy argstr to placeholder that we can modify */
+        str = malloc((strlen(argstr)+1)*sizeof(char));
+        str = strcpy(str, argstr);
+
+        /* cut string if necessary */
+        if (strlen(str)>length-lpad-rpad)
+        {
+                str[length-lpad-rpad] = '\0';
+                int i;
+                for (i=1; i<=3; i++)
+                        str[length-lpad-rpad-i] = '.';
+        }
 
         /* handle left alignment */
         if (align=='l')
@@ -569,6 +583,7 @@ char * pad_string(char *str, int length, const int lpad, int rpad, const char al
                 sprintf(ret, ft, str);
         }
         free(ft);
+        free(str);
 
         return ret;
 } /* }}} */
