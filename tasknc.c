@@ -512,6 +512,7 @@ void nc_main(task *head) /* {{{ */
                         taskcount = task_count(head);
                         check_curs_pos(&selline);
                         wipe_screen(1, size);
+                        print_title(size[0]);
                         redraw = 1;
                 }
                 if (redraw==1)
@@ -718,20 +719,23 @@ void print_task_list(task *head, const short selected, const short projlen, cons
 void print_title(const int width) /* {{{ */
 {
         /* print the window title bar */
-        char *tmp, *date;
+        char *tmp0, *tmp1;
 
         /* print program info */
         attrset(COLOR_PAIR(1));
-        tmp = pad_string("task ncurses - by mjheagle", width, 0, 0, 'l');
-        mvaddstr(0, 0, tmp);
-        free(tmp);
+        tmp0 = malloc(width*sizeof(char));
+        sprintf(tmp0, "%s v%s  (%d)", SHORTNAME, VERSION, taskcount);
+        tmp1 = pad_string(tmp0, width, 0, 0, 'l');
+        mvaddstr(0, 0, tmp1);
+        free(tmp0);
+        free(tmp1);
 
         /* print the current date */
-        date = utc_date(0);
-        tmp = pad_string(date, DATELENGTH, 0, 0, 'r');
-        mvaddstr(0, width-DATELENGTH, tmp);
-        free(date);
-        free(tmp);
+        tmp0 = utc_date(0);
+        tmp1 = pad_string(tmp0, DATELENGTH, 0, 0, 'r');
+        mvaddstr(0, width-DATELENGTH, tmp0);
+        free(tmp0);
+        free(tmp1);
 } /* }}} */
 
 void print_version(void) /* {{{ */
