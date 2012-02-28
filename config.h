@@ -4,7 +4,7 @@
 */
 
 #define NAME "taskwarrior ncurses shell"
-#define VERSION "0.1"
+#define VERSION "0.2"
 #define AUTHOR "mjheagle"
 
 /* user defined lengths */
