@@ -32,7 +32,7 @@ typedef struct _task
 /* }}} */
 
 /* function prototypes {{{ */
-static void check_curs_pos(short *, const char);
+static void check_curs_pos(short *);
 static char compare_tasks(const task *, const task *, const char);
 static char free_task(task *);
 static void free_tasks(task *);
@@ -55,7 +55,7 @@ static void sort_wrapper(task *);
 static char *strip_quotes(char *);
 static void swap_tasks(task *, task *);
 static void task_action(task *, const short, const char);
-static void task_add(const char);
+static void task_add(void);
 static char task_count(task *);
 static char *utc_date(const unsigned int);
 static void wipe_screen(const short, const int[2]);
@@ -64,15 +64,17 @@ static void wipe_screen(const short, const int[2]);
 /* global variables {{{ */
 char loglvl = 0;        /* used by logmsg to determine whether msgs should be written to logfile */
 char sortmode = 'd';    /* used by compare_tasks to determine what algorithm to use to compare tasks */
+int size[2];            /* size of the ncurses window */
+char taskcount;         /* number of tasks */
 /* }}} */
 
-void check_curs_pos(short *pos, const char tasks) /* {{{ */
+void check_curs_pos(short *pos) /* {{{ */
 {
         /* check if the cursor is in a valid position */
         if ((*pos)<0)
                 *pos = 0;
-        if ((*pos)>=tasks)
-                *pos = tasks-1;
+        if ((*pos)>=taskcount)
+                *pos = taskcount-1;
 } /* }}} */
 
 char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
@@ -337,7 +339,6 @@ void nc_main(task *head) /* {{{ */
         WINDOW *stdscr;
         int c, tmp, size[2], oldsize[2];
         short selline = 0;
-        char taskcount;
         short projlen = max_project_length(head);
         short desclen;
         const short datelen = DATELENGTH;
@@ -394,7 +395,7 @@ void nc_main(task *head) /* {{{ */
                                         selline--;
                                         redraw = 1;
                                 }
-                                check_curs_pos(&selline, taskcount);
+                                check_curs_pos(&selline);
                                 break;
                         case 'j': // scroll down
                         case KEY_DOWN:
@@ -403,7 +404,7 @@ void nc_main(task *head) /* {{{ */
                                         selline++;
                                         redraw = 1;
                                 }
-                                check_curs_pos(&selline, taskcount);
+                                check_curs_pos(&selline);
                                 break;
                         case KEY_HOME: // go to first entry
                                 selline = 0;
@@ -448,7 +449,7 @@ void nc_main(task *head) /* {{{ */
                         case 'n':
                                 def_prog_mode();
                                 endwin();
-                                task_add(taskcount);
+                                task_add();
                                 refresh();
                                 reload = 1;
                                 break;
@@ -509,7 +510,7 @@ void nc_main(task *head) /* {{{ */
                 {
                         reload_tasks(&head);
                         taskcount = task_count(head);
-                        check_curs_pos(&selline, taskcount);
+                        check_curs_pos(&selline);
                         wipe_screen(1, size);
                         redraw = 1;
                 }
@@ -930,7 +931,7 @@ void task_action(task *head, const short pos, const char action) /* {{{ */
         }
 } /* }}} */
 
-void task_add(const char taskcount) /* {{{ */
+void task_add(void) /* {{{ */
 {
         /* create a new task by adding a generic task
          * then letting the user edit it
