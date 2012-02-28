@@ -717,11 +717,21 @@ void print_task_list(task *head, const short selected, const short projlen, cons
 
 void print_title(const int width) /* {{{ */
 {
-        /* print the title of the window */
+        /* print the window title bar */
+        char *tmp, *date;
+
+        /* print program info */
         attrset(COLOR_PAIR(1));
-        char *title = pad_string("task ncurses - by mjheagle", width, 0, 0, 'l');
-        mvaddstr(0, 0, title);
-        free(title);
+        tmp = pad_string("task ncurses - by mjheagle", width, 0, 0, 'l');
+        mvaddstr(0, 0, tmp);
+        free(tmp);
+
+        /* print the current date */
+        date = utc_date(0);
+        tmp = pad_string(date, DATELENGTH, 0, 0, 'r');
+        mvaddstr(0, width-DATELENGTH, tmp);
+        free(date);
+        free(tmp);
 } /* }}} */
 
 void print_version(void) /* {{{ */
@@ -984,12 +994,16 @@ char *utc_date(const unsigned int timeint) /* {{{ */
         time(&cur);
         now = localtime(&cur);
 
+        /* set time to now if 0 was the argument */
+        if (timeint==0)
+                tmr = *now;
+
         /* convert thte time to a formatted string */
         timestr = malloc(TIMELENGTH*sizeof(char));
         if (now->tm_year != tmr.tm_year)
                 strftime(timestr, TIMELENGTH, "%F", &tmr);
         else
-                strftime(timestr, TIMELENGTH, "%b-%d", &tmr);
+                strftime(timestr, TIMELENGTH, "%b %d", &tmr);
 
         return timestr;
 } /* }}} */
