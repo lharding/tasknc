@@ -54,6 +54,7 @@ static void print_task_list(task *, const short, const short, const short, const
 static void print_title(const int);
 static void print_version(void);
 static void reload_tasks(task **);
+static void set_curses_mode(char);
 static void sort_tasks(task *, task *);
 static void sort_wrapper(task *);
 static char *strip_quotes(char *);
@@ -408,13 +409,7 @@ void nc_main(task *head) /* {{{ */
             fprintf(stderr, "Error initialising ncurses.\n");
             exit(EXIT_FAILURE);
         }
-        keypad(stdscr, TRUE);   /* enable keyboard mapping */
-        nonl();                 /* tell curses not to do NL->CR/NL on output */
-        cbreak();               /* take input chars one at a time, no wait for \n */
-        noecho();               /* dont echo input */
-        nc_colors();            /* initialize colors */
-        curs_set(0);            /* set cursor invisible */
-        timeout(NCURSES_WAIT);  /* timeout ncurses operations */
+        set_curses_mode(NCURSES_MODE_STD);
 
         /* print main screen */
         getmaxyx(stdscr, oldsize[1], oldsize[0]);
@@ -525,9 +520,9 @@ void nc_main(task *head) /* {{{ */
                         case 's': // re-sort list
                                 attrset(COLOR_PAIR(0));
                                 statusbar_message("enter sort mode: iNdex, Project, Due, pRiority", 1);
-                                timeout(-1);
+                                set_curses_mode(NCURSES_MODE_STD_BLOCKING);
                                 c = getch();
-                                timeout(NCURSES_WAIT);
+                                set_curses_mode(NCURSES_MODE_STD);
                                 switch (c)
                                 {
                                         case 'n':
@@ -556,22 +551,14 @@ void nc_main(task *head) /* {{{ */
                         case '/': // search
                                 attrset(COLOR_PAIR(0));
                                 statusbar_message("search phrase: ", -1);
-                                /* set curses settings for string input */
-                                curs_set(2);            
-                                nocbreak();
-                                echo();
-                                timeout(-1);
+                                set_curses_mode(NCURSES_MODE_STRING);
                                 /* store search string  */
                                 if (searchstring!=NULL)
                                         free(searchstring);
                                 searchstring = malloc((size[0]-16)*sizeof(char));
                                 getstr(searchstring);
                                 sb_timeout = time(NULL) + 3;
-                                /* revert to standard curses mode */
-                                timeout(NCURSES_WAIT);
-                                noecho();
-                                cbreak();
-                                curs_set(0);            
+                                set_curses_mode(NCURSES_MODE_STD);
                                 /* go to first result */
                                 find_next_search_result(head, sel_task(head));
                                 redraw = 1;
@@ -892,6 +879,40 @@ void reload_tasks(task **headptr) /* {{{ */
                 logmsg(buffer, 2);
                 free(buffer);
                 cur = cur->next;
+        }
+} /* }}} */
+
+void set_curses_mode(char curses_mode) /* {{{ */
+{
+        /* set curses settings for various common modes */
+        switch (curses_mode)
+        {
+                case NCURSES_MODE_STD:
+                        keypad(stdscr, TRUE);   /* enable keyboard mapping */
+                        nonl();                 /* tell curses not to do NL->CR/NL on output */
+                        cbreak();               /* take input chars one at a time, no wait for \n */
+                        noecho();               /* dont echo input */
+                        nc_colors();            /* initialize colors */
+                        curs_set(0);            /* set cursor invisible */
+                        timeout(NCURSES_WAIT);  /* timeout getch */
+                        break;
+                case NCURSES_MODE_STD_BLOCKING:
+                        keypad(stdscr, TRUE);   /* enable keyboard mapping */
+                        nonl();                 /* tell curses not to do NL->CR/NL on output */
+                        cbreak();               /* take input chars one at a time, no wait for \n */
+                        noecho();               /* dont echo input */
+                        nc_colors();            /* initialize colors */
+                        curs_set(0);            /* set cursor invisible */
+                        timeout(-1);            /* no timeout on getch */
+                        break;
+                case NCURSES_MODE_STRING:
+                        curs_set(2);            /* set cursor visible */
+                        nocbreak();             /* wait for \n */
+                        echo();                 /* echo input */
+                        timeout(-1);            /* no timeout on getch */
+                        break;
+                default:
+                        break;
         }
 } /* }}} */
 
