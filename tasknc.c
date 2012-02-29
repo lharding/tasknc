@@ -63,6 +63,7 @@ static char task_count(task *);
 static char task_match(const task *, const char *);
 static char *utc_date(const unsigned int);
 static void wipe_screen(const short, const int[2]);
+static void wipe_statusbar(void);
 /* }}} */
 
 /* global variables {{{ */
@@ -462,17 +463,19 @@ void nc_main(task *head) /* {{{ */
                                 endwin();
                                 task_action(head, ACTION_EDIT);
                                 reload = 1;
+                                statusbar_message("task edited", 3);
                                 break;
                         case 'r': // reload task list
                                 reload = 1;
+                                statusbar_message("task list reloaded", 3);
                                 break;
                         case 'u': // undo
                                 def_prog_mode();
                                 endwin();
                                 system("task undo");
                                 refresh();
-                                wipe_screen(1, size);
                                 reload = 1;
+                                statusbar_message("undo executed", 3);
                                 break;
                         case 'd': // delete
                                 def_prog_mode();
@@ -480,6 +483,7 @@ void nc_main(task *head) /* {{{ */
                                 task_action(head, ACTION_DELETE);
                                 refresh();
                                 reload = 1;
+                                statusbar_message("task deleted", 3);
                                 break;
                         case 'c': // complete
                                 def_prog_mode();
@@ -487,6 +491,7 @@ void nc_main(task *head) /* {{{ */
                                 task_action(head, ACTION_COMPLETE);
                                 refresh();
                                 reload = 1;
+                                statusbar_message("task completed", 3);
                                 break;
                         case 'a': // add new
                                 def_prog_mode();
@@ -494,6 +499,7 @@ void nc_main(task *head) /* {{{ */
                                 task_add();
                                 refresh();
                                 reload = 1;
+                                statusbar_message("task added", 3);
                                 break;
                         case 'v': // view info
                         case KEY_ENTER:
@@ -565,9 +571,10 @@ void nc_main(task *head) /* {{{ */
                         case 'y': // sync
                                 def_prog_mode();
                                 endwin();
-                                system("task merge");
+                                system("yes n | task merge");
                                 system("task push");
                                 refresh();
+                                statusbar_message("tasks synchronized", 3);
                                 break;
                         case 'q': // quit
                                 done = 1;
@@ -602,7 +609,7 @@ void nc_main(task *head) /* {{{ */
                 if (sb_timeout>0 && sb_timeout<time(NULL))
                 {
                         sb_timeout = 0;
-                        wipe_screen(size[1]-1, size);
+                        wipe_statusbar();
                 }
         }
 
@@ -929,13 +936,13 @@ void statusbar_message(const char *message, const int dtmout) /* {{{ */
         const short padl = size[0]-strlen(message)-1;
         short i;
 
+        attrset(COLOR_PAIR(0));
         tmp = malloc(padl*sizeof(char));
         for (i=0; i<padl; i++)
                 tmp[i] = ' ';
         mvaddstr(size[1]-1, strlen(message), tmp);
         free(tmp);
 
-        attrset(COLOR_PAIR(0));
         mvaddstr(size[1]-1, 0, message);
         if (dtmout>=0)
                 sb_timeout = time(NULL) + dtmout;
@@ -1140,16 +1147,27 @@ char *utc_date(const unsigned int timeint) /* {{{ */
         return timestr;
 } /* }}} */
 
+void wipe_statusbar(void) /* {{{ */
+{
+        /* clear the status bar */
+        char *blank;
+
+        attrset(COLOR_PAIR(0));
+        blank = pad_string(" ", size[0], 0, 0, 'r');
+        mvaddstr(size[1]-1, 0, blank);
+        free(blank);
+} /* }}} */
+
 void wipe_screen(const short start, const int size[2]) /* {{{ */
 {
-        /* clear the screen */
+        /* clear the screen except the title and status bars */
         int pos;
         char *blank;
         
         attrset(COLOR_PAIR(0));
         blank = pad_string(" ", size[0], 0, 0, 'r');
 
-        for (pos=start; pos<size[1]; pos++)
+        for (pos=start; pos<size[1]-1; pos++)
         {
                 mvaddstr(pos, 0, blank);
         }
