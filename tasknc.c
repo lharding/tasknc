@@ -62,10 +62,11 @@ static void wipe_screen(const short, const int[2]);
 /* }}} */
 
 /* global variables {{{ */
-char loglvl = 0;        /* used by logmsg to determine whether msgs should be written to logfile */
-char sortmode = 'd';    /* used by compare_tasks to determine what algorithm to use to compare tasks */
-int size[2];            /* size of the ncurses window */
-char taskcount;         /* number of tasks */
+char loglvl = 0;                /* used by logmsg to determine whether msgs should be written to logfile */
+char sortmode = 'd';            /* used by compare_tasks to determine what algorithm to use to compare tasks */
+int size[2];                    /* size of the ncurses window */
+char taskcount;                 /* number of tasks */
+char *searchstring = NULL;      /* currently active search string */
 /* }}} */
 
 void check_curs_pos(short *pos) /* {{{ */
@@ -337,6 +338,7 @@ void nc_main(task *head) /* {{{ */
 {
         /* ncurses main function */
         WINDOW *stdscr;
+        char *tmpstr;
         int c, tmp, size[2], oldsize[2];
         short selline = 0;
         short projlen = max_project_length(head);
@@ -446,7 +448,6 @@ void nc_main(task *head) /* {{{ */
                                 reload = 1;
                                 break;
                         case 'a': // add new
-                        case 'n':
                                 def_prog_mode();
                                 endwin();
                                 task_add();
@@ -491,6 +492,24 @@ void nc_main(task *head) /* {{{ */
                                 }
                                 redraw = 1;
                                 break;
+                        case '/': // search
+                                attrset(COLOR_PAIR(0));
+                                mvaddstr(size[1]-1, 0, "search phrase: ");
+                                /* set curses settings for string input */
+                                curs_set(2);            
+                                nocbreak();
+                                echo();
+                                /* store search string  */
+                                if (searchstring!=NULL)
+                                        free(searchstring);
+                                searchstring = malloc((size[0]-16)*sizeof(char));
+                                getstr(searchstring);
+                                timeout = time(NULL) + 3;
+                                /* revert to standard curses mode */
+                                noecho();
+                                cbreak();
+                                curs_set(0);            
+                                break;
                         case 'y': // sync
                                 def_prog_mode();
                                 endwin();
@@ -502,6 +521,12 @@ void nc_main(task *head) /* {{{ */
                                 done = 1;
                                 break;
                         default: // unhandled
+                                tmpstr = malloc(20*sizeof(char));
+                                sprintf(tmpstr, "unhandled key: %c", c);
+                                attrset(COLOR_PAIR(0));
+                                mvaddstr(size[1]-1, 0, tmpstr);
+                                free(tmpstr);
+                                timeout = time(NULL) + 3;
                                 break;
                 }
                 if (done==1)
@@ -1077,6 +1102,8 @@ int main(int argc, char **argv)
         nc_end(0);
 
         /* done */
+        if (searchstring!=NULL)
+                free(searchstring);
         free_tasks(head);
         logmsg("exiting", 1);
         return 0;

@@ -10,7 +10,7 @@ key binds:
     u: run task undo
     d: delete selected task
     c: mark selected task as complete
-    a/n: create a new task
+    a: create a new task
     v/enter: run task info on selected task
     s: resort list (prompted for sort algorithm)
     y: synchronize (run task merge and task push)
