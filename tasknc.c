@@ -26,6 +26,7 @@ typedef struct _task
         char *project;
         char priority;
         char *description;
+        char is_filtered;
         struct _task *prev;
         struct _task *next;
 } task;
@@ -68,12 +69,12 @@ static void wipe_statusbar(void);
 
 /* global variables {{{ */
 char loglvl = 0;                /* used by logmsg to determine whether msgs should be written to logfile */
-char sortmode = 'd';            /* used by compare_tasks to determine what algorithm to use to compare tasks */
-int size[2];                    /* size of the ncurses window */
-char taskcount;                 /* number of tasks */
-char *searchstring = NULL;      /* currently active search string */
 time_t sb_timeout = 0;          /* when statusbar should be cleared */
+char *searchstring = NULL;      /* currently active search string */
 short selline = 0;              /* selected line number */
+int size[2];                    /* size of the ncurses window */
+char sortmode = 'd';            /* used by compare_tasks to determine what algorithm to use to compare tasks */
+char taskcount;                 /* number of tasks */
 /* }}} */
 
 void check_curs_pos(short *pos) /* {{{ */
@@ -316,6 +317,7 @@ task * malloc_task(void) /* {{{ */
         tsk->entry = 0;
         tsk->index = 0;
         tsk->priority = 0;
+        tsk->is_filtered = 1;
 
         return tsk;
 } /* }}} */
@@ -759,10 +761,17 @@ void print_task_list(task *head, const short selected, const short projlen, cons
         cur = head;
         while (cur!=NULL)
         {
+                /* skip filtereed tasks */
+                if (!cur->is_filtered)
+                        continue;
+
+                /* check if item is selected */
                 if (counter==selected)
                         sel = 1;
                 else
                         sel = 0;
+
+                /* print project */
                 attrset(COLOR_PAIR(2+3*sel));
                 if (cur->project==NULL)
                         bufstr = pad_string(" ", projlen, 0, 1, 'r');
@@ -770,10 +779,14 @@ void print_task_list(task *head, const short selected, const short projlen, cons
                         bufstr = pad_string(cur->project, projlen, 0, 1, 'r');
                 mvaddstr(counter+1, 0, bufstr);
                 free(bufstr);
+                
+                /* print description */
                 attrset(COLOR_PAIR(3+3*sel));
                 bufstr = pad_string(cur->description, desclen, 0, 1, 'l');
                 mvaddstr(counter+1, projlen+1, bufstr);
                 free(bufstr);
+
+                /* print due date or priority if available */
                 attrset(COLOR_PAIR(4+3*sel));
                 if (cur->due!=(unsigned int)NULL)
                 {
@@ -794,6 +807,8 @@ void print_task_list(task *head, const short selected, const short projlen, cons
                         bufstr = pad_string(" ", datelen, 0, 0, 'r');
                 mvaddstr(counter+1, projlen+desclen+1, bufstr);
                 free(bufstr);
+
+                /* move to next item */
                 counter++;
                 cur = cur->next;
         }
@@ -1014,6 +1029,10 @@ void swap_tasks(task *a, task *b) /* {{{ */
         strtmp = a->description;
         a->description = b->description;
         b->description = strtmp;
+
+        ctmp = a->is_filtered;
+        a->is_filtered = b->is_filtered;
+        b->is_filtered = ctmp;
 } /* }}} */
 
 void task_action(task *head, const char action) /* {{{ */
