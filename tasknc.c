@@ -950,15 +950,25 @@ void task_add(void) /* {{{ */
         /* create a new task by adding a generic task
          * then letting the user edit it
          */
-        char *cmd;
+        FILE *cmdout;
+        char *cmd, line[TOTALLENGTH];
+        const char addstr[] = "Created task ";
+        unsigned short tasknum;
 
         /* add new task */
         puts("task add new task");
-        system("task add new task");
+        cmdout = popen("task add new task", "r");
+        while (fgets(line, sizeof(line)-1, cmdout) != NULL)
+        {
+                if (strncmp(line, addstr, strlen(addstr))==0)
+                        if (sscanf(line, "Created task %hu.", &tasknum))
+                                break;
+        }
+        pclose(cmdout);
 
         /* edit task */
         cmd = malloc(32*sizeof(char));
-        sprintf(cmd, "task edit %d", taskcount+1);
+        sprintf(cmd, "task edit %d", tasknum);
         puts(cmd);
         system(cmd);
         free(cmd);
