@@ -733,7 +733,7 @@ void print_title(const int width) /* {{{ */
         /* print the current date */
         tmp0 = utc_date(0);
         tmp1 = pad_string(tmp0, DATELENGTH, 0, 0, 'r');
-        mvaddstr(0, width-DATELENGTH, tmp0);
+        mvaddstr(0, width-DATELENGTH, tmp1);
         free(tmp0);
         free(tmp1);
 } /* }}} */
