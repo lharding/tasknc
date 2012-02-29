@@ -64,8 +64,9 @@ static void task_add(void);
 static char task_count(task *);
 static char task_match(const task *, const char *);
 static char *utc_date(const unsigned int);
-static void wipe_screen(const short, const int[2]);
+static void wipe_screen(const short);
 static void wipe_statusbar(void);
+static void wipe_tasklist(void);
 /* }}} */
 
 /* global variables {{{ */
@@ -535,7 +536,7 @@ void nc_main(task *head) /* {{{ */
                                         case 'r':
                                                 sortmode = c;
                                                 sort_wrapper(head);
-                                                wipe_screen(size[1]-1, size);
+                                                wipe_tasklist();
                                                 break;
                                         case 'N':
                                         case 'P':
@@ -543,10 +544,10 @@ void nc_main(task *head) /* {{{ */
                                         case 'R':
                                                 sortmode = c+32;
                                                 sort_wrapper(head);
-                                                wipe_screen(size[1]-1, size);
+                                                wipe_tasklist();
                                                 break;
                                         default:
-                                                wipe_screen(size[1]-1, size);
+                                                wipe_tasklist();
                                                 statusbar_message("invalid sort mode", 3);
                                                 break;
                                 }
@@ -612,7 +613,7 @@ void nc_main(task *head) /* {{{ */
                         reload_tasks(&head);
                         taskcount = task_count(head);
                         check_curs_pos(&selline);
-                        wipe_screen(1, size);
+                        wipe_tasklist();
                         print_title(size[0]);
                         redraw = 1;
                 }
@@ -974,17 +975,7 @@ void sort_wrapper(task *first) /* {{{ */
 void statusbar_message(const char *message, const int dtmout) /* {{{ */
 {
         /* print a message in the statusbar */
-        char *tmp;
-        const short padl = size[0]-strlen(message)-1;
-        short i;
-
-        attrset(COLOR_PAIR(0));
-        tmp = malloc(padl*sizeof(char));
-        for (i=0; i<padl; i++)
-                tmp[i] = ' ';
-        tmp[i-1] = '\0';
-        mvaddstr(size[1]-1, strlen(tmp), tmp);
-        free(tmp);
+        wipe_statusbar();
 
         mvaddstr(size[1]-1, 0, message);
         if (dtmout>=0)
@@ -1194,18 +1185,7 @@ char *utc_date(const unsigned int timeint) /* {{{ */
         return timestr;
 } /* }}} */
 
-void wipe_statusbar(void) /* {{{ */
-{
-        /* clear the status bar */
-        char *blank;
-
-        attrset(COLOR_PAIR(0));
-        blank = pad_string(" ", size[0], 0, 0, 'r');
-        mvaddstr(size[1]-1, 0, blank);
-        free(blank);
-} /* }}} */
-
-void wipe_screen(const short start, const int size[2]) /* {{{ */
+void wipe_screen(const short start) /* {{{ */
 {
         /* clear the screen except the title and status bars */
         int pos;
@@ -1219,6 +1199,23 @@ void wipe_screen(const short start, const int size[2]) /* {{{ */
                 mvaddstr(pos, 0, blank);
         }
         free(blank);
+} /* }}} */
+
+void wipe_statusbar(void) /* {{{ */
+{
+        /* clear the status bar */
+        char *blank;
+
+        attrset(COLOR_PAIR(0));
+        blank = pad_string(" ", size[0], 0, 0, 'r');
+        mvaddstr(size[1]-1, 0, blank);
+        free(blank);
+} /* }}} */
+
+void wipe_tasklist(void) /* {{{ */
+{
+        /* wrapper around wipe_screen to wipe task list */
+        wipe_screen(size[1]-1);
 } /* }}} */
 
 int main(int argc, char **argv)
