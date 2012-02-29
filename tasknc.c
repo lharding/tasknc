@@ -34,6 +34,7 @@ typedef struct _task
 /* function prototypes {{{ */
 static void check_curs_pos(short *);
 static char compare_tasks(const task *, const task *, const char);
+static void find_next_search_result(task *, task *);
 static char free_task(task *);
 static void free_tasks(task *);
 static task *get_tasks(void);
@@ -163,6 +164,45 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
         }
 
         return ret;
+} /* }}} */
+
+void find_next_search_result(task *head, task *pos) /* {{{ */
+{
+        /* find the next search result in the list of tasks */
+        task *cur;
+        char *tmp;
+
+        cur = pos;
+        while (1)
+        {
+                /* move to next item */
+                cur = cur->next;
+                selline++;
+
+                /* move to head if end of list is reached */
+                if (cur == NULL)
+                {
+                        cur = head;
+                        selline = 0;
+                }
+
+                /* check for match */
+                if (strcasestr(cur->project, searchstring)!=NULL ||
+                                strcasestr(cur->description, searchstring)!= NULL ||
+                                strcasestr(cur->tags, searchstring)!= NULL)
+                        return;
+
+                /* stop if full loop was made */
+                if (cur==pos)
+                        break;
+        }
+
+        tmp = malloc((13+strlen(searchstring))*sizeof(char));
+        sprintf(tmp, "no matches: %s", searchstring);
+        statusbar_message(tmp, 3);
+        free(tmp);
+
+        return;
 } /* }}} */
 
 char free_task(task *tsk) /* {{{ */
@@ -510,6 +550,18 @@ void nc_main(task *head) /* {{{ */
                                 noecho();
                                 cbreak();
                                 curs_set(0);            
+                                /* go to first result */
+                                find_next_search_result(head, sel_task(head));
+                                redraw = 1;
+                                break;
+                        case 'n': // next search result
+                                if (searchstring!=NULL)
+                                {
+                                        find_next_search_result(head, sel_task(head));
+                                        redraw = 1;
+                                }
+                                else
+                                        statusbar_message("no active search string", 3);
                                 break;
                         case 'y': // sync
                                 def_prog_mode();
@@ -873,6 +925,17 @@ void sort_wrapper(task *first) /* {{{ */
 
 void statusbar_message(const char *message, const int dtmout) /* {{{ */
 {
+        /* print a message in the statusbar */
+        char *tmp;
+        const short padl = size[0]-strlen(message)-1;
+        short i;
+
+        tmp = malloc(padl*sizeof(char));
+        for (i=0; i<padl; i++)
+                tmp[i] = ' ';
+        mvaddstr(size[1]-1, strlen(message), tmp);
+        free(tmp);
+
         attrset(COLOR_PAIR(0));
         mvaddstr(size[1]-1, 0, message);
         if (dtmout>=0)
@@ -951,7 +1014,6 @@ void task_action(task *head, const char action) /* {{{ */
 {
         /* spawn a command to complete a task */
         task *cur;
-        short p;
         char *cmd, *actionstr, wait;
         
         /* move to correct task */

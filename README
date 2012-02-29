@@ -15,6 +15,8 @@ key binds:
     s: resort list (prompted for sort algorithm)
     y: synchronize (run task merge and task push)
     q: exit tasknc
+    /: search for task
+    n: go to next task result
 
 changes:
     v0.2:
