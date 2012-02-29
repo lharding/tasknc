@@ -2,7 +2,7 @@
 
 errorfile="valgrind_errors"
 run="./tasknc"
-valgrind_options="--tool=memcheck --leak-check=full -v --show-reachable=yes"
+valgrind_options="--tool=memcheck --leak-check=full -v --show-reachable=yes --track-origins=yes"
 
 if [ -e $errorfile ]; then
     rm $errorfile

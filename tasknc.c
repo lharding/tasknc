@@ -308,19 +308,19 @@ task *malloc_task(void) /* {{{ */
          */
         task *tsk = malloc(sizeof(task));
 
+        tsk->index = 0;
         tsk->uuid = NULL;
         tsk->tags = NULL;
-        tsk->project = NULL;
-        tsk->description = NULL;
-        tsk->next = NULL;
-        tsk->prev = NULL;
         tsk->start = 0;
-        tsk->due = 0;
         tsk->end = 0;
         tsk->entry = 0;
-        tsk->index = 0;
+        tsk->due = 0;
+        tsk->project = NULL;
         tsk->priority = 0;
+        tsk->description = NULL;
         tsk->is_filtered = 1;
+        tsk->next = NULL;
+        tsk->prev = NULL;
 
         return tsk;
 } /* }}} */
