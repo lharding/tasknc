@@ -60,6 +60,7 @@ static void swap_tasks(task *, task *);
 static void task_action(task *, const char);
 static void task_add(void);
 static char task_count(task *);
+static char task_match(const task *, const char *);
 static char *utc_date(const unsigned int);
 static void wipe_screen(const short, const int[2]);
 /* }}} */
@@ -187,9 +188,7 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
                 }
 
                 /* check for match */
-                if (strcasestr(cur->project, searchstring)!=NULL ||
-                                strcasestr(cur->description, searchstring)!= NULL ||
-                                strcasestr(cur->tags, searchstring)!= NULL)
+                if (task_match(cur, searchstring)==1)
                         return;
 
                 /* stop if full loop was made */
@@ -1096,6 +1095,16 @@ char task_count(task *head) /* {{{ */
         }
 
         return count;
+} /* }}} */
+
+static char task_match(const task *cur, const char *str)/* {{{ */
+{
+        if (strcasestr(cur->project, str)!=NULL ||
+                        strcasestr(cur->description, str)!= NULL ||
+                        strcasestr(cur->tags, str)!= NULL)
+                return 1;
+        else
+                return 0;
 } /* }}} */
 
 char *utc_date(const unsigned int timeint) /* {{{ */
