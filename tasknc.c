@@ -53,6 +53,7 @@ static void reload_tasks(task **);
 static void sort_tasks(task *, task *);
 static void sort_wrapper(task *);
 static char *strip_quotes(char *);
+static void statusbar_message(const char *, const int);
 static void swap_tasks(task *, task *);
 static void task_action(task *, const short, const char);
 static void task_add(void);
@@ -67,6 +68,7 @@ char sortmode = 'd';            /* used by compare_tasks to determine what algor
 int size[2];                    /* size of the ncurses window */
 char taskcount;                 /* number of tasks */
 char *searchstring = NULL;      /* currently active search string */
+time_t sb_timeout = 0;          /* when statusbar should be cleared */
 /* }}} */
 
 void check_curs_pos(short *pos) /* {{{ */
@@ -339,12 +341,11 @@ void nc_main(task *head) /* {{{ */
         /* ncurses main function */
         WINDOW *stdscr;
         char *tmpstr;
-        int c, tmp, size[2], oldsize[2];
+        int c, tmp, oldsize[2];
         short selline = 0;
         short projlen = max_project_length(head);
         short desclen;
         const short datelen = DATELENGTH;
-        time_t timeout = 0;
 
         /* initialize ncurses */
         puts("starting ncurses...");
@@ -464,7 +465,7 @@ void nc_main(task *head) /* {{{ */
                                 break;
                         case 's': // re-sort list
                                 attrset(COLOR_PAIR(0));
-                                mvaddstr(size[1]-1, 0, "enter sort mode: iNdex, Project, Due, pRiority");
+                                statusbar_message("enter sort mode: iNdex, Project, Due, pRiority", -1);
                                 c = getch();
                                 switch (c)
                                 {
@@ -486,15 +487,14 @@ void nc_main(task *head) /* {{{ */
                                                 break;
                                         default:
                                                 wipe_screen(size[1]-1, size);
-                                                mvaddstr(size[1]-1, 0, "invalid sort mode");
-                                                timeout = time(NULL) + 3;
+                                                statusbar_message("invalid sort mode", 3);
                                                 break;
                                 }
                                 redraw = 1;
                                 break;
                         case '/': // search
                                 attrset(COLOR_PAIR(0));
-                                mvaddstr(size[1]-1, 0, "search phrase: ");
+                                statusbar_message("search phrase: ", -1);
                                 /* set curses settings for string input */
                                 curs_set(2);            
                                 nocbreak();
@@ -504,7 +504,7 @@ void nc_main(task *head) /* {{{ */
                                         free(searchstring);
                                 searchstring = malloc((size[0]-16)*sizeof(char));
                                 getstr(searchstring);
-                                timeout = time(NULL) + 3;
+                                sb_timeout = time(NULL) + 3;
                                 /* revert to standard curses mode */
                                 noecho();
                                 cbreak();
@@ -524,9 +524,8 @@ void nc_main(task *head) /* {{{ */
                                 tmpstr = malloc(20*sizeof(char));
                                 sprintf(tmpstr, "unhandled key: %c", c);
                                 attrset(COLOR_PAIR(0));
-                                mvaddstr(size[1]-1, 0, tmpstr);
+                                statusbar_message(tmpstr, 3);
                                 free(tmpstr);
-                                timeout = time(NULL) + 3;
                                 break;
                 }
                 if (done==1)
@@ -548,9 +547,9 @@ void nc_main(task *head) /* {{{ */
                         print_task_list(head, selline, projlen, desclen, datelen);
                         refresh();
                 }
-                if (timeout>0 && timeout<time(NULL))
+                if (sb_timeout>0 && sb_timeout<time(NULL))
                 {
-                        timeout = 0;
+                        sb_timeout = 0;
                         wipe_screen(size[1]-1, size);
                 }
         }
@@ -854,6 +853,15 @@ void sort_wrapper(task *first) /* {{{ */
 
         /* run sort with last value */
         sort_tasks(first, last);
+} /* }}} */
+
+void statusbar_message(const char *message, const int dtmout) /* {{{ */
+{
+        attrset(COLOR_PAIR(0));
+        mvaddstr(size[1]-1, 0, message);
+        if (dtmout>=0)
+                sb_timeout = time(NULL) + dtmout;
+        refresh();
 } /* }}} */
 
 char * strip_quotes(char *base) /* {{{ */
