@@ -24,3 +24,4 @@
 #define ACTION_COMPLETE 1
 #define ACTION_DELETE 2
 #define ACTION_VIEW 3
+#define NCURSES_WAIT 500

@@ -413,6 +413,7 @@ void nc_main(task *head) /* {{{ */
         noecho();               /* dont echo input */
         nc_colors();            /* initialize colors */
         curs_set(0);            /* set cursor invisible */
+        timeout(NCURSES_WAIT);  /* timeout ncurses operations */
 
         /* print main screen */
         getmaxyx(stdscr, oldsize[1], oldsize[0]);
@@ -522,8 +523,10 @@ void nc_main(task *head) /* {{{ */
                                 break;
                         case 's': // re-sort list
                                 attrset(COLOR_PAIR(0));
-                                statusbar_message("enter sort mode: iNdex, Project, Due, pRiority", -1);
+                                statusbar_message("enter sort mode: iNdex, Project, Due, pRiority", 1);
+                                timeout(-1);
                                 c = getch();
+                                timeout(NCURSES_WAIT);
                                 switch (c)
                                 {
                                         case 'n':
@@ -556,6 +559,7 @@ void nc_main(task *head) /* {{{ */
                                 curs_set(2);            
                                 nocbreak();
                                 echo();
+                                timeout(-1);
                                 /* store search string  */
                                 if (searchstring!=NULL)
                                         free(searchstring);
@@ -563,6 +567,7 @@ void nc_main(task *head) /* {{{ */
                                 getstr(searchstring);
                                 sb_timeout = time(NULL) + 3;
                                 /* revert to standard curses mode */
+                                timeout(NCURSES_WAIT);
                                 noecho();
                                 cbreak();
                                 curs_set(0);            
@@ -589,6 +594,8 @@ void nc_main(task *head) /* {{{ */
                                 break;
                         case 'q': // quit
                                 done = 1;
+                                break;
+                        case ERR: // no key was pressed
                                 break;
                         default: // unhandled
                                 tmpstr = malloc(20*sizeof(char));
@@ -629,7 +636,7 @@ void nc_main(task *head) /* {{{ */
         delwin(stdscr);
 } /* }}} */
 
-char * pad_string(char *argstr, int length, const int lpad, int rpad, const char align) /* {{{ */
+char *pad_string(char *argstr, int length, const int lpad, int rpad, const char align) /* {{{ */
 {
         /* function to add padding to strings and align them with spaces */
         char *ft;
@@ -686,7 +693,7 @@ char * pad_string(char *argstr, int length, const int lpad, int rpad, const char
         return ret;
 } /* }}} */
 
-task * parse_task(char *line) /* {{{ */
+task *parse_task(char *line) /* {{{ */
 {
         task *tsk = malloc_task();
         char *token, *lastchar;
@@ -985,7 +992,7 @@ void statusbar_message(const char *message, const int dtmout) /* {{{ */
         refresh();
 } /* }}} */
 
-char * strip_quotes(char *base) /* {{{ */
+char *strip_quotes(char *base) /* {{{ */
 {
         /* remove the first and last character from a string (quotes) */
         int len;
