@@ -254,6 +254,8 @@ task *get_tasks(void) /* {{{ */
         while (fgets(line, sizeof(line)-1, cmd) != NULL)
         {
                 task *this;
+                if (counter==0)
+                        this = NULL;
                 if (counter>0)
                 {
                         this = parse_task(line);
@@ -307,6 +309,10 @@ task *malloc_task(void) /* {{{ */
          * and initialize values where ncessary 
          */
         task *tsk = malloc(sizeof(task));
+        if (tsk)
+                memset(tsk, 0, sizeof(task));
+        else
+                return NULL;
 
         tsk->index = 0;
         tsk->uuid = NULL;
@@ -969,7 +975,7 @@ void statusbar_message(const char *message, const int dtmout) /* {{{ */
         tmp = malloc(padl*sizeof(char));
         for (i=0; i<padl; i++)
                 tmp[i] = ' ';
-        tmp[i] = '\0';
+        tmp[i-1] = '\0';
         mvaddstr(size[1]-1, strlen(tmp), tmp);
         free(tmp);
 
