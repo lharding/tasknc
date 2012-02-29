@@ -35,6 +35,7 @@ typedef struct _task
 
 /* function prototypes {{{ */
 static void check_curs_pos(short *);
+static void check_screen_size(short);
 static char compare_tasks(const task *, const task *, const char);
 static void find_next_search_result(task *, task *);
 static char free_task(task *);
@@ -87,6 +88,31 @@ void check_curs_pos(short *pos) /* {{{ */
                 *pos = 0;
         if ((*pos)>=taskcount)
                 *pos = taskcount-1;
+} /* }}} */
+
+void check_screen_size(short projlen) /* {{{ */
+{
+        /* check for a screen thats too small */
+        int count = 0;
+
+        do 
+        {
+                if (count)
+                {
+                        if (count==1)
+                        {
+                                wipe_statusbar();
+                                wipe_tasklist();
+                        }
+                        attrset(COLOR_PAIR(8));
+                        mvaddstr(0, 0, "screen dimensions too small");
+                        refresh();
+                        attrset(COLOR_PAIR(0));
+                        usleep(100000);
+                }
+                count++;
+                getmaxyx(stdscr, size[1], size[0]);
+        } while (size[0]<DATELENGTH+20+projlen || size[1]<5);
 } /* }}} */
 
 char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
@@ -362,10 +388,11 @@ void nc_colors(void) /* {{{ */
                 init_pair(1, COLOR_BLUE,        COLOR_BLACK);   /* title bar */
                 init_pair(2, COLOR_GREEN,       -1);            /* project */
                 init_pair(3, COLOR_CYAN,        -1);            /* description */
-                init_pair(4, COLOR_YELLOW,      -1);
-                init_pair(5, COLOR_BLACK,       COLOR_GREEN);
-                init_pair(6, COLOR_BLACK,       COLOR_CYAN);
-                init_pair(7, COLOR_BLACK,       COLOR_YELLOW);
+                init_pair(4, COLOR_YELLOW,      -1);            /* date */
+                init_pair(5, COLOR_BLACK,       COLOR_GREEN);   /* selected project */
+                init_pair(6, COLOR_BLACK,       COLOR_CYAN);    /* selected description */
+                init_pair(7, COLOR_BLACK,       COLOR_YELLOW);  /* selected date */
+                init_pair(8, COLOR_RED,         -1);            /* error message */
         }
 } /* }}} */
 
@@ -409,9 +436,12 @@ void nc_main(task *head) /* {{{ */
             fprintf(stderr, "Error initialising ncurses.\n");
             exit(EXIT_FAILURE);
         }
+        
+        /* set curses settings */
         set_curses_mode(NCURSES_MODE_STD);
 
         /* print main screen */
+        check_screen_size(projlen);
         getmaxyx(stdscr, oldsize[1], oldsize[0]);
         desclen = oldsize[0]-projlen-1-datelen;
         taskcount = task_count(head);
@@ -423,21 +453,33 @@ void nc_main(task *head) /* {{{ */
         /* main loop */
         while (1)
         {
+                /* set variables for determining actions */
                 char done = 0;
                 char redraw = 0;
                 char reload = 0;
+
+                /* get the screen size */
                 getmaxyx(stdscr, size[1], size[0]);
+
+                /* check for a screen thats too small */
+                check_screen_size(projlen);
+
+                /* check for size changes */
                 if (size[0]!=oldsize[0] || size[1]!=oldsize[1])
                         redraw = 1;
                 for (tmp=0; tmp<2; tmp++)
                         oldsize[tmp] = size[tmp];
 
+                /* get a character */
                 c = getch();
+
+                /* print the char in the bottom right (for debug) */
                 char *charn = malloc(8*sizeof(char));
                 sprintf(charn, "%7d", (int)c);
                 mvaddstr(size[1]-1, size[0]-10, charn);
                 free(charn);
 
+                /* handle the character */
                 switch (c)
                 {
                         case 'k': // scroll up
@@ -600,12 +642,12 @@ void nc_main(task *head) /* {{{ */
                         reload_tasks(&head);
                         taskcount = task_count(head);
                         check_curs_pos(&selline);
-                        wipe_tasklist();
                         print_title(size[0]);
                         redraw = 1;
                 }
                 if (redraw==1)
                 {
+                        wipe_tasklist();
                         projlen = max_project_length(head);
                         desclen = size[0]-projlen-1-datelen;
                         print_title(size[0]);
@@ -1077,7 +1119,7 @@ void swap_tasks(task *a, task *b) /* {{{ */
 
 void task_action(task *head, const char action) /* {{{ */
 {
-        /* spawn a command to complete a task */
+        /* spawn a command to perform an action on a task */
         task *cur;
         char *cmd, *actionstr, wait;
         
