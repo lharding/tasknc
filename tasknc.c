@@ -41,6 +41,7 @@ static void help(void);
 static void logmsg(const char *, const char);
 static task *malloc_task(void);
 static char max_project_length(task *);
+static task *sel_task(task *);
 static void nc_colors(void);
 static void nc_end(int);
 static void nc_main(task *);
@@ -55,7 +56,7 @@ static void sort_wrapper(task *);
 static char *strip_quotes(char *);
 static void statusbar_message(const char *, const int);
 static void swap_tasks(task *, task *);
-static void task_action(task *, const short, const char);
+static void task_action(task *, const char);
 static void task_add(void);
 static char task_count(task *);
 static char *utc_date(const unsigned int);
@@ -69,6 +70,7 @@ int size[2];                    /* size of the ncurses window */
 char taskcount;                 /* number of tasks */
 char *searchstring = NULL;      /* currently active search string */
 time_t sb_timeout = 0;          /* when statusbar should be cleared */
+short selline = 0;              /* selected line number */
 /* }}} */
 
 void check_curs_pos(short *pos) /* {{{ */
@@ -342,7 +344,6 @@ void nc_main(task *head) /* {{{ */
         WINDOW *stdscr;
         char *tmpstr;
         int c, tmp, oldsize[2];
-        short selline = 0;
         short projlen = max_project_length(head);
         short desclen;
         const short datelen = DATELENGTH;
@@ -420,7 +421,7 @@ void nc_main(task *head) /* {{{ */
                         case 'e': // edit task
                                 def_prog_mode();
                                 endwin();
-                                task_action(head, selline, ACTION_EDIT);
+                                task_action(head, ACTION_EDIT);
                                 reload = 1;
                                 break;
                         case 'r': // reload task list
@@ -437,14 +438,14 @@ void nc_main(task *head) /* {{{ */
                         case 'd': // delete
                                 def_prog_mode();
                                 endwin();
-                                task_action(head, selline, ACTION_DELETE);
+                                task_action(head, ACTION_DELETE);
                                 refresh();
                                 reload = 1;
                                 break;
                         case 'c': // complete
                                 def_prog_mode();
                                 endwin();
-                                task_action(head, selline, ACTION_COMPLETE);
+                                task_action(head, ACTION_COMPLETE);
                                 refresh();
                                 reload = 1;
                                 break;
@@ -460,7 +461,7 @@ void nc_main(task *head) /* {{{ */
                         case 13:
                                 def_prog_mode();
                                 endwin();
-                                task_action(head, selline, ACTION_VIEW);
+                                task_action(head, ACTION_VIEW);
                                 refresh();
                                 break;
                         case 's': // re-sort list
@@ -793,6 +794,21 @@ void reload_tasks(task **headptr) /* {{{ */
         }
 } /* }}} */
 
+task *sel_task(task *head) /* {{{ */
+{
+        /* navigate to the selected line
+         * and return its task pointer
+         */
+        task *cur;
+        short i;
+
+        cur = head;
+        for (i=0; i<selline; i++)
+                cur = cur->next;
+
+        return cur;
+} /* }}} */
+
 void sort_tasks(task *first, task *last) /* {{{ */
 {
         /* sort the list of tasks */
@@ -931,7 +947,7 @@ void swap_tasks(task *a, task *b) /* {{{ */
         b->description = strtmp;
 } /* }}} */
 
-void task_action(task *head, const short pos, const char action) /* {{{ */
+void task_action(task *head, const char action) /* {{{ */
 {
         /* spawn a command to complete a task */
         task *cur;
@@ -939,9 +955,7 @@ void task_action(task *head, const short pos, const char action) /* {{{ */
         char *cmd, *actionstr, wait;
         
         /* move to correct task */
-        cur = head;
-        for (p=0; p<pos; p++)
-                cur = cur->next;
+        cur = sel_task(head);
 
         /* determine action */
         actionstr = malloc(5*sizeof(char));
