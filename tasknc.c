@@ -3,6 +3,7 @@
  * by mjheagle
  */
 
+#define _GNU_SOURCE
 #define _XOPEN_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
@@ -118,13 +119,13 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
                                 ret = compare_tasks(a, b, 'n');
                         break;
                 case 'd':       // sort by due date => priority => project => index
-                        if (a->due == NULL)
+                        if (a->due == 0)
                         {
-                                if (b->due == NULL)
+                                if (b->due == 0)
                                         ret = compare_tasks(a, b, 'r');
                                 break;
                         }
-                        if (b->due == NULL)
+                        if (b->due == 0)
                         {
                                 ret = 1;
                                 break;
@@ -133,13 +134,13 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
                                 ret = 1;
                         break;
                 case 'r':       // sort by priority => project => index
-                        if (a->priority == NULL)
+                        if (a->priority == 0)
                         {
-                                if (b->priority == NULL)
+                                if (b->priority == 0)
                                         ret = compare_tasks(a, b, 'p');
                                 break;
                         }
-                        if (b->priority == NULL)
+                        if (b->priority == 0)
                         {
                                 ret = 1;
                                 break;
@@ -280,6 +281,7 @@ void help(void) /* {{{ */
         print_version();
         puts("\noptions:");
         puts("  -l [value]: set log level");
+        puts("  -d: debug mode (no ncurses run)");
         puts("  -h: print this help message");
         puts("  -v: print the version of tasknc");
 } /* }}} */
@@ -299,7 +301,7 @@ void logmsg(const char *msg, const char minloglvl) /* {{{ */
         fclose(fp);
 } /* }}} */
 
-task * malloc_task(void) /* {{{ */
+task *malloc_task(void) /* {{{ */
 {
         /* allocate memory for a new task 
          * and initialize values where ncessary 
@@ -311,6 +313,7 @@ task * malloc_task(void) /* {{{ */
         tsk->project = NULL;
         tsk->description = NULL;
         tsk->next = NULL;
+        tsk->prev = NULL;
         tsk->start = 0;
         tsk->due = 0;
         tsk->end = 0;
@@ -615,6 +618,8 @@ void nc_main(task *head) /* {{{ */
                 }
         }
 
+        free_tasks(head);
+
         delwin(stdscr);
 } /* }}} */
 
@@ -630,7 +635,7 @@ char * pad_string(char *argstr, int length, const int lpad, int rpad, const char
         str = strcpy(str, argstr);
 
         /* cut string if necessary */
-        if (strlen(str)>length-lpad-rpad)
+        if ((int)strlen(str)>length-lpad-rpad)
         {
                 str[length-lpad-rpad] = '\0';
                 int i;
@@ -691,9 +696,12 @@ task * parse_task(char *line) /* {{{ */
                 switch (counter)
                 {
                         case 0: // uuid
-                                tsk->uuid = malloc(UUIDLENGTH*sizeof(char));
-                                token = strip_quotes(token);
-                                sprintf(tsk->uuid, "%s", token);
+                                if (tsk->uuid==NULL)
+                                {
+                                        tsk->uuid = malloc(UUIDLENGTH*sizeof(char));
+                                        token = strip_quotes(token);
+                                        sprintf(tsk->uuid, "%s", token);
+                                }
                                 break;
                         case 1: // status
                                 break;
@@ -722,9 +730,12 @@ task * parse_task(char *line) /* {{{ */
                                 tmp = sscanf(token, "%d", &tsk->end);
                                 break;
                         case 8: // project
-                                tsk->project = malloc(PROJECTLENGTH*sizeof(char));
-                                token = strip_quotes(token);
-                                sprintf(tsk->project, "%s", token);
+                                if (tsk->project==NULL)
+                                {
+                                        tsk->project = malloc(PROJECTLENGTH*sizeof(char));
+                                        token = strip_quotes(token);
+                                        sprintf(tsk->project, "%s", token);
+                                }
                                 break;
                         case 9: // priority
                                 tmp = sscanf(token, "'%c'", &tsk->priority);
@@ -734,9 +745,12 @@ task * parse_task(char *line) /* {{{ */
                         case 11: // bg
                                 break;
                         case 12: // description
-                                tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
-                                token = strip_quotes(token);
-                                sprintf(tsk->description, "%s", token);
+                                if (tsk->description==NULL)
+                                {
+                                        tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
+                                        token = strip_quotes(token);
+                                        sprintf(tsk->description, "%s", token);
+                                }
                                 break;
                         default:
                                 break;
@@ -788,7 +802,7 @@ void print_task_list(task *head, const short selected, const short projlen, cons
 
                 /* print due date or priority if available */
                 attrset(COLOR_PAIR(4+3*sel));
-                if (cur->due!=(unsigned int)NULL)
+                if (cur->due != 0)
                 {
                         char *tmp;
                         tmp = utc_date(cur->due);
@@ -955,7 +969,8 @@ void statusbar_message(const char *message, const int dtmout) /* {{{ */
         tmp = malloc(padl*sizeof(char));
         for (i=0; i<padl; i++)
                 tmp[i] = ' ';
-        mvaddstr(size[1]-1, strlen(message), tmp);
+        tmp[i] = '\0';
+        mvaddstr(size[1]-1, strlen(tmp), tmp);
         free(tmp);
 
         mvaddstr(size[1]-1, 0, message);
@@ -1125,9 +1140,9 @@ char task_count(task *head) /* {{{ */
 
 static char task_match(const task *cur, const char *str)/* {{{ */
 {
-        if (strcasestr(cur->project, str)!=NULL ||
-                        strcasestr(cur->description, str)!= NULL ||
-                        strcasestr(cur->tags, str)!= NULL)
+        if (strcasestr(cur->project, str) != (char *)NULL ||
+                        strcasestr(cur->description, str) != (char *)NULL ||
+                        strcasestr(cur->tags, str) != (char *)NULL)
                 return 1;
         else
                 return 0;
@@ -1197,10 +1212,10 @@ int main(int argc, char **argv)
 {
         /* declare variables */
         task *head;
-        int c;
+        int c, debug = 0;
 
         /* handle arguments */
-        while ((c = getopt(argc, argv, "l:hv")) != -1)
+        while ((c = getopt(argc, argv, "l:hvd")) != -1)
         {
                 switch (c)
                 {
@@ -1211,6 +1226,9 @@ int main(int argc, char **argv)
                         case 'v':
                                 print_version();
                                 return 0;
+                                break;
+                        case 'd':
+                                debug = 1;
                                 break;
                         case 'h':
                         case '?':
@@ -1227,14 +1245,16 @@ int main(int argc, char **argv)
         sort_wrapper(head);
 
         /* run ncurses */
-        logmsg("running gui", 1);
-        nc_main(head);
-        nc_end(0);
+        if (!debug)
+        {
+                logmsg("running gui", 1);
+                nc_main(head);
+                nc_end(0);
+        }
 
         /* done */
         if (searchstring!=NULL)
                 free(searchstring);
-        free_tasks(head);
         logmsg("exiting", 1);
         return 0;
 }
