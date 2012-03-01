@@ -19,7 +19,9 @@ key binds:
     n: go to next task result
 
 changes:
-    v0,3:
+    v0.4 (in progress):
+        * scroll through tasks
+    v0.3:
         * search
         * bugfixes
         * general improvements

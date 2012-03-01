@@ -17,5 +17,8 @@ all: tasknc
 tasknc: tasknc.c config.h
 		$(cc) $(cflags) tasknc.c -o tasknc -lncurses
 
+tags: tasknc.c config.h
+		ctags tasknc.c config.h
+
 clean:
 		rm tasknc

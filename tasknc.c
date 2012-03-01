@@ -76,6 +76,7 @@ static void wipe_screen(const short, const short);
 
 /* global variables {{{ */
 char loglvl = 0;                /* used by logmsg to determine whether msgs should be written to logfile */
+short pageoffset = 0;           /* number of tasks page is offset */
 time_t sb_timeout = 0;          /* when statusbar should be cleared */
 char *searchstring = NULL;      /* currently active search string */
 short selline = 0;              /* selected line number */
@@ -87,10 +88,19 @@ char taskcount;                 /* number of tasks */
 void check_curs_pos(void) /* {{{ */
 {
         /* check if the cursor is in a valid position */
+        const short onscreentasks = size[1]-3;
+
+        /* check for a valid selected line number */
         if (selline<0)
                 selline = 0;
-        if (selline>=taskcount)
+        else if (selline>=taskcount)
                 selline = taskcount-1;
+
+        /* check if page offset needs to be changed */
+        if (selline<pageoffset)
+                pageoffset = selline;
+        else if (selline>pageoffset+onscreentasks)
+                pageoffset = selline - onscreentasks;
 } /* }}} */
 
 void check_screen_size(short projlen) /* {{{ */
@@ -469,7 +479,10 @@ void nc_main(task *head) /* {{{ */
 
                 /* check for size changes */
                 if (size[0]!=oldsize[0] || size[1]!=oldsize[1])
+                {
                         redraw = 1;
+                        wipe_statusbar();
+                }
                 for (tmp=0; tmp<2; tmp++)
                         oldsize[tmp] = size[tmp];
 
@@ -506,10 +519,12 @@ void nc_main(task *head) /* {{{ */
                         case KEY_HOME: // go to first entry
                                 selline = 0;
                                 redraw = 1;
+                                check_curs_pos();
                                 break;
                         case KEY_END: // go to last entry
                                 selline = taskcount-1;
                                 redraw = 1;
+                                check_curs_pos();
                                 break;
                         case 'e': // edit task
                                 def_prog_mode();
@@ -852,21 +867,37 @@ void print_task_list(task *head, const short projlen, const short desclen, const
 {
         task *cur;
         short counter = 0;
-        char sel = 0;
         char *bufstr;
+        const short onscreentasks = size[1]-3;
 
         cur = head;
         while (cur!=NULL)
         {
-                /* skip filtereed tasks */
+                char skip = 0;
+                char sel = 0;
+                const short thisline = counter+1-pageoffset;
+
+                /* skip filtered tasks */
                 if (!cur->is_filtered)
+                        skip = 1;
+
+                /* skip tasks that are off screen */
+                else if (counter<pageoffset)
+                        skip = 1;
+                else if (counter>pageoffset+onscreentasks)
+                        skip = 1;
+
+                /* skip row if necessary */
+                if (skip==1)
+                {
+                        counter++;
+                        cur = cur->next;
                         continue;
+                }
 
                 /* check if item is selected */
                 if (counter==selline)
                         sel = 1;
-                else
-                        sel = 0;
 
                 /* print project */
                 attrset(COLOR_PAIR(2+3*sel));
@@ -874,13 +905,13 @@ void print_task_list(task *head, const short projlen, const short desclen, const
                         bufstr = pad_string(" ", projlen, 0, 1, 'r');
                 else
                         bufstr = pad_string(cur->project, projlen, 0, 1, 'r');
-                mvaddstr(counter+1, 0, bufstr);
+                mvaddstr(thisline, 0, bufstr);
                 free(bufstr);
                 
                 /* print description */
                 attrset(COLOR_PAIR(3+3*sel));
                 bufstr = pad_string(cur->description, desclen, 0, 1, 'l');
-                mvaddstr(counter+1, projlen+1, bufstr);
+                mvaddstr(thisline, projlen+1, bufstr);
                 free(bufstr);
 
                 /* print due date or priority if available */
@@ -902,7 +933,7 @@ void print_task_list(task *head, const short projlen, const short desclen, const
                 }
                 else
                         bufstr = pad_string(" ", datelen, 0, 0, 'r');
-                mvaddstr(counter+1, projlen+desclen+1, bufstr);
+                mvaddstr(thisline, projlen+desclen+1, bufstr);
                 free(bufstr);
 
                 /* move to next item */
