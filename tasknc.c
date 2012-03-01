@@ -750,9 +750,24 @@ task *parse_task(char *line) /* {{{ */
                         case 1: // status
                                 break;
                         case 2: // tags
-                                tsk->tags = malloc(TAGSLENGTH*sizeof(char));
-                                token = strip_quotes(token);
-                                sprintf(tsk->tags, "%s", token);
+                                if (token==strrchr(token, '\'')) 
+                                {
+                                        tsk->tags = malloc(TAGSLENGTH*sizeof(char));
+                                        strcpy(tsk->tags, ++token);
+                                        do
+                                        {
+                                                token = strtok(NULL, ",");
+                                                strcat(tsk->tags, ",");
+                                                strcat(tsk->tags, token);
+                                        } while (strrchr(token, '\'')==NULL);
+                                        tmpstr = strrchr(tsk->tags, '\'');
+                                        (*tmpstr) = '\0';
+                                }
+                                else if (tsk->tags==NULL)
+                                {
+                                        tsk->tags = malloc(TAGSLENGTH*sizeof(char));
+                                        strcpy(tsk->tags, strip_quotes(token));
+                                }
                                 break;
                         case 3: // entry
                                 tmp = sscanf(token, "%d", &tsk->entry);
@@ -774,11 +789,23 @@ task *parse_task(char *line) /* {{{ */
                                 tmp = sscanf(token, "%d", &tsk->end);
                                 break;
                         case 8: // project
-                                if (tsk->project==NULL)
+                                if (token==strrchr(token, '\'')) 
                                 {
                                         tsk->project = malloc(PROJECTLENGTH*sizeof(char));
-                                        token = strip_quotes(token);
-                                        sprintf(tsk->project, "%s", token);
+                                        strcpy(tsk->project, ++token);
+                                        do
+                                        {
+                                                token = strtok(NULL, ",");
+                                                strcat(tsk->project, ",");
+                                                strcat(tsk->project, token);
+                                        } while (strrchr(token, '\'')==NULL);
+                                        tmpstr = strrchr(tsk->project, '\'');
+                                        (*tmpstr) = '\0';
+                                }
+                                else if (tsk->project==NULL)
+                                {
+                                        tsk->project = malloc(PROJECTLENGTH*sizeof(char));
+                                        strcpy(tsk->project, strip_quotes(token));
                                 }
                                 break;
                         case 9: // priority
@@ -789,7 +816,6 @@ task *parse_task(char *line) /* {{{ */
                         case 11: // bg
                                 break;
                         case 12: // description
-                                /* check if quotes arent closed */
                                 if (token==strrchr(token, '\'')) 
                                 {
                                         tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
