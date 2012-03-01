@@ -14,6 +14,11 @@
 #include <time.h>
 #include "config.h"
 
+/* macros {{{ */
+#define wipe_tasklist() wipe_screen(1, size[1]-2)
+#define wipe_statusbar() wipe_screen(size[1]-1, size[1]-1)
+/* }}} */
+
 /* struct definitions {{{ */
 typedef struct _task
 {
@@ -66,9 +71,7 @@ static void task_add(void);
 static char task_count(task *);
 static char task_match(const task *, const char *);
 static char *utc_date(const unsigned int);
-static void wipe_screen(const short);
-static void wipe_statusbar(void);
-static void wipe_tasklist(void);
+static void wipe_screen(const short, const short);
 /* }}} */
 
 /* global variables {{{ */
@@ -1246,7 +1249,7 @@ char *utc_date(const unsigned int timeint) /* {{{ */
         return timestr;
 } /* }}} */
 
-void wipe_screen(const short start) /* {{{ */
+void wipe_screen(const short startl, const short stopl) /* {{{ */
 {
         /* clear the screen except the title and status bars */
         int pos;
@@ -1255,28 +1258,11 @@ void wipe_screen(const short start) /* {{{ */
         attrset(COLOR_PAIR(0));
         blank = pad_string(" ", size[0], 0, 0, 'r');
 
-        for (pos=start; pos<size[1]-1; pos++)
+        for (pos=startl; pos<=stopl; pos++)
         {
                 mvaddstr(pos, 0, blank);
         }
         free(blank);
-} /* }}} */
-
-void wipe_statusbar(void) /* {{{ */
-{
-        /* clear the status bar */
-        char *blank;
-
-        attrset(COLOR_PAIR(0));
-        blank = pad_string(" ", size[0], 0, 0, 'r');
-        mvaddstr(size[1]-1, 0, blank);
-        free(blank);
-} /* }}} */
-
-void wipe_tasklist(void) /* {{{ */
-{
-        /* wrapper around wipe_screen to wipe task list */
-        wipe_screen(1);
 } /* }}} */
 
 int main(int argc, char **argv)
