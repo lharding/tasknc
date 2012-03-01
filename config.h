@@ -5,7 +5,7 @@
 
 #define NAME "taskwarrior ncurses shell"
 #define SHORTNAME "tasknc"
-#define VERSION "0.2"
+#define VERSION "0.3"
 #define AUTHOR "mjheagle"
 
 /* user defined lengths */

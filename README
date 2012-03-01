@@ -19,6 +19,10 @@ key binds:
     n: go to next task result
 
 changes:
+    v0,3:
+        * search
+        * bugfixes
+        * general improvements
     v0.2:
         * synchronize with the default merge/push
         * sort
