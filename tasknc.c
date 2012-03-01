@@ -313,7 +313,8 @@ task *get_tasks(void) /* {{{ */
         pclose(cmd);
 
         /* sort tasks */
-        sort_wrapper(head);
+        if (head!=NULL)
+                sort_wrapper(head);
 
         return head;
 } /* }}} */
@@ -1369,7 +1370,12 @@ int main(int argc, char **argv)
 
         /* build task list */
         head = get_tasks();
-        sort_wrapper(head);
+        if (head==NULL)
+        {
+                puts("it appears that your task list is empty");
+                printf("please add some tasks for %s to manage\n", SHORTNAME);
+                return 1;
+        }
 
         /* run ncurses */
         if (!debug)
