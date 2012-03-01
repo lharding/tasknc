@@ -727,7 +727,7 @@ char *pad_string(char *argstr, int length, const int lpad, int rpad, const char 
 task *parse_task(char *line) /* {{{ */
 {
         task *tsk = malloc_task();
-        char *token, *lastchar;
+        char *token, *lastchar, *tmpstr;
         short counter = 0;
 
         token = strtok(line, ",");
@@ -789,11 +789,24 @@ task *parse_task(char *line) /* {{{ */
                         case 11: // bg
                                 break;
                         case 12: // description
-                                if (tsk->description==NULL)
+                                /* check if quotes arent closed */
+                                if (token==strrchr(token, '\'')) 
                                 {
                                         tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
-                                        token = strip_quotes(token);
-                                        sprintf(tsk->description, "%s", token);
+                                        strcpy(tsk->description, ++token);
+                                        do
+                                        {
+                                                token = strtok(NULL, ",");
+                                                strcat(tsk->description, ",");
+                                                strcat(tsk->description, token);
+                                        } while (strrchr(token, '\'')==NULL);
+                                        tmpstr = strrchr(tsk->description, '\'');
+                                        (*tmpstr) = '\0';
+                                }
+                                else if (tsk->description==NULL)
+                                {
+                                        tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
+                                        strcpy(tsk->description, strip_quotes(token));
                                 }
                                 break;
                         default:
