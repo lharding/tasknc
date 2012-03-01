@@ -39,7 +39,7 @@ typedef struct _task
 /* }}} */
 
 /* function prototypes {{{ */
-static void check_curs_pos(short *);
+static void check_curs_pos(void);
 static void check_screen_size(short);
 static char compare_tasks(const task *, const task *, const char);
 static void find_next_search_result(task *, task *);
@@ -56,7 +56,7 @@ static void nc_end(int);
 static void nc_main(task *);
 static char *pad_string(char *, int, const int, int, const char);
 static task *parse_task(char *);
-static void print_task_list(task *, const short, const short, const short, const short);
+static void print_task_list(task *, const short, const short, const short);
 static void print_title(const int);
 static void print_version(void);
 static void reload_tasks(task **);
@@ -84,13 +84,13 @@ char sortmode = 'd';            /* used by compare_tasks to determine what algor
 char taskcount;                 /* number of tasks */
 /* }}} */
 
-void check_curs_pos(short *pos) /* {{{ */
+void check_curs_pos(void) /* {{{ */
 {
         /* check if the cursor is in a valid position */
-        if ((*pos)<0)
-                *pos = 0;
-        if ((*pos)>=taskcount)
-                *pos = taskcount-1;
+        if (selline<0)
+                selline = 0;
+        if (selline>=taskcount)
+                selline = taskcount-1;
 } /* }}} */
 
 void check_screen_size(short projlen) /* {{{ */
@@ -450,7 +450,7 @@ void nc_main(task *head) /* {{{ */
         taskcount = task_count(head);
         print_title(oldsize[0]);
         attrset(COLOR_PAIR(0));
-        print_task_list(head, selline, projlen, desclen, datelen);
+        print_task_list(head, projlen, desclen, datelen);
         refresh();
 
         /* main loop */
@@ -492,7 +492,7 @@ void nc_main(task *head) /* {{{ */
                                         selline--;
                                         redraw = 1;
                                 }
-                                check_curs_pos(&selline);
+                                check_curs_pos();
                                 break;
                         case 'j': // scroll down
                         case KEY_DOWN:
@@ -501,7 +501,7 @@ void nc_main(task *head) /* {{{ */
                                         selline++;
                                         redraw = 1;
                                 }
-                                check_curs_pos(&selline);
+                                check_curs_pos();
                                 break;
                         case KEY_HOME: // go to first entry
                                 selline = 0;
@@ -642,7 +642,7 @@ void nc_main(task *head) /* {{{ */
                 {
                         reload_tasks(&head);
                         taskcount = task_count(head);
-                        check_curs_pos(&selline);
+                        check_curs_pos();
                         print_title(size[0]);
                         redraw = 1;
                 }
@@ -652,7 +652,7 @@ void nc_main(task *head) /* {{{ */
                         projlen = max_project_length(head);
                         desclen = size[0]-projlen-1-datelen;
                         print_title(size[0]);
-                        print_task_list(head, selline, projlen, desclen, datelen);
+                        print_task_list(head, projlen, desclen, datelen);
                         refresh();
                 }
                 if (sb_timeout>0 && sb_timeout<time(NULL))
@@ -809,7 +809,7 @@ task *parse_task(char *line) /* {{{ */
         return tsk;
 } /* }}} */
 
-void print_task_list(task *head, const short selected, const short projlen, const short desclen, const short datelen) /* {{{ */
+void print_task_list(task *head, const short projlen, const short desclen, const short datelen) /* {{{ */
 {
         task *cur;
         short counter = 0;
@@ -824,7 +824,7 @@ void print_task_list(task *head, const short selected, const short projlen, cons
                         continue;
 
                 /* check if item is selected */
-                if (counter==selected)
+                if (counter==selline)
                         sel = 1;
                 else
                         sel = 0;
