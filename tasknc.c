@@ -541,6 +541,7 @@ void nc_main(task *head) /* {{{ */
                                 task_action(head, ACTION_COMPLETE);
                                 refresh();
                                 reload = 1;
+                                wipe_tasklist();
                                 statusbar_message("task completed", 3);
                                 break;
                         case 'a': // add new
@@ -573,7 +574,6 @@ void nc_main(task *head) /* {{{ */
                                         case 'r':
                                                 sortmode = c;
                                                 sort_wrapper(head);
-                                                wipe_tasklist();
                                                 break;
                                         case 'N':
                                         case 'P':
@@ -581,10 +581,8 @@ void nc_main(task *head) /* {{{ */
                                         case 'R':
                                                 sortmode = c+32;
                                                 sort_wrapper(head);
-                                                wipe_tasklist();
                                                 break;
                                         default:
-                                                wipe_tasklist();
                                                 statusbar_message("invalid sort mode", 3);
                                                 break;
                                 }
@@ -1278,7 +1276,7 @@ void wipe_statusbar(void) /* {{{ */
 void wipe_tasklist(void) /* {{{ */
 {
         /* wrapper around wipe_screen to wipe task list */
-        wipe_screen(size[1]-1);
+        wipe_screen(1);
 } /* }}} */
 
 int main(int argc, char **argv)
