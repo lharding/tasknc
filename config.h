@@ -28,3 +28,4 @@
 #define NCURSES_MODE_STD 0
 #define NCURSES_MODE_STD_BLOCKING 1
 #define NCURSES_MODE_STRING 2
+#define FILTER_BY_STRING 0      /* filter modes */

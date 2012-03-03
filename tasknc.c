@@ -42,6 +42,7 @@ typedef struct _task
 static void check_curs_pos(void);
 static void check_screen_size(short);
 static char compare_tasks(const task *, const task *, const char);
+static void filter_tasks(task *, const char, const char *, const char *);
 static void find_next_search_result(task *, task *);
 static char free_task(task *);
 static void free_tasks(task *);
@@ -210,6 +211,35 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
         }
 
         return ret;
+} /* }}} */
+
+static void filter_tasks(task *head, const char filter_mode, const char *filter_comparison, const char *filter_value) /* {{{ */
+{
+        /* iterate through task list and filter them */
+        task *cur = head;
+        char *tmp;
+
+        /* reset task counter */
+        taskcount = 0;
+
+        /* loop through tasks */
+        while (cur!=NULL)
+        {
+                switch (filter_mode)
+                {
+                        case FILTER_BY_STRING:
+                        default:
+                                cur->is_filtered = task_match(cur, filter_value);
+                                break;
+                }
+                taskcount += cur->is_filtered;
+                cur = cur->next;
+        }
+
+        tmp = malloc(128*sizeof(char));
+        sprintf(tmp, "post filter: %d taskcount %d selline", taskcount, selline);
+        logmsg(tmp, 0);
+        free(tmp);
 } /* }}} */
 
 void find_next_search_result(task *head, task *pos) /* {{{ */
@@ -648,7 +678,6 @@ void nc_main(task *head) /* {{{ */
                                 redraw = 1;
                                 break;
                         case '/': // search
-                                attrset(COLOR_PAIR(0));
                                 statusbar_message("search phrase: ", -1);
                                 set_curses_mode(NCURSES_MODE_STRING);
                                 /* store search string  */
@@ -670,6 +699,34 @@ void nc_main(task *head) /* {{{ */
                                 }
                                 else
                                         statusbar_message("no active search string", 3);
+                                break;
+                        case 'f': // filter
+                                statusbar_message("filter by: Any ", 3);
+                                set_curses_mode(NCURSES_MODE_STD_BLOCKING);
+                                c = getch();
+                                wipe_statusbar();
+                                if (strchr("a", c)==NULL)
+                                {
+                                        statusbar_message("invalid filter mode", 3);
+                                        break;
+                                }
+                                statusbar_message("filter string: ", 1);
+                                set_curses_mode(NCURSES_MODE_STRING);
+                                tmpstr = malloc((size[0]-16)*sizeof(char));
+                                getstr(tmpstr);
+                                set_curses_mode(NCURSES_MODE_STD);
+                                switch (c)
+                                {
+                                        case 'a':
+                                                filter_tasks(head, FILTER_BY_STRING, NULL, tmpstr);
+                                                break;
+                                        default:
+                                                statusbar_message("invalid filter mode", 3);
+                                                break;
+                                }
+                                free(tmpstr);
+                                check_curs_pos();
+                                redraw = 1;
                                 break;
                         case 'y': // sync
                                 def_prog_mode();
@@ -914,13 +971,13 @@ void print_task_list(task *head, const short projlen, const short desclen, const
         short counter = 0;
         char *bufstr;
         const short onscreentasks = size[1]-3;
+        short thisline = 0;
 
         cur = head;
         while (cur!=NULL)
         {
                 char skip = 0;
                 char sel = 0;
-                const short thisline = counter+1-pageoffset;
 
                 /* skip filtered tasks */
                 if (!cur->is_filtered)
@@ -939,9 +996,10 @@ void print_task_list(task *head, const short projlen, const short desclen, const
                         cur = cur->next;
                         continue;
                 }
+                thisline++;
 
                 /* check if item is selected */
-                if (counter==selline)
+                if (thisline==selline+1)
                         sel = 1;
 
                 /* print project */
@@ -1328,7 +1386,7 @@ char task_count(task *head) /* {{{ */
         return count;
 } /* }}} */
 
-static char task_match(const task *cur, const char *str)/* {{{ */
+static char task_match(const task *cur, const char *str) /* {{{ */
 {
         if (strcasestr(cur->project, str) != (char *)NULL ||
                         strcasestr(cur->description, str) != (char *)NULL ||

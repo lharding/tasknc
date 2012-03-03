@@ -17,10 +17,12 @@ key binds:
     q: exit tasknc
     /: search for task
     n: go to next task result
+    f: filter
 
 changes:
     v0.4 (in progress):
         * scroll through tasks
+        * filter tasks
     v0.3:
         * search
         * bugfixes
