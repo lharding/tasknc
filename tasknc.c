@@ -465,7 +465,7 @@ void nc_main(task *head) /* {{{ */
         /* ncurses main function */
         WINDOW *stdscr;
         char *tmpstr;
-        int c, tmp, oldsize[2];
+        int c, tmp, oldsize[2], ret;
         short projlen = max_project_length(head);
         short desclen;
         const short datelen = DATELENGTH;
@@ -569,10 +569,13 @@ void nc_main(task *head) /* {{{ */
                         case 'u': // undo
                                 def_prog_mode();
                                 endwin();
-                                system("task undo");
+                                ret = system("task undo");
                                 refresh();
                                 reload = 1;
-                                statusbar_message("undo executed", 3);
+                                if (ret==0)
+                                        statusbar_message("undo executed", 3);
+                                else
+                                        statusbar_message("undo execution failed", 3);
                                 break;
                         case 'd': // delete
                                 def_prog_mode();
@@ -662,10 +665,14 @@ void nc_main(task *head) /* {{{ */
                         case 'y': // sync
                                 def_prog_mode();
                                 endwin();
-                                system("yes n | task merge");
-                                system("task push");
+                                ret = system("yes n | task merge");
+                                if (ret==0)
+                                        ret = system("task push");
                                 refresh();
-                                statusbar_message("tasks synchronized", 3);
+                                if (ret==0)
+                                        statusbar_message("tasks synchronized", 3);
+                                else
+                                        statusbar_message("task syncronization failed", 3);
                                 break;
                         case 'q': // quit
                                 done = 1;
