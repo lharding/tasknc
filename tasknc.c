@@ -45,6 +45,7 @@ static char compare_tasks(const task *, const task *, const char);
 static void find_next_search_result(task *, task *);
 static char free_task(task *);
 static void free_tasks(task *);
+static unsigned short get_task_id(char *);
 static task *get_tasks(void);
 static void help(void);
 static void logmsg(const char *, const char);
@@ -277,6 +278,33 @@ void free_tasks(task *head) /* {{{ */
                 free_task(cur);
                 cur = next;
         }
+} /* }}} */
+
+unsigned short get_task_id(char *uuid) /* {{{ */
+{
+        /* given a task uuid, find its id
+         * we do this using a custom report
+         * necessary to do without uuid addressing in task v2
+         */
+        FILE *cmd;
+        char line[128], format[128];
+        int ret;
+        unsigned short id = 0;
+
+        /* generate format to scan for */
+        sprintf(format, "%s %%hu", uuid);
+
+        /* run command */
+        cmd = popen("task rc.report.all.columns:uuid,id rc.report.all.labels:UUID,id rc.report.all.sort:id- all status:pending rc._forcecolor=no", "r");
+        while (fgets(line, sizeof(line)-1, cmd) != NULL)
+        {
+                ret = sscanf(line, format, &id);
+                if (ret>0)
+                        break;
+        }
+        pclose(cmd);
+
+        return id;
 } /* }}} */
 
 task *get_tasks(void) /* {{{ */
@@ -1218,6 +1246,11 @@ void task_action(task *head, const char action) /* {{{ */
                         wait = 1;
                         break;
         }
+
+        /* update task index if necessary */
+        cur->index = get_task_id(cur->uuid);
+        if (cur->index==0)
+                return;
 
         /* generate and run command */
         cmd = malloc(32*sizeof(char));
