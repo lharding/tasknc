@@ -227,6 +227,9 @@ static void filter_tasks(task *head, const char filter_mode, const char *filter_
         {
                 switch (filter_mode)
                 {
+                        case FILTER_CLEAR:
+                                cur->is_filtered = 1;
+                                break;
                         case FILTER_BY_STRING:
                         default:
                                 cur->is_filtered = task_match(cur, filter_value);
@@ -701,30 +704,36 @@ void nc_main(task *head) /* {{{ */
                                         statusbar_message("no active search string", 3);
                                 break;
                         case 'f': // filter
-                                statusbar_message("filter by: Any ", 3);
+                                statusbar_message("filter by: Any Clear", 3);
                                 set_curses_mode(NCURSES_MODE_STD_BLOCKING);
                                 c = getch();
                                 wipe_statusbar();
-                                if (strchr("a", c)==NULL)
+                                if (strchr("ac", c)==NULL)
                                 {
                                         statusbar_message("invalid filter mode", 3);
                                         break;
                                 }
-                                statusbar_message("filter string: ", 1);
-                                set_curses_mode(NCURSES_MODE_STRING);
-                                tmpstr = malloc((size[0]-16)*sizeof(char));
-                                getstr(tmpstr);
+                                if ('c'!=c)
+                                {
+                                        statusbar_message("filter string: ", 1);
+                                        set_curses_mode(NCURSES_MODE_STRING);
+                                        tmpstr = malloc((size[0]-16)*sizeof(char));
+                                        getstr(tmpstr);
+                                }
                                 set_curses_mode(NCURSES_MODE_STD);
                                 switch (c)
                                 {
                                         case 'a':
                                                 filter_tasks(head, FILTER_BY_STRING, NULL, tmpstr);
+                                                free(tmpstr);
+                                                break;
+                                        case 'c':
+                                                filter_tasks(head, FILTER_CLEAR, NULL, NULL);
                                                 break;
                                         default:
                                                 statusbar_message("invalid filter mode", 3);
                                                 break;
                                 }
-                                free(tmpstr);
                                 check_curs_pos();
                                 redraw = 1;
                                 break;
