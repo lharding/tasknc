@@ -67,7 +67,7 @@ static void sort_wrapper(task *);
 static char *strip_quotes(char *);
 static void statusbar_message(const char *, const int);
 static void swap_tasks(task *, task *);
-static void task_action(task *, const char);
+static int task_action(task *, const char);
 static void task_add(void);
 static char task_count(task *);
 static char task_match(const task *, const char *);
@@ -558,9 +558,12 @@ void nc_main(task *head) /* {{{ */
                         case 'e': // edit task
                                 def_prog_mode();
                                 endwin();
-                                task_action(head, ACTION_EDIT);
+                                ret = task_action(head, ACTION_EDIT);
                                 reload = 1;
-                                statusbar_message("task edited", 3);
+                                if (ret==0)
+                                        statusbar_message("task edited", 3);
+                                else
+                                        statusbar_message("task editing failed", 3);
                                 break;
                         case 'r': // reload task list
                                 reload = 1;
@@ -580,19 +583,25 @@ void nc_main(task *head) /* {{{ */
                         case 'd': // delete
                                 def_prog_mode();
                                 endwin();
-                                task_action(head, ACTION_DELETE);
+                                ret = task_action(head, ACTION_DELETE);
                                 refresh();
                                 reload = 1;
-                                statusbar_message("task deleted", 3);
+                                if (ret==0)
+                                        statusbar_message("task deleted", 3);
+                                else
+                                        statusbar_message("task delete failed", 3);
                                 break;
                         case 'c': // complete
                                 def_prog_mode();
                                 endwin();
-                                task_action(head, ACTION_COMPLETE);
+                                ret = task_action(head, ACTION_COMPLETE);
                                 refresh();
                                 reload = 1;
                                 wipe_tasklist();
-                                statusbar_message("task completed", 3);
+                                if (ret==0)
+                                        statusbar_message("task completed", 3);
+                                else
+                                        statusbar_message("task complete failed", 3);
                                 break;
                         case 'a': // add new
                                 def_prog_mode();
@@ -1224,11 +1233,12 @@ void swap_tasks(task *a, task *b) /* {{{ */
         b->is_filtered = ctmp;
 } /* }}} */
 
-void task_action(task *head, const char action) /* {{{ */
+int task_action(task *head, const char action) /* {{{ */
 {
         /* spawn a command to perform an action on a task */
         task *cur;
         char *cmd, *actionstr, wait;
+        int ret;
         
         /* move to correct task */
         cur = sel_task(head);
@@ -1257,20 +1267,21 @@ void task_action(task *head, const char action) /* {{{ */
         /* update task index if necessary */
         cur->index = get_task_id(cur->uuid);
         if (cur->index==0)
-                return;
+                return -1;
 
         /* generate and run command */
         cmd = malloc(32*sizeof(char));
         sprintf(cmd, "task %s %d", actionstr, cur->index);
         free(actionstr);
         puts(cmd);
-        system(cmd);
+        ret = system(cmd);
         free(cmd);
         if (wait)
         {
                 puts("press ENTER to return");
                 getchar();
         }
+        return ret;
 } /* }}} */
 
 void task_add(void) /* {{{ */
