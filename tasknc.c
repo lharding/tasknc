@@ -105,7 +105,7 @@ static void statusbar_message(const char *, const int);
 static void swap_tasks(task *, task *);
 static int task_action(task *, const char);
 static void task_add(void);
-static char task_count(task *);
+static void task_count(task *);
 static char task_match(const task *, const char *);
 static char *utc_date(const unsigned int);
 static void wipe_screen(const short, const short);
@@ -120,6 +120,7 @@ short selline = 0;              /* selected line number */
 int size[2];                    /* size of the ncurses window */
 char sortmode = 'd';            /* used by compare_tasks to determine what algorithm to use to compare tasks */
 char taskcount;                 /* number of tasks */
+char totaltaskcount;            /* number of tasks with no filters applied */
 /* }}} */
 
 void check_curs_pos(void) /* {{{ */
@@ -254,8 +255,9 @@ void filter_tasks(task *head, const char filter_mode, const char *filter_compari
         task *cur = head;
         char *tmp;
 
-        /* reset task counter */
+        /* reset task counters */
         taskcount = 0;
+        totaltaskcount = 0;
 
         /* loop through tasks */
         while (cur!=NULL)
@@ -280,6 +282,7 @@ void filter_tasks(task *head, const char filter_mode, const char *filter_compari
                                 break;
                 }
                 taskcount += cur->is_filtered;
+                totaltaskcount++;
                 cur = cur->next;
         }
 
@@ -580,7 +583,7 @@ void nc_main(task *head) /* {{{ */
         check_screen_size(projlen);
         getmaxyx(stdscr, oldsize[1], oldsize[0]);
         desclen = oldsize[0]-projlen-1-datelen;
-        taskcount = task_count(head);
+        task_count(head);
         print_title(oldsize[0]);
         attrset(COLOR_PAIR(0));
         print_task_list(head, projlen, desclen, datelen);
@@ -844,7 +847,7 @@ void nc_main(task *head) /* {{{ */
                 if (reload==1)
                 {
                         reload_tasks(&head);
-                        taskcount = task_count(head);
+                        task_count(head);
                         check_curs_pos();
                         print_title(size[0]);
                         redraw = 1;
@@ -1139,7 +1142,7 @@ void print_title(const int width) /* {{{ */
         /* print program info */
         attrset(COLOR_PAIR(1));
         tmp0 = malloc(width*sizeof(char));
-        sprintf(tmp0, "%s v%s  (%d)", SHORTNAME, VERSION, taskcount);
+        sprintf(tmp0, "%s v%s  (%d/%d)", SHORTNAME, VERSION, taskcount, totaltaskcount);
         tmp1 = pad_string(tmp0, width, 0, 0, 'l');
         mvaddstr(0, 0, tmp1);
         free(tmp0);
@@ -1462,19 +1465,19 @@ void task_add(void) /* {{{ */
         free(cmd);
 } /* }}} */
 
-char task_count(task *head) /* {{{ */
+void task_count(task *head) /* {{{ */
 {
-        char count = 0;
+        taskcount = 0;
+        totaltaskcount = 0;
         task *cur;
 
         cur = head;
         while (cur!=NULL)
         {
-                count++;
+                taskcount++;
+                totaltaskcount++;
                 cur = cur->next;
         }
-
-        return count;
 } /* }}} */
 
 static char task_match(const task *cur, const char *str) /* {{{ */
