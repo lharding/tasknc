@@ -23,6 +23,8 @@ changes:
     v0.4 (in progress):
         * scroll through tasks
         * filter tasks
+        * fixed ID handling
+        * bugfixes
     v0.3:
         * search
         * bugfixes

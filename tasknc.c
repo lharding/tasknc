@@ -1147,11 +1147,16 @@ task *sel_task(task *head) /* {{{ */
          * and return its task pointer
          */
         task *cur;
-        short i;
+        short i = -1;
 
         cur = head;
-        for (i=0; i<selline; i++)
+        while (cur!=NULL)
+        {
+                i += cur->is_filtered;
+                if (i==selline)
+                        break;
                 cur = cur->next;
+        }
 
         return cur;
 } /* }}} */
