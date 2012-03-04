@@ -569,12 +569,6 @@ void nc_main(task *head) /* {{{ */
                 /* get a character */
                 c = getch();
 
-                /* print the char in the bottom right (for debug) */
-                char *charn = malloc(8*sizeof(char));
-                sprintf(charn, "%7d", (int)c);
-                mvaddstr(size[1]-1, size[0]-10, charn);
-                free(charn);
-
                 /* handle the character */
                 switch (c)
                 {
