@@ -285,11 +285,6 @@ void filter_tasks(task *head, const char filter_mode, const char *filter_compari
                 totaltaskcount++;
                 cur = cur->next;
         }
-
-        tmp = malloc(128*sizeof(char));
-        sprintf(tmp, "post filter: %d taskcount %d selline", taskcount, selline);
-        logmsg(tmp, 0);
-        free(tmp);
 } /* }}} */
 
 void find_next_search_result(task *head, task *pos) /* {{{ */

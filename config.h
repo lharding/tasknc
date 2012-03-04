@@ -14,6 +14,6 @@
 #define PROJECTLENGTH 64
 #define DESCRIPTIONLENGTH 512
 #define TIMELENGTH 32
-#define LOGFILE "runlog"
+#define LOGFILE "/tmp/.tasknc_runlog"
 
 #endif
