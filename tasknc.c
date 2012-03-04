@@ -49,6 +49,7 @@ static void free_tasks(task *);
 static unsigned short get_task_id(char *);
 static task *get_tasks(void);
 static void help(void);
+static char in_string(const char *, const char *);
 static void logmsg(const char *, const char);
 static task *malloc_task(void);
 static char max_project_length(task *);
@@ -213,7 +214,7 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
         return ret;
 } /* }}} */
 
-static void filter_tasks(task *head, const char filter_mode, const char *filter_comparison, const char *filter_value) /* {{{ */
+void filter_tasks(task *head, const char filter_mode, const char *filter_comparison, const char *filter_value) /* {{{ */
 {
         /* iterate through task list and filter them */
         task *cur = head;
@@ -227,6 +228,15 @@ static void filter_tasks(task *head, const char filter_mode, const char *filter_
         {
                 switch (filter_mode)
                 {
+                        case FILTER_DESCRIPTION:
+                                cur->is_filtered = in_string(cur->description, filter_value);
+                                break;
+                        case FILTER_TAGS:
+                                cur->is_filtered = in_string(cur->tags, filter_value);
+                                break;
+                        case FILTER_PROJECT:
+                                cur->is_filtered = in_string(cur->project, filter_value);
+                                break;
                         case FILTER_CLEAR:
                                 cur->is_filtered = 1;
                                 break;
@@ -389,6 +399,14 @@ void help(void) /* {{{ */
         puts("  -d: debug mode (no ncurses run)");
         puts("  -h: print this help message");
         puts("  -v: print the version of tasknc");
+} /* }}} */
+
+char in_string(const char *haystack, const char *needle) /* {{{ */
+{
+        if (strstr(haystack, needle)==NULL)
+                return 0;
+        else
+                return 1;
 } /* }}} */
 
 void logmsg(const char *msg, const char minloglvl) /* {{{ */
@@ -704,16 +722,16 @@ void nc_main(task *head) /* {{{ */
                                         statusbar_message("no active search string", 3);
                                 break;
                         case 'f': // filter
-                                statusbar_message("filter by: Any Clear", 3);
+                                statusbar_message("filter by: Any Clear Proj Desc Tag", 3);
                                 set_curses_mode(NCURSES_MODE_STD_BLOCKING);
                                 c = getch();
                                 wipe_statusbar();
-                                if (strchr("ac", c)==NULL)
+                                if (strchr("acdptACDPT", c)==NULL)
                                 {
                                         statusbar_message("invalid filter mode", 3);
                                         break;
                                 }
-                                if ('c'!=c)
+                                if (strchr("cC", c)==NULL)
                                 {
                                         statusbar_message("filter string: ", 1);
                                         set_curses_mode(NCURSES_MODE_STRING);
@@ -724,11 +742,25 @@ void nc_main(task *head) /* {{{ */
                                 switch (c)
                                 {
                                         case 'a':
+                                        case 'A':
                                                 filter_tasks(head, FILTER_BY_STRING, NULL, tmpstr);
                                                 free(tmpstr);
                                                 break;
                                         case 'c':
+                                        case 'C':
                                                 filter_tasks(head, FILTER_CLEAR, NULL, NULL);
+                                                break;
+                                        case 'd':
+                                        case 'D':
+                                                filter_tasks(head, FILTER_DESCRIPTION, NULL, tmpstr);
+                                                break;
+                                        case 'p':
+                                        case 'P':
+                                                filter_tasks(head, FILTER_PROJECT, NULL, tmpstr);
+                                                break;
+                                        case 't':
+                                        case 'T':
+                                                filter_tasks(head, FILTER_TAGS, NULL, tmpstr);
                                                 break;
                                         default:
                                                 statusbar_message("invalid filter mode", 3);

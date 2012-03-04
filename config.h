@@ -30,3 +30,6 @@
 #define NCURSES_MODE_STRING 2
 #define FILTER_BY_STRING 0      /* filter modes */
 #define FILTER_CLEAR 1 
+#define FILTER_DESCRIPTION 2
+#define FILTER_TAGS 3
+#define FILTER_PROJECT 4
