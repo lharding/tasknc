@@ -12,6 +12,7 @@
 #include <curses.h>
 #include <signal.h>
 #include <time.h>
+#include <regex.h>
 #include "config.h"
 
 /* macros {{{ */
@@ -49,9 +50,9 @@ static void free_tasks(task *);
 static unsigned short get_task_id(char *);
 static task *get_tasks(void);
 static void help(void);
-static char in_string(const char *, const char *);
 static void logmsg(const char *, const char);
 static task *malloc_task(void);
+static char match_string(const char *, const char *);
 static char max_project_length(task *);
 static task *sel_task(task *);
 static void nc_colors(void);
@@ -229,13 +230,13 @@ void filter_tasks(task *head, const char filter_mode, const char *filter_compari
                 switch (filter_mode)
                 {
                         case FILTER_DESCRIPTION:
-                                cur->is_filtered = in_string(cur->description, filter_value);
+                                cur->is_filtered = match_string(cur->description, filter_value);
                                 break;
                         case FILTER_TAGS:
-                                cur->is_filtered = in_string(cur->tags, filter_value);
+                                cur->is_filtered = match_string(cur->tags, filter_value);
                                 break;
                         case FILTER_PROJECT:
-                                cur->is_filtered = in_string(cur->project, filter_value);
+                                cur->is_filtered = match_string(cur->project, filter_value);
                                 break;
                         case FILTER_CLEAR:
                                 cur->is_filtered = 1;
@@ -401,14 +402,6 @@ void help(void) /* {{{ */
         puts("  -v: print the version of tasknc");
 } /* }}} */
 
-char in_string(const char *haystack, const char *needle) /* {{{ */
-{
-        if (strstr(haystack, needle)==NULL)
-                return 0;
-        else
-                return 1;
-} /* }}} */
-
 void logmsg(const char *msg, const char minloglvl) /* {{{ */
 {
         /* log a message to a file */
@@ -450,6 +443,23 @@ task *malloc_task(void) /* {{{ */
         tsk->prev = NULL;
 
         return tsk;
+} /* }}} */
+
+char match_string(const char *haystack, const char *needle) /* {{{ */
+{
+        /* match a string to a regex */
+        regex_t regex;
+        char ret;
+
+        /* compile and run regex */
+        if (regcomp(&regex, needle, REGEX_OPTS) != 0)
+                return 0;
+        if (regexec(&regex, haystack, 0, 0, 0) != REG_NOMATCH)
+                ret = 1;
+        else
+                ret = 0;
+        regfree(&regex);
+        return ret;
 } /* }}} */
 
 char max_project_length(task *head) /* {{{ */
@@ -1436,9 +1446,9 @@ char task_count(task *head) /* {{{ */
 
 static char task_match(const task *cur, const char *str) /* {{{ */
 {
-        if (strcasestr(cur->project, str) != (char *)NULL ||
-                        strcasestr(cur->description, str) != (char *)NULL ||
-                        strcasestr(cur->tags, str) != (char *)NULL)
+        if (match_string(cur->project, str) ||
+                        match_string(cur->description, str) ||
+                        match_string(cur->tags, str))
                 return 1;
         else
                 return 0;
