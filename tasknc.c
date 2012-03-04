@@ -760,6 +760,14 @@ void nc_main(task *head) /* {{{ */
                                                 statusbar_message("invalid filter mode", 3);
                                                 break;
                                 }
+                                /* check if task list is empty after filtering */
+                                if (taskcount==0)
+                                {
+                                        filter_tasks(head, FILTER_CLEAR, NULL, NULL);
+                                        statusbar_message("filter yielded no results; reset", 3);
+                                }
+                                else
+                                        statusbar_message("filter applied", 3);
                                 check_curs_pos();
                                 redraw = 1;
                                 break;
