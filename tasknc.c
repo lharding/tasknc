@@ -127,6 +127,7 @@ void check_curs_pos(void) /* {{{ */
 {
         /* check if the cursor is in a valid position */
         const short onscreentasks = size[1]-3;
+        char *tmpstr;
 
         /* check for a valid selected line number */
         if (selline<0)
@@ -139,6 +140,12 @@ void check_curs_pos(void) /* {{{ */
                 pageoffset = selline;
         else if (selline>pageoffset+onscreentasks)
                 pageoffset = selline - onscreentasks;
+
+        /* log cursor position */
+        tmpstr = malloc(128*sizeof(char));
+        sprintf(tmpstr, "selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, size[1]-3);
+        logmsg(tmpstr, 3);
+        free(tmpstr);
 } /* }}} */
 
 void check_screen_size(short projlen) /* {{{ */
@@ -1075,7 +1082,8 @@ void print_task_list(task *head, const short projlen, const short desclen, const
                 /* skip row if necessary */
                 if (skip==1)
                 {
-                        counter++;
+                        if (cur->is_filtered)
+                                counter++;
                         cur = cur->next;
                         continue;
                 }
