@@ -253,7 +253,6 @@ void filter_tasks(task *head, const char filter_mode, const char *filter_compari
 {
         /* iterate through task list and filter them */
         task *cur = head;
-        char *tmp;
 
         /* reset task counters */
         taskcount = 0;
@@ -1080,11 +1079,13 @@ void print_task_list(task *head, const short projlen, const short desclen, const
                         cur = cur->next;
                         continue;
                 }
-                thisline++;
 
                 /* check if item is selected */
-                if (thisline==selline+1)
+                if (counter==selline)
                         sel = 1;
+                
+                /* move to next line */
+                thisline++;
 
                 /* print project */
                 attrset(COLOR_PAIR(2+3*sel));
