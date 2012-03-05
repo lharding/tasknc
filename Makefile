@@ -12,7 +12,11 @@ ifeq ($(uname_O),Cygwin)
 		cflags += -I /usr/include/ncurses
 endif
 
-all: tasknc
+all: tasknc doc
+
+doc: tasknc.1
+tasknc.1: README.pod
+	pod2man --section=1 --center="tasknc Manual" --name="tasknc" $< > $@
 
 tasknc: tasknc.c config.h
 		$(cc) $(cflags) tasknc.c -o tasknc -lncurses

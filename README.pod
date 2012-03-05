@@ -1,0 +1,133 @@
+=head1 NAME
+
+tasknc - a ncurses wrapper around taskwarrior
+    by mjheagle
+
+=head1 SYNOPSIS
+
+Usage: I<tasknc> [option] [value]
+
+=head1 DESCRIPTION
+
+tasknc is a simple wrapper, written in C, around the taskwarrior task manager.  
+
+=head1 INVOCATION OPTIONS
+
+=over 4
+
+=item B<-h>
+
+Print the help message
+
+=item B<-v>
+
+Print the version of tasknc
+
+=item B<-d>
+
+Debug mode (no ncurses gui)
+
+=item B<-l>
+
+Set log level
+
+=back
+
+=head1 KEY BINDS
+
+=over 4
+
+=item B<j/k/arrowkeys>
+
+navigation up and down
+
+=item B<home>
+
+go to first task
+
+=item B<end>
+
+go to last task
+
+=item B<e>
+
+edit selected task
+
+=item B<r>
+
+reload task list
+
+=item B<u>
+
+run task undo
+
+=item B<d>
+
+delete selected task
+
+=item B<c>
+
+mark selected task as complete
+
+=item B<a>
+
+create a new task
+
+=item B<v/enter>
+
+run task info on selected task
+
+=item B<s>
+
+resort list (prompted for sort algorithm)
+
+=item B<y>
+
+synchronize (run task merge and task push)
+
+=item B<q>
+
+exit tasknc
+
+=item B</>
+
+search for task
+
+=item B<n>
+
+go to next task result
+
+=item B<f>
+
+filter (prompted for filter algorithm)
+
+=back
+
+=head1 CHANGES
+
+=over 4
+
+=item B<v0.4 (in progress)>
+
+    * scroll through tasks
+    * filter tasks
+    * fixed ID handling
+    * bugfixes
+
+=item B<v0.3>
+
+    * search
+    * bugfixes
+    * general improvements
+
+=item B<v0.2>
+
+    * synchronize with the default merge/push
+    * sort
+        * due
+        * priority
+        * project
+        * index
+    * added this readme
+
+=back
