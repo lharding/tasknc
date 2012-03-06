@@ -1,11 +1,11 @@
 tasknc changelog
 
-v0.4 (in progress)
+v0.4 
     * scroll through tasks
     * filter tasks
     * fixed ID handling
-    * bugfixes
     * added man page, CHANGELOG, and BUGS
+    * bugfixes
 
 v0.3
     * search
