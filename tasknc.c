@@ -304,14 +304,23 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
         {
                 /* move to next item */
                 cur = cur->next;
-                selline++;
 
                 /* move to head if end of list is reached */
                 if (cur == NULL)
                 {
                         cur = head;
-                        selline = 0;
+                        if (cur->is_filtered)
+                                selline = 0;
+                        else
+                                selline = -1;
+                        logmsg("search wrapped", 3);
                 }
+
+                /* skip tasks that are filtered out */
+                else if (cur->is_filtered)
+                        selline++;
+                else
+                        continue;
 
                 /* check for match */
                 if (task_match(cur, searchstring)==1)
@@ -751,12 +760,14 @@ void nc_main(task *head) /* {{{ */
                                 set_curses_mode(NCURSES_MODE_STD);
                                 /* go to first result */
                                 find_next_search_result(head, sel_task(head));
+                                check_curs_pos();
                                 redraw = 1;
                                 break;
                         case 'n': // next search result
                                 if (searchstring!=NULL)
                                 {
                                         find_next_search_result(head, sel_task(head));
+                                        check_curs_pos();
                                         redraw = 1;
                                 }
                                 else
