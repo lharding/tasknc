@@ -121,6 +121,7 @@ struct {
         int nc_timeout;
         int statusbar_timeout;
         int loglvl;
+        char version[8];
 } cfg;
 /* }}} */
 
@@ -189,11 +190,31 @@ void check_screen_size(short projlen) /* {{{ */
 void configure(void) /* {{{ */
 {
         /* parse config file to get runtime options */
+        FILE *cmd;
+        char line[128], *tmp;
+        int ret;
 
         /* set default values */
         cfg.nc_timeout = NCURSES_WAIT;
         cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;
         cfg.loglvl = LOGLVL_DEFAULT;
+
+        /* get task version */
+        cmd = popen("task version rc._forcecolor=no", "r");
+        while (fgets(line, sizeof(line)-1, cmd) != NULL)
+        {
+                ret = sscanf(line, "task %[0-9.]* ", cfg.version);
+                if (ret>0)
+                {
+                        tmp = malloc(64*sizeof(char));
+                        sprintf(tmp, "task version: %s", cfg.version);
+                        puts(tmp);
+                        logmsg(tmp, 0);
+                        free(tmp);
+                        break;
+                }
+        }
+        pclose(cmd);
 } /* }}} */
 
 char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
