@@ -37,7 +37,6 @@
 #define ACTION_VIEW 3
 
 /* ncurses settings */
-#define NCURSES_WAIT 500
 #define NCURSES_MODE_STD 0
 #define NCURSES_MODE_STD_BLOCKING 1
 #define NCURSES_MODE_STRING 2
@@ -51,6 +50,11 @@
 
 /* regex options */
 #define REGEX_OPTS REG_ICASE|REG_EXTENDED|REG_NOSUB|REG_NEWLINE
+
+/* default settings */
+#define STATUSBAR_TIMEOUT_DEFAULT 3
+#define NCURSES_WAIT 500
+#define LOGLVL_DEFAULT 0
 /* }}} */
 
 /* struct definitions {{{ */
@@ -76,6 +80,7 @@ typedef struct _task
 static void check_curs_pos(void);
 static void check_screen_size(short);
 static char compare_tasks(const task *, const task *, const char);
+static void configure(void);
 static void filter_tasks(task *, const char, const char *, const char *);
 static void find_next_search_result(task *, task *);
 static char free_task(task *);
@@ -111,8 +116,16 @@ static char *utc_date(const unsigned int);
 static void wipe_screen(const short, const short);
 /* }}} */
 
+/* runtime config {{{ */
+struct {
+        int nc_timeout;
+        int statusbar_timeout;
+        int loglvl;
+} cfg;
+/* }}} */
+
 /* global variables {{{ */
-char loglvl = 0;                /* used by logmsg to determine whether msgs should be written to logfile */
+int loglvl = 0;                 /* used by logmsg to determine whether msgs should be written to logfile */
 short pageoffset = 0;           /* number of tasks page is offset */
 time_t sb_timeout = 0;          /* when statusbar should be cleared */
 char *searchstring = NULL;      /* currently active search string */
@@ -171,6 +184,16 @@ void check_screen_size(short projlen) /* {{{ */
                 count++;
                 getmaxyx(stdscr, size[1], size[0]);
         } while (size[0]<DATELENGTH+20+projlen || size[1]<5);
+} /* }}} */
+
+void configure(void) /* {{{ */
+{
+        /* parse config file to get runtime options */
+
+        /* set default values */
+        cfg.nc_timeout = NCURSES_WAIT;
+        cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;
+        cfg.loglvl = LOGLVL_DEFAULT;
 } /* }}} */
 
 char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
@@ -333,7 +356,7 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
 
         tmp = malloc((13+strlen(searchstring))*sizeof(char));
         sprintf(tmp, "no matches: %s", searchstring);
-        statusbar_message(tmp, 3);
+        statusbar_message(tmp, cfg.statusbar_timeout);
         free(tmp);
 
         return;
@@ -662,13 +685,13 @@ void nc_main(task *head) /* {{{ */
                                 ret = task_action(head, ACTION_EDIT);
                                 reload = 1;
                                 if (ret==0)
-                                        statusbar_message("task edited", 3);
+                                        statusbar_message("task edited", cfg.statusbar_timeout);
                                 else
-                                        statusbar_message("task editing failed", 3);
+                                        statusbar_message("task editing failed", cfg.statusbar_timeout);
                                 break;
                         case 'r': // reload task list
                                 reload = 1;
-                                statusbar_message("task list reloaded", 3);
+                                statusbar_message("task list reloaded", cfg.statusbar_timeout);
                                 break;
                         case 'u': // undo
                                 def_prog_mode();
@@ -677,9 +700,9 @@ void nc_main(task *head) /* {{{ */
                                 refresh();
                                 reload = 1;
                                 if (ret==0)
-                                        statusbar_message("undo executed", 3);
+                                        statusbar_message("undo executed", cfg.statusbar_timeout);
                                 else
-                                        statusbar_message("undo execution failed", 3);
+                                        statusbar_message("undo execution failed", cfg.statusbar_timeout);
                                 break;
                         case 'd': // delete
                                 def_prog_mode();
@@ -688,9 +711,9 @@ void nc_main(task *head) /* {{{ */
                                 refresh();
                                 reload = 1;
                                 if (ret==0)
-                                        statusbar_message("task deleted", 3);
+                                        statusbar_message("task deleted", cfg.statusbar_timeout);
                                 else
-                                        statusbar_message("task delete failed", 3);
+                                        statusbar_message("task delete failed", cfg.statusbar_timeout);
                                 break;
                         case 'c': // complete
                                 def_prog_mode();
@@ -700,9 +723,9 @@ void nc_main(task *head) /* {{{ */
                                 reload = 1;
                                 wipe_tasklist();
                                 if (ret==0)
-                                        statusbar_message("task completed", 3);
+                                        statusbar_message("task completed", cfg.statusbar_timeout);
                                 else
-                                        statusbar_message("task complete failed", 3);
+                                        statusbar_message("task complete failed", cfg.statusbar_timeout);
                                 break;
                         case 'a': // add new
                                 def_prog_mode();
@@ -710,7 +733,7 @@ void nc_main(task *head) /* {{{ */
                                 task_add();
                                 refresh();
                                 reload = 1;
-                                statusbar_message("task added", 3);
+                                statusbar_message("task added", cfg.statusbar_timeout);
                                 break;
                         case 'v': // view info
                         case KEY_ENTER:
@@ -722,7 +745,7 @@ void nc_main(task *head) /* {{{ */
                                 break;
                         case 's': // re-sort list
                                 attrset(COLOR_PAIR(0));
-                                statusbar_message("enter sort mode: iNdex, Project, Due, pRiority", 1);
+                                statusbar_message("enter sort mode: iNdex, Project, Due, pRiority", cfg.statusbar_timeout);
                                 set_curses_mode(NCURSES_MODE_STD_BLOCKING);
                                 c = getch();
                                 set_curses_mode(NCURSES_MODE_STD);
@@ -743,7 +766,7 @@ void nc_main(task *head) /* {{{ */
                                                 sort_wrapper(head);
                                                 break;
                                         default:
-                                                statusbar_message("invalid sort mode", 3);
+                                                statusbar_message("invalid sort mode", cfg.statusbar_timeout);
                                                 break;
                                 }
                                 redraw = 1;
@@ -771,21 +794,21 @@ void nc_main(task *head) /* {{{ */
                                         redraw = 1;
                                 }
                                 else
-                                        statusbar_message("no active search string", 3);
+                                        statusbar_message("no active search string", cfg.statusbar_timeout);
                                 break;
                         case 'f': // filter
-                                statusbar_message("filter by: Any Clear Proj Desc Tag", 3);
+                                statusbar_message("filter by: Any Clear Proj Desc Tag", cfg.statusbar_timeout);
                                 set_curses_mode(NCURSES_MODE_STD_BLOCKING);
                                 c = getch();
                                 wipe_statusbar();
                                 if (strchr("acdptACDPT", c)==NULL)
                                 {
-                                        statusbar_message("invalid filter mode", 3);
+                                        statusbar_message("invalid filter mode", cfg.statusbar_timeout);
                                         break;
                                 }
                                 if (strchr("cC", c)==NULL)
                                 {
-                                        statusbar_message("filter string: ", 1);
+                                        statusbar_message("filter string: ", -1);
                                         set_curses_mode(NCURSES_MODE_STRING);
                                         tmpstr = malloc((size[0]-16)*sizeof(char));
                                         getstr(tmpstr);
@@ -815,17 +838,17 @@ void nc_main(task *head) /* {{{ */
                                                 filter_tasks(head, FILTER_TAGS, NULL, tmpstr);
                                                 break;
                                         default:
-                                                statusbar_message("invalid filter mode", 3);
+                                                statusbar_message("invalid filter mode", cfg.statusbar_timeout);
                                                 break;
                                 }
                                 /* check if task list is empty after filtering */
                                 if (taskcount==0)
                                 {
                                         filter_tasks(head, FILTER_CLEAR, NULL, NULL);
-                                        statusbar_message("filter yielded no results; reset", 3);
+                                        statusbar_message("filter yielded no results; reset", cfg.statusbar_timeout);
                                 }
                                 else
-                                        statusbar_message("filter applied", 3);
+                                        statusbar_message("filter applied", cfg.statusbar_timeout);
                                 check_curs_pos();
                                 redraw = 1;
                                 break;
@@ -837,9 +860,9 @@ void nc_main(task *head) /* {{{ */
                                         ret = system("task push");
                                 refresh();
                                 if (ret==0)
-                                        statusbar_message("tasks synchronized", 3);
+                                        statusbar_message("tasks synchronized", cfg.statusbar_timeout);
                                 else
-                                        statusbar_message("task syncronization failed", 3);
+                                        statusbar_message("task syncronization failed", cfg.statusbar_timeout);
                                 break;
                         case 'q': // quit
                                 done = 1;
@@ -850,7 +873,7 @@ void nc_main(task *head) /* {{{ */
                                 tmpstr = malloc(20*sizeof(char));
                                 sprintf(tmpstr, "unhandled key: %c", c);
                                 attrset(COLOR_PAIR(0));
-                                statusbar_message(tmpstr, 3);
+                                statusbar_message(tmpstr, cfg.statusbar_timeout);
                                 free(tmpstr);
                                 break;
                 }
@@ -1214,7 +1237,7 @@ void set_curses_mode(char curses_mode) /* {{{ */
                         noecho();               /* dont echo input */
                         nc_colors();            /* initialize colors */
                         curs_set(0);            /* set cursor invisible */
-                        timeout(NCURSES_WAIT);  /* timeout getch */
+                        timeout(cfg.nc_timeout);/* timeout getch */
                         break;
                 case NCURSES_MODE_STD_BLOCKING:
                         keypad(stdscr, TRUE);   /* enable keyboard mapping */
@@ -1559,6 +1582,9 @@ int main(int argc, char **argv)
         /* declare variables */
         task *head;
         int c, debug = 0;
+
+        /* set config settings */
+        configure();
 
         /* handle arguments */
         while ((c = getopt(argc, argv, "l:hvd")) != -1)
