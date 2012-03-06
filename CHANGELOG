@@ -1,0 +1,22 @@
+tasknc changelog
+
+v0.4 (in progress)
+    * scroll through tasks
+    * filter tasks
+    * fixed ID handling
+    * bugfixes
+    * added man page, CHANGELOG, and BUGS
+
+v0.3
+    * search
+    * bugfixes
+    * general improvements
+
+v0.2
+    * synchronize with the default merge/push
+    * sort
+        * due
+        * priority
+        * project
+        * index
+    * added this readme
