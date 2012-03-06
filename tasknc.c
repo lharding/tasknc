@@ -1475,14 +1475,22 @@ int task_action(task *head, const char action) /* {{{ */
                         break;
         }
 
-        /* update task index if necessary */
-        cur->index = get_task_id(cur->uuid);
-        if (cur->index==0)
-                return -1;
-
         /* generate and run command */
-        cmd = malloc(32*sizeof(char));
-        sprintf(cmd, "task %s %d", actionstr, cur->index);
+        cmd = malloc(128*sizeof(char));
+
+        /* update task index if version<2*/
+        if (cfg.version[0]<'2')
+        {
+                cur->index = get_task_id(cur->uuid);
+                if (cur->index==0)
+                        return -1;
+                sprintf(cmd, "task %s %d", actionstr, cur->index);
+        }
+
+        /* if version is >=2, use uuid index */
+        else
+                sprintf(cmd, "task %s %s", actionstr, cur->uuid);
+
         free(actionstr);
         puts(cmd);
         ret = system(cmd);
