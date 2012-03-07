@@ -106,7 +106,7 @@ static void print_task_list(task *, const short, const short, const short);
 static void print_title(const int);
 static void print_version(void);
 static void reload_tasks(task **);
-static void remove_escapes(char *);
+static void remove_char(char *, char);
 static void set_curses_mode(char);
 static void sort_tasks(task *, task *);
 static void sort_wrapper(task *);
@@ -126,6 +126,7 @@ struct {
         int statusbar_timeout;
         int loglvl;
         char version[8];
+        char sortmode;
 } cfg;
 /* }}} */
 
@@ -135,7 +136,6 @@ time_t sb_timeout = 0;          /* when statusbar should be cleared */
 char *searchstring = NULL;      /* currently active search string */
 short selline = 0;              /* selected line number */
 int size[2];                    /* size of the ncurses window */
-char sortmode = 'd';            /* used by compare_tasks to determine what algorithm to use to compare tasks */
 char taskcount;                 /* number of tasks */
 char totaltaskcount;            /* number of tasks with no filters applied */
 /* }}} */
@@ -188,36 +188,6 @@ void check_screen_size(short projlen) /* {{{ */
                 count++;
                 getmaxyx(stdscr, size[1], size[0]);
         } while (size[0]<DATELENGTH+20+projlen || size[1]<5);
-} /* }}} */
-
-void configure(void) /* {{{ */
-{
-        /* parse config file to get runtime options */
-        FILE *cmd;
-        char line[128], *tmp;
-        int ret;
-
-        /* set default values */
-        cfg.nc_timeout = NCURSES_WAIT;
-        cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;
-        cfg.loglvl = LOGLVL_DEFAULT;
-
-        /* get task version */
-        cmd = popen("task version rc._forcecolor=no", "r");
-        while (fgets(line, sizeof(line)-1, cmd) != NULL)
-        {
-                ret = sscanf(line, "task %[^ ]* ", cfg.version);
-                if (ret>0)
-                {
-                        tmp = malloc(64*sizeof(char));
-                        sprintf(tmp, "task version: %s", cfg.version);
-                        puts(tmp);
-                        logmsg(tmp, 1);
-                        free(tmp);
-                        break;
-                }
-        }
-        pclose(cmd);
 } /* }}} */
 
 char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
@@ -301,6 +271,133 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
         }
 
         return ret;
+} /* }}} */
+
+void configure(void) /* {{{ */
+{
+        /* parse config file to get runtime options */
+        FILE *cmd, *config;
+        char line[TOTALLENGTH], *tmp, *filepath, *xdg_config_home, *home;
+        int ret;
+
+        /* set default values */
+        cfg.nc_timeout = NCURSES_WAIT;                          /* time getch will wait */
+        cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;      /* default time before resetting statusbar */
+        if (cfg.loglvl==-1)
+                cfg.loglvl = LOGLVL_DEFAULT;                            /* determine whether log message should be printed */
+        cfg.sortmode = 'd';                                     /* determine sort algorithm */
+
+        /* get task version */
+        cmd = popen("task version rc._forcecolor=no", "r");
+        while (fgets(line, sizeof(line)-1, cmd) != NULL)
+        {
+                ret = sscanf(line, "task %[^ ]* ", cfg.version);
+                if (ret>0)
+                {
+                        tmp = malloc(64*sizeof(char));
+                        sprintf(tmp, "task version: %s", cfg.version);
+                        puts(tmp);
+                        logmsg(tmp, 1);
+                        free(tmp);
+                        break;
+                }
+        }
+        pclose(cmd);
+
+        /* read config file */
+        xdg_config_home = getenv("XDG_CONFIG_HOME");
+        if (xdg_config_home == NULL)
+        {
+                home = getenv("HOME");
+                filepath = malloc((strlen(home)+25)*sizeof(char));
+                sprintf(filepath, "%s/.config/tasknc/config", home);
+        }
+        else
+        {
+                filepath = malloc((strlen(xdg_config_home)+16)*sizeof(char));
+                sprintf(filepath, "%s/tasknc/config", xdg_config_home);
+        }
+
+        /* open config file */
+        config = fopen(filepath, "r");
+        logmsg(filepath, 1);
+
+        /* free filepath */
+        free(filepath);
+
+        /* check for a valid fd */
+        if (config == NULL)
+        {
+                puts("config file could not be opened");
+                logmsg("config file could not be opened", 0);
+                return;
+        }
+
+        /* read config file */
+        logmsg("reading config file", 1);
+        while (fgets(line, TOTALLENGTH, config))
+        {
+                char *val, *tmp;
+                int ret;
+
+                /* discard comment lines or blank lines */
+                if (line[0]=='#' || line[0]=='\n')
+                        continue;
+
+                /* handle comments that are mid-line */
+                if((val = strchr(line, '#')))
+                          *val = '\0';
+
+
+                /* 
+                 * loglvl ?
+                 * sortmode
+                 */
+
+                if (str_starts_with(line, "nc_timeout"))
+                {
+                        ret = sscanf(line, "nc_timeout = %d", &(cfg.nc_timeout));
+                        if (!ret)
+                        {
+                                puts("error parsing nc_timeout configuration");
+                                logmsg("error parsing nc_timeout configuration", 0);
+                        }
+                        else
+                        {
+                                tmp = malloc(64*sizeof(char));
+                                sprintf(tmp, "nc_timeout set to %d ms", cfg.nc_timeout);
+                                logmsg(tmp, 1);
+                                free(tmp);
+                        }
+                }
+                else if (str_starts_with(line, "statusbar_timeout"))
+                {
+                        ret = sscanf(line, "statusbar_timeout = %d", &(cfg.statusbar_timeout));
+                        if (!ret)
+                        {
+                                puts("error parsing statusbar_timeout configuration");
+                                logmsg("error parsing statusbar_timeout configuration", 0);
+                        }
+                        else
+                        {
+                                tmp = malloc(64*sizeof(char));
+                                sprintf(tmp, "statusbar_timeout set to %d s", cfg.statusbar_timeout);
+                                logmsg(tmp, 1);
+                                free(tmp);
+                        }
+                }
+                else
+                {
+                        tmp = malloc((strlen(line)+32)*sizeof(char));
+                        sprintf(tmp, "unhandled config line: %s", line);
+                        logmsg(tmp, 0);
+                        puts(tmp);
+                        free(tmp);
+                }
+        }
+
+        /* close config file */
+        fclose(config);
 } /* }}} */
 
 void filter_tasks(task *head, const char filter_mode, const char *filter_comparison, const char *filter_value) /* {{{ */
@@ -462,7 +559,7 @@ task *get_tasks(void) /* {{{ */
                 task *this;
 
                 /* remove escapes */
-                remove_escapes(line);
+                remove_char(line, '\\');
 
                 /* log line */
                 logmsg(line, 2);
@@ -794,14 +891,14 @@ void nc_main(task *head) /* {{{ */
                                         case 'p':
                                         case 'd':
                                         case 'r':
-                                                sortmode = c;
+                                                cfg.sortmode = c;
                                                 sort_wrapper(head);
                                                 break;
                                         case 'N':
                                         case 'P':
                                         case 'D':
                                         case 'R':
-                                                sortmode = c+32;
+                                                cfg.sortmode = c+32;
                                                 sort_wrapper(head);
                                                 break;
                                         default:
@@ -1247,7 +1344,7 @@ void reload_tasks(task **headptr) /* {{{ */
         }
 } /* }}} */
 
-void remove_escapes(char *str) /* {{{ */
+void remove_char(char *str, char remove) /* {{{ */
 {
         /* iterate through a string and remove escapes inline */
         const int len = strlen(str);
@@ -1258,7 +1355,7 @@ void remove_escapes(char *str) /* {{{ */
                 if (str[i+offset]=='\0')
                         break;
                 str[i] = str[i+offset];
-                while (str[i]=='\\' || str[i]=='\0')
+                while (str[i]==remove || str[i]=='\0')
                 {
                         offset++;
                         str[i] = str[i+offset];
@@ -1339,7 +1436,7 @@ void sort_tasks(task *first, task *last) /* {{{ */
         /* iterate through to right end, sorting as we go */
         while (1)
         {
-                if (compare_tasks(start, cur, sortmode)==1)
+                if (compare_tasks(start, cur, cfg.sortmode)==1)
                         swap_tasks(start, cur);
                 if (cur==last)
                         break;
@@ -1620,8 +1717,8 @@ int main(int argc, char **argv)
         task *head;
         int c, debug = 0;
 
-        /* set config settings */
-        configure();
+        /* set defaults */
+        cfg.loglvl = -1;
 
         /* handle arguments */
         while ((c = getopt(argc, argv, "l:hvd")) != -1)
@@ -1648,6 +1745,10 @@ int main(int argc, char **argv)
                                 return 1;
                 }
         }
+
+        /* read config file */
+        configure();
+
 
         /* build task list */
         head = get_tasks();
