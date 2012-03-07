@@ -130,7 +130,6 @@ struct {
 /* }}} */
 
 /* global variables {{{ */
-int loglvl = 0;                 /* used by logmsg to determine whether msgs should be written to logfile */
 short pageoffset = 0;           /* number of tasks page is offset */
 time_t sb_timeout = 0;          /* when statusbar should be cleared */
 char *searchstring = NULL;      /* currently active search string */
@@ -207,7 +206,7 @@ void configure(void) /* {{{ */
         cmd = popen("task version rc._forcecolor=no", "r");
         while (fgets(line, sizeof(line)-1, cmd) != NULL)
         {
-                ret = sscanf(line, "task %[0-9.]* ", cfg.version);
+                ret = sscanf(line, "task %[^ ]* ", cfg.version);
                 if (ret>0)
                 {
                         tmp = malloc(64*sizeof(char));
@@ -513,7 +512,7 @@ void logmsg(const char *msg, const char minloglvl) /* {{{ */
         FILE *fp;
 
         /* determine if msg should be logged */
-        if (minloglvl>loglvl)
+        if (minloglvl>cfg.loglvl)
                 return;
 
         /* write log */
@@ -1033,6 +1032,11 @@ task *parse_task(char *line) /* {{{ */
                 content = divider+2;
                 if (str_eq(field, "tags") || str_eq(field, "annotations"))
                         endchar = ']';
+                else if (str_eq(field, "id"))
+                {
+                        token = strtok(NULL, ",");
+                        continue;
+                }
                 else
                         endchar = '"';
 
@@ -1054,6 +1058,12 @@ task *parse_task(char *line) /* {{{ */
                         (*divider) = '\0';
                         content = tmpcontent;
                 }
+
+                /* log content */
+                tmpstr = malloc(TOTALLENGTH*sizeof(char));
+                sprintf(tmpstr, "field: %s; content: %s", field, content);
+                logmsg(tmpstr, 3);
+                free(tmpstr);
 
                 /* handle data */
                 if (str_eq(field, "uuid"))
@@ -1484,7 +1494,7 @@ int task_action(task *head, const char action) /* {{{ */
 
         /* if version is >=2, use uuid index */
         else
-                sprintf(cmd, "task %s %s", actionstr, cur->uuid);
+                sprintf(cmd, "task %s %s", cur->uuid, actionstr);
 
         free(actionstr);
         puts(cmd);
@@ -1616,8 +1626,8 @@ int main(int argc, char **argv)
                 switch (c)
                 {
                         case 'l':
-                                loglvl = (char) atoi(optarg);
-                                printf("loglevel: %d\n", (int)loglvl);
+                                cfg.loglvl = (char) atoi(optarg);
+                                printf("loglevel: %d\n", (int)cfg.loglvl);
                                 break;
                         case 'v':
                                 print_version();
