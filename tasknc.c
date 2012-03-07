@@ -212,7 +212,7 @@ void configure(void) /* {{{ */
                         tmp = malloc(64*sizeof(char));
                         sprintf(tmp, "task version: %s", cfg.version);
                         puts(tmp);
-                        logmsg(tmp, 0);
+                        logmsg(tmp, 1);
                         free(tmp);
                         break;
                 }
