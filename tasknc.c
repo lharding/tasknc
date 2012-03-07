@@ -109,7 +109,6 @@ static void reload_tasks(task **);
 static void set_curses_mode(char);
 static void sort_tasks(task *, task *);
 static void sort_wrapper(task *);
-static char *strip_quotes(char *);
 static void statusbar_message(const char *, const int);
 static void swap_tasks(task *, task *);
 static int task_action(task *, const char);
@@ -1354,24 +1353,6 @@ void statusbar_message(const char *message, const int dtmout) /* {{{ */
         if (dtmout>=0)
                 sb_timeout = time(NULL) + dtmout;
         refresh();
-} /* }}} */
-
-char *strip_quotes(char *base) /* {{{ */
-{
-        /* remove the first and last character from a string (quotes) */
-        int len;
-
-        /* remove first char */
-        base++;
-        len = strlen(base);
-
-        /* remove last char - TODO: clean this up */
-        if (base[len-1] != '\'')
-                base[len-2] = '\0';
-        else
-                base[len-1] = '\0';
-
-        return base;
 } /* }}} */
 
 void swap_tasks(task *a, task *b) /* {{{ */
