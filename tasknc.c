@@ -447,9 +447,9 @@ unsigned short get_task_id(char *uuid) /* {{{ */
 task *get_tasks(void) /* {{{ */
 {
         FILE *cmd;
-        char line[TOTALLENGTH];
+        char line[TOTALLENGTH], *tmpstr;
         unsigned short counter = 0;
-        task *head, *last, *tmpstr;
+        task *head, *last;
 
         /* run command */
         cmd = popen("task export.json status:pending", "r");
@@ -1531,7 +1531,10 @@ void task_add(void) /* {{{ */
 
         /* edit task */
         cmd = malloc(32*sizeof(char));
-        sprintf(cmd, "task edit %d", tasknum);
+        if (cfg.version[0]<'2')
+                sprintf(cmd, "task edit %d", tasknum);
+        else
+                sprintf(cmd, "task %d edit", tasknum);
         puts(cmd);
         system(cmd);
         free(cmd);
