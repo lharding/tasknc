@@ -450,7 +450,7 @@ task *get_tasks(void) /* {{{ */
         FILE *cmd;
         char line[TOTALLENGTH];
         unsigned short counter = 0;
-        task *head, *last;
+        task *head, *last, *tmpstr;
 
         /* run command */
         cmd = popen("task export.json status:pending", "r");
@@ -460,21 +460,23 @@ task *get_tasks(void) /* {{{ */
         head = NULL;
         while (fgets(line, sizeof(line)-1, cmd) != NULL)
         {
-                printf(line);
+                logmsg(line, 2);
                 task *this;
-                if (counter>=0)
-                {
-                        this = parse_task(line);
-                        this->index = counter;
-                        this->prev = last;
-                }
+
+                this = parse_task(line);
+                this->index = counter;
+                this->prev = last;
+
                 if (counter==0)
                         head = this;
                 if (counter>0)
                         last->next = this;
                 last = this;
                 counter++;
-                printf("uuid: %s\ndescription: %s\nproject: %s\n\n\n\n", this->uuid, this->description, this->project);
+                tmpstr = malloc(1024*sizeof(char));
+                sprintf(tmpstr, "uuid: %s\ndescription: %s\nproject: %s\ntags: %s\n\n\n\n", this->uuid, this->description, this->project, this->tags);
+                logmsg(tmpstr, 2);
+                free(tmpstr);
         }
         pclose(cmd);
 
@@ -545,6 +547,10 @@ char match_string(const char *haystack, const char *needle) /* {{{ */
         /* match a string to a regex */
         regex_t regex;
         char ret;
+
+        /* check for NULL haystack */
+        if (haystack==NULL)
+                return 0;
 
         /* compile and run regex */
         if (regcomp(&regex, needle, REGEX_OPTS) != 0)
@@ -1000,7 +1006,7 @@ task *parse_task(char *line) /* {{{ */
         token = strtok(line, ",");
         while (token != NULL)
         {
-                char *field, *content, *divider;
+                char *field, *content, *divider, endchar;
                 struct tm tmr;
 
                 /* determine field name */
@@ -1017,27 +1023,29 @@ task *parse_task(char *line) /* {{{ */
 
                 /* get content */
                 content = divider+2;
-                divider = strchr(content, '"');
+                if (str_eq(field, "tags") || str_eq(field, "annotations"))
+                        endchar = ']';
+                else
+                        endchar = '"';
+
+                divider = strchr(content, endchar);
                 if (divider!=NULL)
                         (*divider) = '\0';
-                else
+                else /* handle commas */
                 {
                         tmpcontent = malloc((strlen(content)+1)*sizeof(char));
                         strcpy(tmpcontent, content);
                         do
                         {
                                 token = strtok(NULL, ",");
-                                tmpcontent = realloc(tmpcontent, (strlen(tmpcontent)+strlen(token)+5));
+                                tmpcontent = realloc(tmpcontent, (strlen(tmpcontent)+strlen(token)+5)*sizeof(char));
                                 strcat(tmpcontent, ",");
                                 strcat(tmpcontent, token);
-                                divider = strchr(tmpcontent, '"');
+                                divider = strchr(tmpcontent, endchar);
                         } while (divider==NULL);
                         (*divider) = '\0';
                         content = tmpcontent;
                 }
-
-                /* debug */
-                printf("field: %s; content: %s\n", field, content);
 
                 /* handle data */
                 if (str_eq(field, "uuid"))
@@ -1065,6 +1073,11 @@ task *parse_task(char *line) /* {{{ */
                         sscanf(tmpstr, "%d", &(tsk->due));
                         free(tmpstr);
                 }
+                else if (str_eq(field, "tags"))
+                {
+                        tsk->tags = malloc(TAGSLENGTH*sizeof(char));
+                        strcpy(tsk->tags, content);
+                }
 
                 /* free tmpstr if necessary */
                 if (tmpcontent!=NULL)
@@ -1075,105 +1088,6 @@ task *parse_task(char *line) /* {{{ */
 
                 /* move to the next token */
                 token = strtok(NULL, ",");
-
-                /*
-                case 0: // uuid
-                        if (tsk->uuid==NULL)
-                        {
-                                tsk->uuid = malloc(UUIDLENGTH*sizeof(char));
-                                token = strip_quotes(token);
-                                sprintf(tsk->uuid, "%s", token);
-                        }
-                        break;
-                case 1: // status
-                        break;
-                case 2: // tags
-                        if (token==strrchr(token, '\'')) 
-                        {
-                                tsk->tags = malloc(TAGSLENGTH*sizeof(char));
-                                strcpy(tsk->tags, ++token);
-                                do
-                                {
-                                        token = strtok(NULL, ",");
-                                        strcat(tsk->tags, ",");
-                                        strcat(tsk->tags, token);
-                                } while (strrchr(token, '\'')==NULL);
-                                tmpstr = strrchr(tsk->tags, '\'');
-                                (*tmpstr) = '\0';
-                        }
-                        else if (tsk->tags==NULL)
-                        {
-                                tsk->tags = malloc(TAGSLENGTH*sizeof(char));
-                                strcpy(tsk->tags, strip_quotes(token));
-                        }
-                        break;
-                case 3: // entry
-                        tmp = sscanf(token, "%d", &tsk->entry);
-                        if (tmp==0)
-                        {
-                                free_task(tsk);
-                                return NULL;
-                        }
-                        break;
-                case 4: // start
-                        tmp = sscanf(token, "%d", &tsk->start);
-                        break;
-                case 5: // due
-                        tmp = sscanf(token, "%d", &tsk->due);
-                        break;
-                case 6: // recur
-                        break;
-                case 7: // end
-                        tmp = sscanf(token, "%d", &tsk->end);
-                        break;
-                case 8: // project
-                        if (token==strrchr(token, '\'')) 
-                        {
-                                tsk->project = malloc(PROJECTLENGTH*sizeof(char));
-                                strcpy(tsk->project, ++token);
-                                do
-                                {
-                                        token = strtok(NULL, ",");
-                                        strcat(tsk->project, ",");
-                                        strcat(tsk->project, token);
-                                } while (strrchr(token, '\'')==NULL);
-                                tmpstr = strrchr(tsk->project, '\'');
-                                (*tmpstr) = '\0';
-                        }
-                        else if (tsk->project==NULL)
-                        {
-                                tsk->project = malloc(PROJECTLENGTH*sizeof(char));
-                                strcpy(tsk->project, strip_quotes(token));
-                        }
-                        break;
-                case 9: // priority
-                        tmp = sscanf(token, "'%c'", &tsk->priority);
-                        break;
-                case 10: // fg
-                        break;
-                case 11: // bg
-                        break;
-                case 12: // description
-                        if (token==strrchr(token, '\'')) 
-                        {
-                                tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
-                                strcpy(tsk->description, ++token);
-                                do
-                                {
-                                        token = strtok(NULL, ",");
-                                        strcat(tsk->description, ",");
-                                        strcat(tsk->description, token);
-                                } while (strrchr(token, '\'')==NULL);
-                                tmpstr = strrchr(tsk->description, '\'');
-                                (*tmpstr) = '\0';
-                        }
-                        else if (tsk->description==NULL)
-                        {
-                                tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
-                                strcpy(tsk->description, strip_quotes(token));
-                        }
-                        break;
-                */
         }
 
         return tsk;

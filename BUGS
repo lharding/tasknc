@@ -3,8 +3,5 @@ tasknc: known bugs
     json handling:
         handle escapes
         handle times properly
-        handle commas in fields
-        handle annotations
     eliminate unnecessary struct task fields
-    get rid of old commented out section in parse_task
     remove strip_quotes
