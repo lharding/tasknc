@@ -460,23 +460,24 @@ task *get_tasks(void) /* {{{ */
         head = NULL;
         while (fgets(line, sizeof(line)-1, cmd) != NULL)
         {
+                printf(line);
                 task *this;
-                if (counter==0)
-                        this = NULL;
-                if (counter>0)
+                if (counter>=0)
                 {
                         this = parse_task(line);
                         this->index = counter;
                         this->prev = last;
                 }
-                if (counter==1)
+                if (counter==0)
                         head = this;
-                if (counter>1)
+                if (counter>0)
                         last->next = this;
                 last = this;
                 counter++;
+                printf("uuid: %s\ndescription: %s\nproject: %s\n\n\n\n", this->uuid, this->description, this->project);
         }
         pclose(cmd);
+
 
         /* sort tasks */
         if (head!=NULL)
@@ -993,7 +994,8 @@ char *pad_string(char *argstr, int length, const int lpad, int rpad, const char 
 task *parse_task(char *line) /* {{{ */
 {
         task *tsk = malloc_task();
-        char *token, *tmpstr;
+        char *token, *tmpstr, *tmpcontent;
+        tmpcontent = NULL;
 
         token = strtok(line, ",");
         while (token != NULL)
@@ -1018,6 +1020,24 @@ task *parse_task(char *line) /* {{{ */
                 divider = strchr(content, '"');
                 if (divider!=NULL)
                         (*divider) = '\0';
+                else
+                {
+                        tmpcontent = malloc((strlen(content)+1)*sizeof(char));
+                        strcpy(tmpcontent, content);
+                        do
+                        {
+                                token = strtok(NULL, ",");
+                                tmpcontent = realloc(tmpcontent, (strlen(tmpcontent)+strlen(token)+5));
+                                strcat(tmpcontent, ",");
+                                strcat(tmpcontent, token);
+                                divider = strchr(tmpcontent, '"');
+                        } while (divider==NULL);
+                        (*divider) = '\0';
+                        content = tmpcontent;
+                }
+
+                /* debug */
+                printf("field: %s; content: %s\n", field, content);
 
                 /* handle data */
                 if (str_eq(field, "uuid"))
@@ -1044,6 +1064,13 @@ task *parse_task(char *line) /* {{{ */
                         strftime(tmpstr, 32, "%s", &tmr);
                         sscanf(tmpstr, "%d", &(tsk->due));
                         free(tmpstr);
+                }
+
+                /* free tmpstr if necessary */
+                if (tmpcontent!=NULL)
+                {
+                        free(tmpcontent);
+                        tmpcontent = NULL;
                 }
 
                 /* move to the next token */
