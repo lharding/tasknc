@@ -284,7 +284,7 @@ void configure(void) /* {{{ */
         cfg.nc_timeout = NCURSES_WAIT;                          /* time getch will wait */
         cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;      /* default time before resetting statusbar */
         if (cfg.loglvl==-1)
-                cfg.loglvl = LOGLVL_DEFAULT;                            /* determine whether log message should be printed */
+                cfg.loglvl = LOGLVL_DEFAULT;                    /* determine whether log message should be printed */
         cfg.sortmode = 'd';                                     /* determine sort algorithm */
 
         /* get task version */
@@ -349,11 +349,6 @@ void configure(void) /* {{{ */
                           *val = '\0';
 
 
-                /* 
-                 * loglvl ?
-                 * sortmode
-                 */
-
                 if (str_starts_with(line, "nc_timeout"))
                 {
                         ret = sscanf(line, "nc_timeout = %d", &(cfg.nc_timeout));
@@ -382,6 +377,24 @@ void configure(void) /* {{{ */
                         {
                                 tmp = malloc(64*sizeof(char));
                                 sprintf(tmp, "statusbar_timeout set to %d s", cfg.statusbar_timeout);
+                                logmsg(tmp, 1);
+                                free(tmp);
+                        }
+                }
+                else if (str_starts_with(line, "sortmode"))
+                {
+                        ret = sscanf(line, "sortmode = %c", &(cfg.sortmode));
+                        if (!ret || strchr("dnpr", cfg.sortmode)==NULL)
+                        {
+                                puts("error parsing sortmode configuration");
+                                puts("valid sort modes are: d, n, p, or r");
+                                logmsg("error parsing sortmode configuration", 0);
+                                logmsg("valid sort modes are: d, n, p, or r", 0);
+                        }
+                        else
+                        {
+                                tmp = malloc(64*sizeof(char));
+                                sprintf(tmp, "sortmode set to %c", cfg.sortmode);
                                 logmsg(tmp, 1);
                                 free(tmp);
                         }
