@@ -106,6 +106,7 @@ static void print_task_list(task *, const short, const short, const short);
 static void print_title(const int);
 static void print_version(void);
 static void reload_tasks(task **);
+static void remove_escapes(char *);
 static void set_curses_mode(char);
 static void sort_tasks(task *, task *);
 static void sort_wrapper(task *);
@@ -459,10 +460,18 @@ task *get_tasks(void) /* {{{ */
         head = NULL;
         while (fgets(line, sizeof(line)-1, cmd) != NULL)
         {
-                logmsg(line, 2);
                 task *this;
 
+                /* remove escapes */
+                remove_escapes(line);
+
+                /* log line */
+                logmsg(line, 2);
+
+                /* parse line */
                 this = parse_task(line);
+
+                /* set pointers */
                 this->index = counter;
                 this->prev = last;
 
@@ -1226,6 +1235,28 @@ void reload_tasks(task **headptr) /* {{{ */
                 free(buffer);
                 cur = cur->next;
         }
+} /* }}} */
+
+void remove_escapes(char *str) /* {{{ */
+{
+        /* iterate through a string and remove escapes inline */
+        const int len = strlen(str);
+        int i, offset = 0;
+
+        for (i=0; i<len; i++)
+        {
+                if (str[i+offset]=='\0')
+                        break;
+                str[i] = str[i+offset];
+                while (str[i]=='\\' || str[i]=='\0')
+                {
+                        offset++;
+                        str[i] = str[i+offset];
+                }
+                if (str[i+offset]=='\0')
+                        break;
+        }
+
 } /* }}} */
 
 void set_curses_mode(char curses_mode) /* {{{ */
