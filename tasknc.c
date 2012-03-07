@@ -22,6 +22,7 @@
 
 /* string comparison */
 #define str_starts_with(x, y)           (strncmp((x),(y),strlen(y)) == 0) 
+#define str_eq(x, y)                    (strcmp((x), (y))==0)
 
 /* program information */
 #define NAME                            "taskwarrior ncurses shell"
@@ -452,7 +453,7 @@ task *get_tasks(void) /* {{{ */
         task *head, *last;
 
         /* run command */
-        cmd = popen("task export.csv status:pending", "r");
+        cmd = popen("task export.json status:pending", "r");
 
         /* parse output */
         last = NULL;
@@ -992,123 +993,161 @@ char *pad_string(char *argstr, int length, const int lpad, int rpad, const char 
 task *parse_task(char *line) /* {{{ */
 {
         task *tsk = malloc_task();
-        char *token, *lastchar, *tmpstr;
-        short counter = 0;
+        char *token, *tmpstr;
 
         token = strtok(line, ",");
         while (token != NULL)
         {
-                int tmp;
-                lastchar = token;
-                while (*(--lastchar) == ',')
-                        counter++;
-                switch (counter)
+                char *field, *content, *divider;
+                struct tm tmr;
+
+                /* determine field name */
+                if (token[0] == '{')
+                        token++;
+                if (token[0] == '"')
+                        token++;
+                divider = strchr(token, ':');
+                if (divider==NULL)
+                        break;
+                (*divider) = '\0';
+                (*(divider-1)) = '\0';
+                field = token;
+
+                /* get content */
+                content = divider+2;
+                divider = strchr(content, '"');
+                if (divider!=NULL)
+                        (*divider) = '\0';
+
+                /* handle data */
+                if (str_eq(field, "uuid"))
                 {
-                        case 0: // uuid
-                                if (tsk->uuid==NULL)
-                                {
-                                        tsk->uuid = malloc(UUIDLENGTH*sizeof(char));
-                                        token = strip_quotes(token);
-                                        sprintf(tsk->uuid, "%s", token);
-                                }
-                                break;
-                        case 1: // status
-                                break;
-                        case 2: // tags
-                                if (token==strrchr(token, '\'')) 
-                                {
-                                        tsk->tags = malloc(TAGSLENGTH*sizeof(char));
-                                        strcpy(tsk->tags, ++token);
-                                        do
-                                        {
-                                                token = strtok(NULL, ",");
-                                                strcat(tsk->tags, ",");
-                                                strcat(tsk->tags, token);
-                                        } while (strrchr(token, '\'')==NULL);
-                                        tmpstr = strrchr(tsk->tags, '\'');
-                                        (*tmpstr) = '\0';
-                                }
-                                else if (tsk->tags==NULL)
-                                {
-                                        tsk->tags = malloc(TAGSLENGTH*sizeof(char));
-                                        strcpy(tsk->tags, strip_quotes(token));
-                                }
-                                break;
-                        case 3: // entry
-                                tmp = sscanf(token, "%d", &tsk->entry);
-                                if (tmp==0)
-                                {
-                                        free_task(tsk);
-                                        return NULL;
-                                }
-                                break;
-                        case 4: // start
-                                tmp = sscanf(token, "%d", &tsk->start);
-                                break;
-                        case 5: // due
-                                tmp = sscanf(token, "%d", &tsk->due);
-                                break;
-                        case 6: // recur
-                                break;
-                        case 7: // end
-                                tmp = sscanf(token, "%d", &tsk->end);
-                                break;
-                        case 8: // project
-                                if (token==strrchr(token, '\'')) 
-                                {
-                                        tsk->project = malloc(PROJECTLENGTH*sizeof(char));
-                                        strcpy(tsk->project, ++token);
-                                        do
-                                        {
-                                                token = strtok(NULL, ",");
-                                                strcat(tsk->project, ",");
-                                                strcat(tsk->project, token);
-                                        } while (strrchr(token, '\'')==NULL);
-                                        tmpstr = strrchr(tsk->project, '\'');
-                                        (*tmpstr) = '\0';
-                                }
-                                else if (tsk->project==NULL)
-                                {
-                                        tsk->project = malloc(PROJECTLENGTH*sizeof(char));
-                                        strcpy(tsk->project, strip_quotes(token));
-                                }
-                                break;
-                        case 9: // priority
-                                tmp = sscanf(token, "'%c'", &tsk->priority);
-                                break;
-                        case 10: // fg
-                                break;
-                        case 11: // bg
-                                break;
-                        case 12: // description
-                                if (token==strrchr(token, '\'')) 
-                                {
-                                        tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
-                                        strcpy(tsk->description, ++token);
-                                        do
-                                        {
-                                                token = strtok(NULL, ",");
-                                                strcat(tsk->description, ",");
-                                                strcat(tsk->description, token);
-                                        } while (strrchr(token, '\'')==NULL);
-                                        tmpstr = strrchr(tsk->description, '\'');
-                                        (*tmpstr) = '\0';
-                                }
-                                else if (tsk->description==NULL)
-                                {
-                                        tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
-                                        strcpy(tsk->description, strip_quotes(token));
-                                }
-                                break;
-                        default:
-                                break;
+                        tsk->uuid = malloc(UUIDLENGTH*sizeof(char));
+                        strcpy(tsk->uuid, content);
                 }
+                else if (str_eq(field, "project"))
+                {
+                        tsk->project = malloc(PROJECTLENGTH*sizeof(char));
+                        strcpy(tsk->project, content);
+                }
+                else if (str_eq(field, "description"))
+                {
+                        tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
+                        strcpy(tsk->description, content);
+                }
+                else if (str_eq(field, "priority"))
+                        tsk->priority = content[0];
+                else if (str_eq(field, "due"))
+                {
+                        strptime(content, "%Y%m%d", &tmr);
+                        tmpstr = malloc(32*sizeof(char));
+                        strftime(tmpstr, 32, "%s", &tmr);
+                        sscanf(tmpstr, "%d", &(tsk->due));
+                        free(tmpstr);
+                }
+
+                /* move to the next token */
                 token = strtok(NULL, ",");
-                counter++;
+
+                /*
+                case 0: // uuid
+                        if (tsk->uuid==NULL)
+                        {
+                                tsk->uuid = malloc(UUIDLENGTH*sizeof(char));
+                                token = strip_quotes(token);
+                                sprintf(tsk->uuid, "%s", token);
+                        }
+                        break;
+                case 1: // status
+                        break;
+                case 2: // tags
+                        if (token==strrchr(token, '\'')) 
+                        {
+                                tsk->tags = malloc(TAGSLENGTH*sizeof(char));
+                                strcpy(tsk->tags, ++token);
+                                do
+                                {
+                                        token = strtok(NULL, ",");
+                                        strcat(tsk->tags, ",");
+                                        strcat(tsk->tags, token);
+                                } while (strrchr(token, '\'')==NULL);
+                                tmpstr = strrchr(tsk->tags, '\'');
+                                (*tmpstr) = '\0';
+                        }
+                        else if (tsk->tags==NULL)
+                        {
+                                tsk->tags = malloc(TAGSLENGTH*sizeof(char));
+                                strcpy(tsk->tags, strip_quotes(token));
+                        }
+                        break;
+                case 3: // entry
+                        tmp = sscanf(token, "%d", &tsk->entry);
+                        if (tmp==0)
+                        {
+                                free_task(tsk);
+                                return NULL;
+                        }
+                        break;
+                case 4: // start
+                        tmp = sscanf(token, "%d", &tsk->start);
+                        break;
+                case 5: // due
+                        tmp = sscanf(token, "%d", &tsk->due);
+                        break;
+                case 6: // recur
+                        break;
+                case 7: // end
+                        tmp = sscanf(token, "%d", &tsk->end);
+                        break;
+                case 8: // project
+                        if (token==strrchr(token, '\'')) 
+                        {
+                                tsk->project = malloc(PROJECTLENGTH*sizeof(char));
+                                strcpy(tsk->project, ++token);
+                                do
+                                {
+                                        token = strtok(NULL, ",");
+                                        strcat(tsk->project, ",");
+                                        strcat(tsk->project, token);
+                                } while (strrchr(token, '\'')==NULL);
+                                tmpstr = strrchr(tsk->project, '\'');
+                                (*tmpstr) = '\0';
+                        }
+                        else if (tsk->project==NULL)
+                        {
+                                tsk->project = malloc(PROJECTLENGTH*sizeof(char));
+                                strcpy(tsk->project, strip_quotes(token));
+                        }
+                        break;
+                case 9: // priority
+                        tmp = sscanf(token, "'%c'", &tsk->priority);
+                        break;
+                case 10: // fg
+                        break;
+                case 11: // bg
+                        break;
+                case 12: // description
+                        if (token==strrchr(token, '\'')) 
+                        {
+                                tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
+                                strcpy(tsk->description, ++token);
+                                do
+                                {
+                                        token = strtok(NULL, ",");
+                                        strcat(tsk->description, ",");
+                                        strcat(tsk->description, token);
+                                } while (strrchr(token, '\'')==NULL);
+                                tmpstr = strrchr(tsk->description, '\'');
+                                (*tmpstr) = '\0';
+                        }
+                        else if (tsk->description==NULL)
+                        {
+                                tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
+                                strcpy(tsk->description, strip_quotes(token));
+                        }
+                        break;
+                */
         }
-        
-        if (tsk->description==NULL || tsk->entry==0 || tsk->uuid==NULL)
-                return NULL;
 
         return tsk;
 } /* }}} */
