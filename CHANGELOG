@@ -1,5 +1,9 @@
 tasknc changelog
 
+v0.5 (in progress)
+    * task 2.0 support
+    * move to json parsing over csv
+
 v0.4 
     * scroll through tasks
     * filter tasks
