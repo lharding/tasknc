@@ -1075,7 +1075,7 @@ task *parse_task(char *line) /* {{{ */
                         tsk->priority = content[0];
                 else if (str_eq(field, "due"))
                 {
-                        strptime(content, "%Y%m%d", &tmr);
+                        strptime(content, "%Y%m%dT%H%M%S%z", &tmr);
                         tmpstr = malloc(32*sizeof(char));
                         strftime(tmpstr, 32, "%s", &tmr);
                         sscanf(tmpstr, "%d", &(tsk->due));
