@@ -1,0 +1,18 @@
+# tasknc config file
+# by mjheagle
+########
+
+# time for ncurses cmds (getch) to expire (in ms)
+# this is visible in the time that the window takes to refresh on resize
+# but will consume more cpu with a lower time
+nc_timeout = 500
+
+# time for statusbar messages to expire (in s)
+statusbar_timeout = 3
+
+# default sort mode
+# d: due date
+# n: index
+# p: project
+# r: priority
+sortmode = d
