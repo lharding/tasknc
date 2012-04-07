@@ -562,7 +562,10 @@ task *get_tasks(void) /* {{{ */
         task *head, *last;
 
         /* run command */
-        cmd = popen("task export.json status:pending", "r");
+        if (cfg.version[0]<'2')
+                cmd = popen("task export.json status:pending", "r");
+        else
+                cmd = popen("task export status:pending", "r");
 
         /* parse output */
         last = NULL;
