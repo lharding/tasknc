@@ -25,6 +25,7 @@ tasknc.1: README.pod
 install: tasknc tasknc.1
 		install -D -m755 tasknc ${DESTDIR}${PREFIX}/bin/tasknc
 		install -D -m644 tasknc.1 ${DESTDIR}${MANPREFIX}/man1/tasknc.1
+		install -D -m644 config ${DESTDIR}${PREFIX}/share/tasknc/config
 
 uninstall:
 		@echo removing executable file from ${DESTDIR}${PREFIX}/bin

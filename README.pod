@@ -103,6 +103,18 @@ filter (prompted for filter algorithm)
 
 =back
 
+=head1 CONFIG FILE
+
+tasknc honors a config file located at 
+    
+    $XDG_CONFIG_HOME/tasknc/config
+
+or, if $XDG_CONFIG_HOME doesnt exist,
+    
+    $HOME/.config/tasknc/config
+
+A documented example config can be found at /usr/share/tasknc/config.
+
 =head1 AUTHOR
 
-mjheagle <mjheagle8@gmail.com>
+mjheagle E<lt>mjheagle8@gmail.comE<gt>
