@@ -83,6 +83,7 @@ typedef struct _filter
 {
         char mode;
         char *string;
+        struct _filter *next;
 } task_filter;
 /* }}} */
 
@@ -134,6 +135,7 @@ struct {
         char version[8];
         char sortmode;
         int filter_persist;
+        int filter_cascade;
 } cfg;
 /* }}} */
 
@@ -295,6 +297,7 @@ void configure(void) /* {{{ */
                 cfg.loglvl = LOGLVL_DEFAULT;                    /* determine whether log message should be printed */
         cfg.sortmode = 'd';                                     /* determine sort algorithm */
         cfg.filter_persist = 1;                                 /* filters should persist until they are cleared */
+        cfg.filter_cascade = 1;                                 /* filters should cascade */
 
         /* get task version */
         cmd = popen("task version rc._forcecolor=no", "r");
@@ -422,6 +425,24 @@ void configure(void) /* {{{ */
                         {
                                 tmp = malloc(64*sizeof(char));
                                 sprintf(tmp, "filter_persist set to %d", cfg.filter_persist);
+                                logmsg(tmp, 1);
+                                free(tmp);
+                        }
+                }
+                else if (str_starts_with(line, "filter_cascade"))
+                {
+                        ret = sscanf(line, "filter_cascade = %d", &(cfg.filter_cascade));
+                        if (!ret || cfg.filter_cascade<0 || cfg.filter_cascade>1)
+                        {
+                                puts("error parsing filter_cascade configuration");
+                                puts("filter_cascade must be a 0 or 1");
+                                logmsg("error parsing filter_cascade configuration", 0);
+                                logmsg("filter_cascade must be a 0 or 1", 0);
+                        }
+                        else
+                        {
+                                tmp = malloc(64*sizeof(char));
+                                sprintf(tmp, "filter_cascade set to %d", cfg.filter_cascade);
                                 logmsg(tmp, 1);
                                 free(tmp);
                         }
@@ -995,40 +1016,43 @@ void nc_main(task *head) /* {{{ */
                                         getstr(tmpstr);
                                 }
                                 set_curses_mode(NCURSES_MODE_STD);
+                                /* initialize filter */
                                 task_filter this_filter;
                                 this_filter.mode = -1;
                                 this_filter.string = NULL;
+                                this_filter.next = NULL;
+                                /* determine filter parameters */
                                 switch (c)
                                 {
                                         case 'a':
                                         case 'A':
                                                 this_filter.mode = FILTER_BY_STRING;
                                                 this_filter.string = tmpstr;
-                                                /* filter_tasks(head, FILTER_BY_STRING, NULL, tmpstr); */
                                                 free(tmpstr);
                                                 break;
                                         case 'c':
                                         case 'C':
                                                 this_filter.mode = FILTER_CLEAR;
-                                                /* filter_tasks(head, FILTER_CLEAR, NULL, NULL); */
+                                                if (active_filters!=NULL)
+                                                {
+                                                        free(active_filters->string);
+                                                        active_filters = NULL;
+                                                }
                                                 break;
                                         case 'd':
                                         case 'D':
                                                 this_filter.mode = FILTER_DESCRIPTION;
                                                 this_filter.string = tmpstr;
-                                                /* filter_tasks(head, FILTER_DESCRIPTION, NULL, tmpstr); */
                                                 break;
                                         case 'p':
                                         case 'P':
                                                 this_filter.mode = FILTER_PROJECT;
                                                 this_filter.string = tmpstr;
-                                                /* filter_tasks(head, FILTER_PROJECT, NULL, tmpstr); */
                                                 break;
                                         case 't':
                                         case 'T':
                                                 this_filter.mode = FILTER_TAGS;
                                                 this_filter.string = tmpstr;
-                                                /* filter_tasks(head, FILTER_TAGS, NULL, tmpstr); */
                                                 break;
                                         default:
                                                 statusbar_message("invalid filter mode", cfg.statusbar_timeout);
@@ -1040,7 +1064,28 @@ void nc_main(task *head) /* {{{ */
                                         filter_tasks(head, &this_filter);
                                         /* make struct persist if configured to */
                                         if (cfg.filter_persist)
-                                                active_filters = &this_filter;
+                                        {
+                                                if (cfg.filter_cascade)
+                                                {
+                                                        /* find end of cascade and append this_filter */ 
+                                                        if (active_filters==NULL)
+                                                                active_filters = &this_filter;
+                                                        else
+                                                        {
+                                                                task_filter *n = active_filters;
+                                                                while (n->next!=NULL)
+                                                                        n = n->next;
+                                                                n->next = &this_filter;
+                                                        }
+                                                }
+                                                else
+                                                {
+                                                        /* free active filter and set it to this_filter */
+                                                        if (active_filters!=NULL)
+                                                                free(active_filters->string);
+                                                        active_filters = &this_filter;
+                                                }
+                                        }
                                         else
                                                 /* free tmpstr if unused */
                                                 if (this_filter.string!=NULL)

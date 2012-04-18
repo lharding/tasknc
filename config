@@ -19,3 +19,6 @@ sortmode = d
 
 # boolean to determine if filters should persist until they are cleared
 filter_persist = 1
+
+# boolean to determine if filters should cascade
+filter_cascade = 1
