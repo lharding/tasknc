@@ -138,14 +138,14 @@ struct {
 /* }}} */
 
 /* global variables {{{ */
-short pageoffset = 0;           /* number of tasks page is offset */
-time_t sb_timeout = 0;          /* when statusbar should be cleared */
-char *searchstring = NULL;      /* currently active search string */
-short selline = 0;              /* selected line number */
-int size[2];                    /* size of the ncurses window */
-char taskcount;                 /* number of tasks */
-char totaltaskcount;            /* number of tasks with no filters applied */
-task_filter active_filters;     /* a struct containing the active filter(s) */
+short pageoffset = 0;                   /* number of tasks page is offset */
+time_t sb_timeout = 0;                  /* when statusbar should be cleared */
+char *searchstring = NULL;              /* currently active search string */
+short selline = 0;                      /* selected line number */
+int size[2];                            /* size of the ncurses window */
+char taskcount;                         /* number of tasks */
+char totaltaskcount;                    /* number of tasks with no filters applied */
+task_filter *active_filters = NULL;     /* a struct containing the active filter(s) */
 /* }}} */
 
 void check_curs_pos(void) /* {{{ */
@@ -997,6 +997,7 @@ void nc_main(task *head) /* {{{ */
                                 set_curses_mode(NCURSES_MODE_STD);
                                 task_filter this_filter;
                                 this_filter.mode = -1;
+                                this_filter.string = NULL;
                                 switch (c)
                                 {
                                         case 'a':
@@ -1038,6 +1039,12 @@ void nc_main(task *head) /* {{{ */
                                 {
                                         filter_tasks(head, &this_filter);
                                         /* make struct persist if configured to */
+                                        if (cfg.filter_persist)
+                                                active_filters = &this_filter;
+                                        else
+                                                /* free tmpstr if unused */
+                                                if (this_filter.string!=NULL)
+                                                        free(this_filter.string);
                                 }
                                 /* check if task list is empty after filtering */
                                 if (taskcount==0)
@@ -1083,6 +1090,8 @@ void nc_main(task *head) /* {{{ */
                 {
                         reload_tasks(&head);
                         task_count(head);
+                        if (active_filters!=NULL)
+                                filter_tasks(head, active_filters);
                         check_curs_pos();
                         print_title(size[0]);
                         redraw = 1;
@@ -1830,6 +1839,11 @@ int main(int argc, char **argv)
                 nc_main(head);
                 nc_end(0);
         }
+
+        /* clean up */
+        if (active_filters!=NULL)
+                if (active_filters->string != NULL)
+                        free(active_filters->string);
 
         /* done */
         if (searchstring!=NULL)
