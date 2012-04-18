@@ -78,6 +78,12 @@ typedef struct _task
         struct _task *prev;
         struct _task *next;
 } task;
+
+typedef struct _filter
+{
+        char mode;
+        char *string;
+} task_filter;
 /* }}} */
 
 /* function prototypes {{{ */
@@ -85,7 +91,7 @@ static void check_curs_pos(void);
 static void check_screen_size(short);
 static char compare_tasks(const task *, const task *, const char);
 static void configure(void);
-static void filter_tasks(task *, const char, const char *, const char *);
+static void filter_tasks(task *, task_filter *);
 static void find_next_search_result(task *, task *);
 static char free_task(task *);
 static void free_tasks(task *);
@@ -127,6 +133,7 @@ struct {
         int loglvl;
         char version[8];
         char sortmode;
+        int filter_persist;
 } cfg;
 /* }}} */
 
@@ -138,6 +145,7 @@ short selline = 0;              /* selected line number */
 int size[2];                    /* size of the ncurses window */
 char taskcount;                 /* number of tasks */
 char totaltaskcount;            /* number of tasks with no filters applied */
+task_filter active_filters;     /* a struct containing the active filter(s) */
 /* }}} */
 
 void check_curs_pos(void) /* {{{ */
@@ -286,6 +294,7 @@ void configure(void) /* {{{ */
         if (cfg.loglvl==-1)
                 cfg.loglvl = LOGLVL_DEFAULT;                    /* determine whether log message should be printed */
         cfg.sortmode = 'd';                                     /* determine sort algorithm */
+        cfg.filter_persist = 1;                                 /* filters should persist until they are cleared */
 
         /* get task version */
         cmd = popen("task version rc._forcecolor=no", "r");
@@ -399,6 +408,24 @@ void configure(void) /* {{{ */
                                 free(tmp);
                         }
                 }
+                else if (str_starts_with(line, "filter_persist"))
+                {
+                        ret = sscanf(line, "filter_persist = %d", &(cfg.filter_persist));
+                        if (!ret || cfg.filter_persist<0 || cfg.filter_persist>1)
+                        {
+                                puts("error parsing filter_persist configuration");
+                                puts("filter_persist must be a 0 or 1");
+                                logmsg("error parsing filter_persist configuration", 0);
+                                logmsg("filter_persist must be a 0 or 1", 0);
+                        }
+                        else
+                        {
+                                tmp = malloc(64*sizeof(char));
+                                sprintf(tmp, "filter_persist set to %d", cfg.filter_persist);
+                                logmsg(tmp, 1);
+                                free(tmp);
+                        }
+                }
                 else
                 {
                         tmp = malloc((strlen(line)+32)*sizeof(char));
@@ -413,10 +440,12 @@ void configure(void) /* {{{ */
         fclose(config);
 } /* }}} */
 
-void filter_tasks(task *head, const char filter_mode, const char *filter_comparison, const char *filter_value) /* {{{ */
+void filter_tasks(task *head, task_filter *this_filter) /* {{{ */
 {
         /* iterate through task list and filter them */
         task *cur = head;
+        const char filter_mode = this_filter->mode;
+        const char *filter_value = this_filter->string;
 
         /* reset task counters */
         taskcount = 0;
@@ -966,37 +995,56 @@ void nc_main(task *head) /* {{{ */
                                         getstr(tmpstr);
                                 }
                                 set_curses_mode(NCURSES_MODE_STD);
+                                task_filter this_filter;
+                                this_filter.mode = -1;
                                 switch (c)
                                 {
                                         case 'a':
                                         case 'A':
-                                                filter_tasks(head, FILTER_BY_STRING, NULL, tmpstr);
+                                                this_filter.mode = FILTER_BY_STRING;
+                                                this_filter.string = tmpstr;
+                                                /* filter_tasks(head, FILTER_BY_STRING, NULL, tmpstr); */
                                                 free(tmpstr);
                                                 break;
                                         case 'c':
                                         case 'C':
-                                                filter_tasks(head, FILTER_CLEAR, NULL, NULL);
+                                                this_filter.mode = FILTER_CLEAR;
+                                                /* filter_tasks(head, FILTER_CLEAR, NULL, NULL); */
                                                 break;
                                         case 'd':
                                         case 'D':
-                                                filter_tasks(head, FILTER_DESCRIPTION, NULL, tmpstr);
+                                                this_filter.mode = FILTER_DESCRIPTION;
+                                                this_filter.string = tmpstr;
+                                                /* filter_tasks(head, FILTER_DESCRIPTION, NULL, tmpstr); */
                                                 break;
                                         case 'p':
                                         case 'P':
-                                                filter_tasks(head, FILTER_PROJECT, NULL, tmpstr);
+                                                this_filter.mode = FILTER_PROJECT;
+                                                this_filter.string = tmpstr;
+                                                /* filter_tasks(head, FILTER_PROJECT, NULL, tmpstr); */
                                                 break;
                                         case 't':
                                         case 'T':
-                                                filter_tasks(head, FILTER_TAGS, NULL, tmpstr);
+                                                this_filter.mode = FILTER_TAGS;
+                                                this_filter.string = tmpstr;
+                                                /* filter_tasks(head, FILTER_TAGS, NULL, tmpstr); */
                                                 break;
                                         default:
                                                 statusbar_message("invalid filter mode", cfg.statusbar_timeout);
                                                 break;
                                 }
+                                /* apply filter from struct if available */
+                                if (this_filter.mode>=0)
+                                {
+                                        filter_tasks(head, &this_filter);
+                                        /* make struct persist if configured to */
+                                }
                                 /* check if task list is empty after filtering */
                                 if (taskcount==0)
                                 {
-                                        filter_tasks(head, FILTER_CLEAR, NULL, NULL);
+                                        task_filter tmp_filter;
+                                        tmp_filter.mode = FILTER_CLEAR;
+                                        filter_tasks(head, &tmp_filter);
                                         statusbar_message("filter yielded no results; reset", cfg.statusbar_timeout);
                                 }
                                 else

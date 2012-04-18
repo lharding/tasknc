@@ -16,3 +16,6 @@ statusbar_timeout = 3
 # p: project
 # r: priority
 sortmode = d
+
+# boolean to determine if filters should persist until they are cleared
+filter_persist = 1
