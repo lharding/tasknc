@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <time.h>
 #include <regex.h>
+#include <wchar.h>
 #include "config.h"
 
 /* macros {{{ */

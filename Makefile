@@ -34,7 +34,7 @@ uninstall:
 		rm -f ${DESTDIR}/${PREFIX}/man1/tasknc.1
 
 tasknc: tasknc.c config.h
-		$(CC) $(CFLAGS) tasknc.c -o tasknc -lncurses
+		$(CC) $(CFLAGS) tasknc.c -o tasknc -lncursesw
 
 tags: tasknc.c config.h
 		ctags tasknc.c config.h
