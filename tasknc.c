@@ -488,6 +488,16 @@ void filter_tasks(task *head, task_filter *this_filter) /* {{{ */
                                 break;
                         case FILTER_CLEAR:
                                 cur->is_filtered = 1;
+                                if (active_filters!=NULL)
+                                {
+                                        task_filter *n = active_filters;
+                                        do 
+                                        {
+                                                free(n->string);
+                                                n = n->next;
+                                        } while (n!=NULL);
+                                        active_filters = NULL;
+                                }
                                 break;
                         case FILTER_BY_STRING:
                         default:
@@ -796,7 +806,6 @@ void nc_main(task *head) /* {{{ */
 {
         /* ncurses main function */
         WINDOW *stdscr;
-        char *tmpstr;
         int c, tmp, oldsize[2], ret;
         short projlen = max_project_length(head);
         short desclen;
@@ -831,6 +840,7 @@ void nc_main(task *head) /* {{{ */
                 char done = 0;
                 char redraw = 0;
                 char reload = 0;
+                char *tmpstr = NULL;
 
                 /* get the screen size */
                 getmaxyx(stdscr, size[1], size[0]);
@@ -1028,16 +1038,10 @@ void nc_main(task *head) /* {{{ */
                                         case 'A':
                                                 this_filter.mode = FILTER_BY_STRING;
                                                 this_filter.string = tmpstr;
-                                                free(tmpstr);
                                                 break;
                                         case 'c':
                                         case 'C':
                                                 this_filter.mode = FILTER_CLEAR;
-                                                if (active_filters!=NULL)
-                                                {
-                                                        free(active_filters->string);
-                                                        active_filters = NULL;
-                                                }
                                                 break;
                                         case 'd':
                                         case 'D':
@@ -1889,10 +1893,10 @@ int main(int argc, char **argv)
         if (active_filters!=NULL)
                 if (active_filters->string != NULL)
                         free(active_filters->string);
-
-        /* done */
         if (searchstring!=NULL)
                 free(searchstring);
+
+        /* done */
         logmsg("exiting", 1);
         return 0;
 }
