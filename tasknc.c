@@ -23,6 +23,7 @@
 /* string comparison */
 #define str_starts_with(x, y)           (strncmp((x),(y),strlen(y)) == 0) 
 #define str_eq(x, y)                    (strcmp((x), (y))==0)
+#define check_free(x)                   if (x!=NULL) free(x);
 
 /* program information */
 #define NAME                            "taskwarrior ncurses shell"
@@ -1182,6 +1183,13 @@ char *pad_string(char *argstr, int length, const int lpad, int rpad, const char 
         str = malloc((strlen(argstr)+1)*sizeof(char));
         str = strcpy(str, argstr);
 
+        /* check if string will be zero length */
+        if (length-lpad-rpad==0)
+        {
+                free(str);
+                return NULL;
+        }
+
         /* cut string if necessary */
         if ((int)strlen(str)>length-lpad-rpad)
         {
@@ -1392,13 +1400,13 @@ void print_task_list(task *head, const short projlen, const short desclen, const
                 else
                         bufstr = pad_string(cur->project, projlen, 0, 1, 'r');
                 mvaddstr(thisline, 0, bufstr);
-                free(bufstr);
+                check_free(bufstr);
                 
                 /* print description */
                 attrset(COLOR_PAIR(3+3*sel));
                 bufstr = pad_string(cur->description, desclen, 0, 1, 'l');
                 mvaddstr(thisline, projlen+1, bufstr);
-                free(bufstr);
+                check_free(bufstr);
 
                 /* print due date or priority if available */
                 attrset(COLOR_PAIR(4+3*sel));
@@ -1415,12 +1423,12 @@ void print_task_list(task *head, const short projlen, const short desclen, const
                         tmp = malloc(2*sizeof(char));
                         sprintf(tmp, "%c", cur->priority);
                         bufstr = pad_string(tmp, datelen, 0, 0, 'r');
-                        free(tmp);
+                        check_free(tmp);
                 }
                 else
                         bufstr = pad_string(" ", datelen, 0, 0, 'r');
                 mvaddstr(thisline, projlen+desclen+1, bufstr);
-                free(bufstr);
+                check_free(bufstr);
 
                 /* move to next item */
                 counter++;
@@ -1440,14 +1448,14 @@ void print_title(const int width) /* {{{ */
         tmp1 = pad_string(tmp0, width, 0, 0, 'l');
         mvaddstr(0, 0, tmp1);
         free(tmp0);
-        free(tmp1);
+        check_free(tmp1);
 
         /* print the current date */
         tmp0 = utc_date(0);
         tmp1 = pad_string(tmp0, DATELENGTH, 0, 0, 'r');
         mvaddstr(0, width-DATELENGTH, tmp1);
         free(tmp0);
-        free(tmp1);
+        check_free(tmp1);
 } /* }}} */
 
 void print_version(void) /* {{{ */
@@ -1845,7 +1853,7 @@ void wipe_screen(const short startl, const short stopl) /* {{{ */
         {
                 mvaddstr(pos, 0, blank);
         }
-        free(blank);
+        check_free(blank);
 } /* }}} */
 
 int main(int argc, char **argv)
