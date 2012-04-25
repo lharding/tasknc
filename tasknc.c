@@ -642,6 +642,11 @@ task *get_tasks(void) /* {{{ */
 
                 /* parse line */
                 this = parse_task(line);
+                if (this == NULL)
+                        return NULL;
+                else if (this->uuid == NULL ||
+                                this->description == NULL)
+                        return NULL;
 
                 /* set pointers */
                 this->index = counter;
@@ -1228,12 +1233,16 @@ task *parse_task(char *line) /* {{{ */
         task *tsk = malloc_task();
         char *token, *tmpstr, *tmpcontent;
         tmpcontent = NULL;
+        int tokencounter = 0;
 
         token = strtok(line, ",");
         while (token != NULL)
         {
                 char *field, *content, *divider, endchar;
                 struct tm tmr;
+
+                /* increment counter */
+                tokencounter++;
 
                 /* determine field name */
                 if (token[0] == '{')
@@ -1327,7 +1336,13 @@ task *parse_task(char *line) /* {{{ */
                 token = strtok(NULL, ",");
         }
 
-        return tsk;
+        if (tokencounter<2)
+        {
+                free_tasks(tsk);
+                return NULL;
+        }
+        else
+                return tsk;
 } /* }}} */
 
 void print_task_list(task *head, const short projlen, const short desclen, const short datelen) /* {{{ */
