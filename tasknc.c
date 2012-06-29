@@ -5,14 +5,16 @@
 
 #define _GNU_SOURCE
 #define _XOPEN_SOURCE
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #include <curses.h>
-#include <signal.h>
-#include <time.h>
+#include <locale.h>
 #include <regex.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+#include <wchar.h>
 #include "config.h"
 
 /* macros {{{ */
@@ -1389,7 +1391,7 @@ void print_task_list(task *head, const short projlen, const short desclen, const
                 /* check if item is selected */
                 if (counter==selline)
                         sel = 1;
-                
+
                 /* move to next line */
                 thisline++;
 
@@ -1401,7 +1403,7 @@ void print_task_list(task *head, const short projlen, const short desclen, const
                         bufstr = pad_string(cur->project, projlen, 0, 1, 'r');
                 mvaddstr(thisline, 0, bufstr);
                 check_free(bufstr);
-                
+
                 /* print description */
                 attrset(COLOR_PAIR(3+3*sel));
                 bufstr = pad_string(cur->description, desclen, 0, 1, 'l');
@@ -1440,15 +1442,17 @@ void print_title(const int width) /* {{{ */
 {
         /* print the window title bar */
         char *tmp0, *tmp1;
+        wchar_t *wtmp0, *fmt;
 
         /* print program info */
         attrset(COLOR_PAIR(1));
-        tmp0 = malloc(width*sizeof(char));
-        sprintf(tmp0, "%s v%s  (%d/%d)", SHORTNAME, VERSION, taskcount, totaltaskcount);
-        tmp1 = pad_string(tmp0, width, 0, 0, 'l');
-        mvaddstr(0, 0, tmp1);
-        free(tmp0);
-        check_free(tmp1);
+        wtmp0 = malloc(width*sizeof(wchar_t));
+        fmt = malloc(32*sizeof(wchar_t));
+        mbstowcs(fmt, "%s v%s  (%d/%d)", 32);
+        swprintf(wtmp0, width, fmt, SHORTNAME, VERSION, taskcount, totaltaskcount);
+        free(fmt);
+        mvaddwstr(0, 0, wtmp0);
+        free(wtmp0);
 
         /* print the current date */
         tmp0 = utc_date(0);
@@ -1845,7 +1849,7 @@ void wipe_screen(const short startl, const short stopl) /* {{{ */
         /* clear the screen except the title and status bars */
         int pos;
         char *blank;
-        
+
         attrset(COLOR_PAIR(0));
         blank = pad_string(" ", size[0], 0, 0, 'r');
 
@@ -1864,6 +1868,7 @@ int main(int argc, char **argv)
 
         /* set defaults */
         cfg.loglvl = -1;
+        setlocale(LC_ALL, "");
 
         /* handle arguments */
         while ((c = getopt(argc, argv, "l:hvd")) != -1)
