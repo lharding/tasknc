@@ -126,6 +126,7 @@ static int task_action(task *, const char);
 static void task_add(void);
 static void task_count(task *);
 static char task_match(const task *, const char *);
+int umvaddstr(const int, const int, const char *);
 static char *utc_date(const unsigned int);
 static void wipe_screen(const short, const short);
 /* }}} */
@@ -1401,13 +1402,13 @@ void print_task_list(task *head, const short projlen, const short desclen, const
                         bufstr = pad_string(" ", projlen, 0, 1, 'r');
                 else
                         bufstr = pad_string(cur->project, projlen, 0, 1, 'r');
-                mvaddstr(thisline, 0, bufstr);
+                umvaddstr(thisline, 0, bufstr);
                 check_free(bufstr);
 
                 /* print description */
                 attrset(COLOR_PAIR(3+3*sel));
                 bufstr = pad_string(cur->description, desclen, 0, 1, 'l');
-                mvaddstr(thisline, projlen+1, bufstr);
+                umvaddstr(thisline, projlen+1, bufstr);
                 check_free(bufstr);
 
                 /* print due date or priority if available */
@@ -1429,7 +1430,7 @@ void print_task_list(task *head, const short projlen, const short desclen, const
                 }
                 else
                         bufstr = pad_string(" ", datelen, 0, 0, 'r');
-                mvaddstr(thisline, projlen+desclen+1, bufstr);
+                umvaddstr(thisline, projlen+desclen+1, bufstr);
                 check_free(bufstr);
 
                 /* move to next item */
@@ -1457,7 +1458,7 @@ void print_title(const int width) /* {{{ */
         /* print the current date */
         tmp0 = utc_date(0);
         tmp1 = pad_string(tmp0, DATELENGTH, 0, 0, 'r');
-        mvaddstr(0, width-DATELENGTH, tmp1);
+        umvaddstr(0, width-DATELENGTH, tmp1);
         free(tmp0);
         check_free(tmp1);
 } /* }}} */
@@ -1636,7 +1637,7 @@ void statusbar_message(const char *message, const int dtmout) /* {{{ */
         /* print a message in the statusbar */
         wipe_statusbar();
 
-        mvaddstr(size[1]-1, 0, message);
+        umvaddstr(size[1]-1, 0, message);
         if (dtmout>=0)
                 sb_timeout = time(NULL) + dtmout;
         refresh();
@@ -1811,6 +1812,20 @@ static char task_match(const task *cur, const char *str) /* {{{ */
                 return 0;
 } /* }}} */
 
+int umvaddstr(const int y, const int x, const char *str) /* {{{ */
+{
+        /* convert a string to a wchar string and mvaddwstr */
+        const int len = strlen(str)+1;
+        int r;
+        wchar_t *wstr = malloc(len*sizeof(wchar_t));
+
+        mbstowcs(wstr, str, len);
+        r = mvaddwstr(y, x, wstr);
+        free(wstr);
+
+        return r;
+} /* }}} */
+
 char *utc_date(const unsigned int timeint) /* {{{ */
 {
         /* convert a utc time uint to a string */
@@ -1854,9 +1869,7 @@ void wipe_screen(const short startl, const short stopl) /* {{{ */
         blank = pad_string(" ", size[0], 0, 0, 'r');
 
         for (pos=startl; pos<=stopl; pos++)
-        {
                 mvaddstr(pos, 0, blank);
-        }
         check_free(blank);
 } /* }}} */
 
