@@ -828,7 +828,7 @@ void nc_main(task *head) /* {{{ */
             fprintf(stderr, "Error initialising ncurses.\n");
             exit(EXIT_FAILURE);
         }
-        
+
         /* set curses settings */
         set_curses_mode(NCURSES_MODE_STD);
 
@@ -1101,8 +1101,7 @@ void nc_main(task *head) /* {{{ */
                                         }
                                         else
                                                 /* free tmpstr if unused */
-                                                if (this_filter.string!=NULL)
-                                                        free(this_filter.string);
+                                                check_free(tmpstr);
                                 }
                                 /* check if task list is empty after filtering */
                                 if (taskcount==0)
@@ -1447,7 +1446,7 @@ void print_title(const int width) /* {{{ */
 
         /* print program info */
         attrset(COLOR_PAIR(1));
-        wtmp0 = malloc(width*sizeof(wchar_t));
+        wtmp0 = calloc(width, sizeof(wchar_t));
         fmt = malloc(32*sizeof(wchar_t));
         mbstowcs(fmt, "%s v%s  (%d/%d)", 32);
         swprintf(wtmp0, width, fmt, SHORTNAME, VERSION, taskcount, totaltaskcount);
@@ -1817,10 +1816,15 @@ int umvaddstr(const int y, const int x, const char *str) /* {{{ */
         /* convert a string to a wchar string and mvaddwstr */
         const int len = strlen(str)+1;
         int r;
-        wchar_t *wstr = malloc(len*sizeof(wchar_t));
+        wchar_t *wstr = calloc(len, sizeof(wchar_t));
+        if (wstr==NULL)
+        {
+                logmsg("critical: umvaddstr failed to malloc", 0);
+                return -1;
+        }
 
         mbstowcs(wstr, str, len);
-        r = mvaddwstr(y, x, wstr);
+        r = mvaddnwstr(y, x, wstr, len-1);
         free(wstr);
 
         return r;
