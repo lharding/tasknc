@@ -105,6 +105,7 @@ static void handle_keypress(int, char *, char *, char *);
 static void help(void);
 static void key_scroll(const int, char *);
 static void key_task_action(char *, const char, const char *, const char *);
+static void key_undo(char *);
 static void logmsg(const char *, const char);
 static task *malloc_task(void);
 static char match_string(const char *, const char *);
@@ -711,15 +712,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 statusbar_message("task list reloaded", cfg.statusbar_timeout);
                                 break;
                         case 'u': // undo
-                                def_prog_mode();
-                                endwin();
-                                ret = system("task undo");
-                                refresh();
-                                (*reload) = 1;
-                                if (ret==0)
-                                        statusbar_message("undo executed", cfg.statusbar_timeout);
-                                else
-                                        statusbar_message("undo execution failed", cfg.statusbar_timeout);
+                                key_undo(reload);
                                 break;
                         case 'd': // delete
                                 key_task_action(reload, ACTION_DELETE, "task deleted", "task delete fail");
@@ -975,6 +968,22 @@ void key_task_action(char *reload, const char action, const char *msg_success, c
                 statusbar_message(msg_success, cfg.statusbar_timeout);
         else
                 statusbar_message(msg_fail, cfg.statusbar_timeout);
+} /* }}} */
+
+void key_undo(char *reload) /* {{{ */
+{
+        /* handle a keyboard direction to run an undo */
+        int ret;
+
+        def_prog_mode();
+        endwin();
+        ret = system("task undo");
+        refresh();
+        (*reload) = 1;
+        if (ret==0)
+                statusbar_message("undo executed", cfg.statusbar_timeout);
+        else
+                statusbar_message("undo execution failed", cfg.statusbar_timeout);
 } /* }}} */
 
 void logmsg(const char *msg, const char minloglvl) /* {{{ */
