@@ -103,6 +103,7 @@ static unsigned short get_task_id(char *);
 static task *get_tasks(void);
 static void handle_keypress(int, char *, char *, char *);
 static void help(void);
+static void key_scroll(const int, char *);
 static void logmsg(const char *, const char);
 static task *malloc_task(void);
 static char match_string(const char *, const char *);
@@ -689,31 +690,17 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                 {
                         case 'k': // scroll up
                         case KEY_UP:
-                                if (selline>0)
-                                {
-                                        selline--;
-                                        (*redraw) = 1;
-                                }
-                                check_curs_pos();
+                                key_scroll(-1, redraw);
                                 break;
                         case 'j': // scroll down
                         case KEY_DOWN:
-                                if (selline<taskcount-1)
-                                {
-                                        selline++;
-                                        (*redraw) = 1;
-                                }
-                                check_curs_pos();
+                                key_scroll(1, redraw);
                                 break;
                         case KEY_HOME: // go to first entry
-                                selline = 0;
-                                (*redraw) = 1;
-                                check_curs_pos();
+                                key_scroll(-2, redraw);
                                 break;
                         case KEY_END: // go to last entry
-                                selline = taskcount-1;
-                                (*redraw) = 1;
-                                check_curs_pos();
+                                key_scroll(2, redraw);
                                 break;
                         case 'e': // edit task
                                 def_prog_mode();
@@ -967,6 +954,35 @@ void help(void) /* {{{ */
         puts("  -d: debug mode (no ncurses run)");
         puts("  -h: print this help message");
         puts("  -v: print the version of tasknc");
+} /* }}} */
+
+void key_scroll(const int direction, char *redraw) /* {{{ */
+{
+        switch (direction)
+        {
+                case -1:
+                        /* scroll one up */
+                        if (selline>0)
+                                selline--;
+                        break;
+                case 1:
+                        /* scroll one down */
+                        if (selline<taskcount-1)
+                                selline++;
+                        break;
+                case -2:
+                        /* go to first entry */
+                        selline = 0;
+                        break;
+                case 2:
+                        /* go to last entry */
+                        selline = taskcount-1;
+                        break;
+                default:
+                        break;
+        }
+        (*redraw) = 1;
+        check_curs_pos();
 } /* }}} */
 
 void logmsg(const char *msg, const char minloglvl) /* {{{ */
