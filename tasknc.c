@@ -104,7 +104,7 @@ static task *get_tasks(void);
 static void handle_keypress(int, char *, char *, char *);
 static void help(void);
 static void key_scroll(const int, char *);
-static void key_edit(char *);
+static void key_task_action(char *, const char, const char *, const char *);
 static void logmsg(const char *, const char);
 static task *malloc_task(void);
 static char match_string(const char *, const char *);
@@ -704,7 +704,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 key_scroll(2, redraw);
                                 break;
                         case 'e': // edit task
-                                key_edit(reload);
+                                key_task_action(reload, ACTION_EDIT, "task edited", "task edit failed");
                                 break;
                         case 'r': // reload task list
                                 (*reload) = 1;
@@ -722,27 +722,10 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                         statusbar_message("undo execution failed", cfg.statusbar_timeout);
                                 break;
                         case 'd': // delete
-                                def_prog_mode();
-                                endwin();
-                                ret = task_action(head, ACTION_DELETE);
-                                refresh();
-                                (*reload) = 1;
-                                if (ret==0)
-                                        statusbar_message("task deleted", cfg.statusbar_timeout);
-                                else
-                                        statusbar_message("task delete failed", cfg.statusbar_timeout);
+                                key_task_action(reload, ACTION_DELETE, "task deleted", "task delete fail");
                                 break;
                         case 'c': // complete
-                                def_prog_mode();
-                                endwin();
-                                ret = task_action(head, ACTION_COMPLETE);
-                                refresh();
-                                (*reload) = 1;
-                                wipe_tasklist();
-                                if (ret==0)
-                                        statusbar_message("task completed", cfg.statusbar_timeout);
-                                else
-                                        statusbar_message("task complete failed", cfg.statusbar_timeout);
+                                key_task_action(reload, ACTION_COMPLETE, "task completed", "task complete failed");
                                 break;
                         case 'a': // add new
                                 def_prog_mode();
@@ -755,10 +738,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                         case 'v': // view info
                         case KEY_ENTER:
                         case 13:
-                                def_prog_mode();
-                                endwin();
-                                task_action(head, ACTION_VIEW);
-                                refresh();
+                                key_task_action(NULL, ACTION_VIEW, "", "");
                                 break;
                         case 's': // re-sort list
                                 attrset(COLOR_PAIR(0));
@@ -950,21 +930,6 @@ void help(void) /* {{{ */
         puts("  -v: print the version of tasknc");
 } /* }}} */
 
-void key_edit(char *reload) /* {{{ */
-{
-        /* handle a keyboard direction to scroll */
-        int ret;
-
-        def_prog_mode();
-        endwin();
-        ret = task_action(head, ACTION_EDIT);
-        (*reload) = 1;
-        if (ret==0)
-                statusbar_message("task edited", cfg.statusbar_timeout);
-        else
-                statusbar_message("task editing failed", cfg.statusbar_timeout);
-} /* }}} */
-
 void key_scroll(const int direction, char *redraw) /* {{{ */
 {
         /* handle a keyboard direction to scroll */
@@ -993,6 +958,23 @@ void key_scroll(const int direction, char *redraw) /* {{{ */
         }
         (*redraw) = 1;
         check_curs_pos();
+} /* }}} */
+
+void key_task_action(char *reload, const char action, const char *msg_success, const char *msg_fail) /* {{{ */
+{
+        /* handle a keyboard direction to run a task command */
+        int ret;
+
+        def_prog_mode();
+        endwin();
+        if (reload!=NULL)
+                (*reload) = 1;
+        ret = task_action(head, action);
+        refresh();
+        if (ret==0)
+                statusbar_message(msg_success, cfg.statusbar_timeout);
+        else
+                statusbar_message(msg_fail, cfg.statusbar_timeout);
 } /* }}} */
 
 void logmsg(const char *msg, const char minloglvl) /* {{{ */
