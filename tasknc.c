@@ -1442,17 +1442,14 @@ void print_title(const int width) /* {{{ */
 {
         /* print the window title bar */
         char *tmp0, *tmp1;
-        wchar_t *wtmp0, *fmt;
 
         /* print program info */
         attrset(COLOR_PAIR(1));
-        wtmp0 = calloc(width, sizeof(wchar_t));
-        fmt = malloc(32*sizeof(wchar_t));
-        mbstowcs(fmt, "%s v%s  (%d/%d)", 32);
-        swprintf(wtmp0, width, fmt, SHORTNAME, VERSION, taskcount, totaltaskcount);
-        free(fmt);
-        mvaddwstr(0, 0, wtmp0);
-        free(wtmp0);
+        tmp0 = calloc(width, sizeof(char));
+        snprintf(tmp0, width, "%s v%s  (%d/%d)", SHORTNAME, VERSION, taskcount, totaltaskcount);
+        tmp1 = pad_string(tmp0, width, 0, 0, 'l');
+        umvaddstr(0, 0, tmp1);
+        free(tmp0);
 
         /* print the current date */
         tmp0 = utc_date(0);
