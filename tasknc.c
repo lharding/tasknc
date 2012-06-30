@@ -95,7 +95,7 @@ static void check_curs_pos(void);
 static void check_screen_size(short);
 static char compare_tasks(const task *, const task *, const char);
 static void configure(void);
-static void filter_tasks(task *, task_filter *);
+static void filter_tasks(task_filter *);
 static void find_next_search_result(task *, task *);
 static char free_task(task *);
 static void free_tasks(task *);
@@ -103,23 +103,24 @@ static unsigned short get_task_id(char *);
 static task *get_tasks(void);
 static void handle_keypress(int, char *, char *, char *);
 static void help(void);
+static void key_add(char *);
 static void key_scroll(const int, char *);
 static void key_task_action(char *, const char, const char *, const char *);
 static void key_undo(char *);
 static void logmsg(const char *, const char);
 static task *malloc_task(void);
 static char match_string(const char *, const char *);
-static char max_project_length(task *);
-static task *sel_task(task *);
+static char max_project_length();
+static task *sel_task();
 static void nc_colors(void);
 static void nc_end(int);
-static void nc_main(task *);
+static void nc_main();
 static char *pad_string(char *, int, const int, int, const char);
 static task *parse_task(char *);
-static void print_task_list(task *, const short, const short, const short);
+static void print_task_list(const short, const short, const short);
 static void print_title(const int);
 static void print_version(void);
-static void reload_tasks(task **);
+static void reload_tasks();
 static void remove_char(char *, char);
 static void set_curses_mode(char);
 static void sort_tasks(task *, task *);
@@ -128,7 +129,7 @@ static void statusbar_message(const char *, const int);
 static void swap_tasks(task *, task *);
 static int task_action(task *, const char);
 static void task_add(void);
-static void task_count(task *);
+static void task_count();
 static char task_match(const task *, const char *);
 int umvaddstr(const int, const int, const char *);
 static char *utc_date(const unsigned int);
@@ -470,7 +471,7 @@ void configure(void) /* {{{ */
         fclose(config);
 } /* }}} */
 
-void filter_tasks(task *head, task_filter *this_filter) /* {{{ */
+void filter_tasks(task_filter *this_filter) /* {{{ */
 {
         /* iterate through task list and filter them */
         task *cur = head;
@@ -500,7 +501,7 @@ void filter_tasks(task *head, task_filter *this_filter) /* {{{ */
                                 if (active_filters!=NULL)
                                 {
                                         task_filter *n = active_filters;
-                                        do 
+                                        do
                                         {
                                                 free(n->string);
                                                 n = n->next;
@@ -628,7 +629,7 @@ task *get_tasks(void) /* {{{ */
         FILE *cmd;
         char line[TOTALLENGTH], *tmpstr;
         unsigned short counter = 0;
-        task *head, *last;
+        task *last;
 
         /* run command */
         if (cfg.version[0]<'2')
@@ -721,12 +722,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 key_task_action(reload, ACTION_COMPLETE, "task completed", "task complete failed");
                                 break;
                         case 'a': // add new
-                                def_prog_mode();
-                                endwin();
-                                task_add();
-                                refresh();
-                                (*reload) = 1;
-                                statusbar_message("task added", cfg.statusbar_timeout);
+                                key_add(reload);
                                 break;
                         case 'v': // view info
                         case KEY_ENTER:
@@ -843,7 +839,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 /* apply filter from struct if available */
                                 if (this_filter.mode>=0)
                                 {
-                                        filter_tasks(head, &this_filter);
+                                        filter_tasks(&this_filter);
                                         /* make struct persist if configured to */
                                         if (cfg.filter_persist)
                                         {
@@ -877,7 +873,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 {
                                         task_filter tmp_filter;
                                         tmp_filter.mode = FILTER_CLEAR;
-                                        filter_tasks(head, &tmp_filter);
+                                        filter_tasks(&tmp_filter);
                                         statusbar_message("filter yielded no results; reset", cfg.statusbar_timeout);
                                 }
                                 else
@@ -921,6 +917,16 @@ void help(void) /* {{{ */
         puts("  -d: debug mode (no ncurses run)");
         puts("  -h: print this help message");
         puts("  -v: print the version of tasknc");
+} /* }}} */
+
+void key_add(char *reload) /* {{{ */
+{
+        def_prog_mode();
+        endwin();
+        task_add();
+        refresh();
+        (*reload) = 1;
+        statusbar_message("task added", cfg.statusbar_timeout);
 } /* }}} */
 
 void key_scroll(const int direction, char *redraw) /* {{{ */
@@ -1050,7 +1056,7 @@ char match_string(const char *haystack, const char *needle) /* {{{ */
         return ret;
 } /* }}} */
 
-char max_project_length(task *head) /* {{{ */
+char max_project_length() /* {{{ */
 {
         char len = 0;
         task *cur;
@@ -1109,12 +1115,12 @@ void nc_end(int sig) /* {{{ */
         exit(0);
 } /* }}} */
 
-void nc_main(task *head) /* {{{ */
+void nc_main() /* {{{ */
 {
         /* ncurses main function */
         WINDOW *stdscr;
         int c, tmp, oldsize[2];
-        short projlen = max_project_length(head);
+        short projlen = max_project_length();
         short desclen;
         const short datelen = DATELENGTH;
 
@@ -1134,10 +1140,10 @@ void nc_main(task *head) /* {{{ */
         check_screen_size(projlen);
         getmaxyx(stdscr, oldsize[1], oldsize[0]);
         desclen = oldsize[0]-projlen-1-datelen;
-        task_count(head);
+        task_count();
         print_title(oldsize[0]);
         attrset(COLOR_PAIR(0));
-        print_task_list(head, projlen, desclen, datelen);
+        print_task_list(projlen, desclen, datelen);
         refresh();
 
         /* main loop */
@@ -1173,10 +1179,10 @@ void nc_main(task *head) /* {{{ */
                         break;
                 if (reload==1)
                 {
-                        reload_tasks(&head);
-                        task_count(head);
+                        reload_tasks();
+                        task_count();
                         if (active_filters!=NULL)
-                                filter_tasks(head, active_filters);
+                                filter_tasks(active_filters);
                         check_curs_pos();
                         print_title(size[0]);
                         redraw = 1;
@@ -1184,10 +1190,10 @@ void nc_main(task *head) /* {{{ */
                 if (redraw==1)
                 {
                         wipe_tasklist();
-                        projlen = max_project_length(head);
+                        projlen = max_project_length();
                         desclen = size[0]-projlen-1-datelen;
                         print_title(size[0]);
-                        print_task_list(head, projlen, desclen, datelen);
+                        print_task_list(projlen, desclen, datelen);
                         refresh();
                 }
                 if (sb_timeout>0 && sb_timeout<time(NULL))
@@ -1383,7 +1389,7 @@ task *parse_task(char *line) /* {{{ */
                 return tsk;
 } /* }}} */
 
-void print_task_list(task *head, const short projlen, const short desclen, const short datelen) /* {{{ */
+void print_task_list(const short projlen, const short desclen, const short datelen) /* {{{ */
 {
         task *cur;
         short counter = 0;
@@ -1494,20 +1500,20 @@ void print_version(void) /* {{{ */
         printf("%s v%s by %s\n", NAME, VERSION, AUTHOR);
 } /* }}} */
 
-void reload_tasks(task **headptr) /* {{{ */
+void reload_tasks() /* {{{ */
 {
         /* reset head with a new list of tasks */
         task *cur;
 
         logmsg("reloading tasks", 1);
 
-        cur = *headptr;
+        cur = head;
         free_tasks(cur);
 
-        (*headptr) = get_tasks();
+        head = get_tasks();
 
         /* debug */
-        cur = *headptr;
+        cur = head;
         while (cur!=NULL)
         {
                 char *buffer;
@@ -1575,7 +1581,7 @@ void set_curses_mode(char curses_mode) /* {{{ */
         }
 } /* }}} */
 
-task *sel_task(task *head) /* {{{ */
+task *sel_task() /* {{{ */
 {
         /* navigate to the selected line
          * and return its task pointer
@@ -1812,7 +1818,7 @@ void task_add(void) /* {{{ */
         free(cmd);
 } /* }}} */
 
-void task_count(task *head) /* {{{ */
+void task_count() /* {{{ */
 {
         taskcount = 0;
         totaltaskcount = 0;
@@ -1955,7 +1961,7 @@ int main(int argc, char **argv)
         if (!debug)
         {
                 logmsg("running gui", 1);
-                nc_main(head);
+                nc_main();
                 nc_end(0);
         }
 
