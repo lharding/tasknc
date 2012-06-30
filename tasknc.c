@@ -735,19 +735,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 key_sort(redraw);
                                 break;
                         case '/': // search
-                                statusbar_message("search phrase: ", -1);
-                                set_curses_mode(NCURSES_MODE_STRING);
-                                /* store search string  */
-                                if (searchstring!=NULL)
-                                        free(searchstring);
-                                searchstring = malloc((size[0]-16)*sizeof(char));
-                                getstr(searchstring);
-                                sb_timeout = time(NULL) + 3;
-                                set_curses_mode(NCURSES_MODE_STD);
-                                /* go to first result */
-                                find_next_search_result(head, sel_task(head));
-                                check_curs_pos();
-                                (*redraw) = 1;
+                                key_search(redraw);
                                 break;
                         case 'n': // next search result
                                 if (searchstring!=NULL)
@@ -925,6 +913,26 @@ void key_scroll(const int direction, char *redraw) /* {{{ */
         }
         (*redraw) = 1;
         check_curs_pos();
+} /* }}} */
+
+void key_search(char *redraw) /* {{{ */
+{
+        /* handle a keyboard direction to search */
+
+        statusbar_message("search phrase: ", -1);
+        set_curses_mode(NCURSES_MODE_STRING);
+
+        /* store search string  */
+        check_free(searchstring);
+        searchstring = malloc((size[0]-16)*sizeof(char));
+        getstr(searchstring);
+        sb_timeout = time(NULL) + 3;
+        set_curses_mode(NCURSES_MODE_STD);
+
+        /* go to first result */
+        find_next_search_result(head, sel_task(head));
+        check_curs_pos();
+        (*redraw) = 1;
 } /* }}} */
 
 void key_sort(char *redraw) /* {{{ */
