@@ -101,6 +101,7 @@ static char free_task(task *);
 static void free_tasks(task *);
 static unsigned short get_task_id(char *);
 static task *get_tasks(void);
+static void handle_keypress(int, char *, char *, char *);
 static void help(void);
 static void logmsg(const char *, const char);
 static task *malloc_task(void);
@@ -152,6 +153,7 @@ int size[2];                            /* size of the ncurses window */
 char taskcount;                         /* number of tasks */
 char totaltaskcount;                    /* number of tasks with no filters applied */
 task_filter *active_filters = NULL;     /* a struct containing the active filter(s) */
+task *head = NULL;                      /* the current top of the list */
 /* }}} */
 
 void check_curs_pos(void) /* {{{ */
@@ -184,7 +186,7 @@ void check_screen_size(short projlen) /* {{{ */
         /* check for a screen thats too small */
         int count = 0;
 
-        do 
+        do
         {
                 if (count)
                 {
@@ -581,7 +583,7 @@ void free_tasks(task *head) /* {{{ */
 {
         /* free the task stack */
         task *cur, *next;
-        
+
         cur = head;
         while (cur!=NULL)
         {
@@ -675,6 +677,285 @@ task *get_tasks(void) /* {{{ */
                 sort_wrapper(head);
 
         return head;
+} /* }}} */
+
+void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
+{
+        /* handle a key press on the main screen */
+        int ret;
+        char *tmpstr;
+
+        switch (c)
+                {
+                        case 'k': // scroll up
+                        case KEY_UP:
+                                if (selline>0)
+                                {
+                                        selline--;
+                                        (*redraw) = 1;
+                                }
+                                check_curs_pos();
+                                break;
+                        case 'j': // scroll down
+                        case KEY_DOWN:
+                                if (selline<taskcount-1)
+                                {
+                                        selline++;
+                                        (*redraw) = 1;
+                                }
+                                check_curs_pos();
+                                break;
+                        case KEY_HOME: // go to first entry
+                                selline = 0;
+                                (*redraw) = 1;
+                                check_curs_pos();
+                                break;
+                        case KEY_END: // go to last entry
+                                selline = taskcount-1;
+                                (*redraw) = 1;
+                                check_curs_pos();
+                                break;
+                        case 'e': // edit task
+                                def_prog_mode();
+                                endwin();
+                                ret = task_action(head, ACTION_EDIT);
+                                (*reload) = 1;
+                                if (ret==0)
+                                        statusbar_message("task edited", cfg.statusbar_timeout);
+                                else
+                                        statusbar_message("task editing failed", cfg.statusbar_timeout);
+                                break;
+                        case 'r': // reload task list
+                                (*reload) = 1;
+                                statusbar_message("task list reloaded", cfg.statusbar_timeout);
+                                break;
+                        case 'u': // undo
+                                def_prog_mode();
+                                endwin();
+                                ret = system("task undo");
+                                refresh();
+                                (*reload) = 1;
+                                if (ret==0)
+                                        statusbar_message("undo executed", cfg.statusbar_timeout);
+                                else
+                                        statusbar_message("undo execution failed", cfg.statusbar_timeout);
+                                break;
+                        case 'd': // delete
+                                def_prog_mode();
+                                endwin();
+                                ret = task_action(head, ACTION_DELETE);
+                                refresh();
+                                (*reload) = 1;
+                                if (ret==0)
+                                        statusbar_message("task deleted", cfg.statusbar_timeout);
+                                else
+                                        statusbar_message("task delete failed", cfg.statusbar_timeout);
+                                break;
+                        case 'c': // complete
+                                def_prog_mode();
+                                endwin();
+                                ret = task_action(head, ACTION_COMPLETE);
+                                refresh();
+                                (*reload) = 1;
+                                wipe_tasklist();
+                                if (ret==0)
+                                        statusbar_message("task completed", cfg.statusbar_timeout);
+                                else
+                                        statusbar_message("task complete failed", cfg.statusbar_timeout);
+                                break;
+                        case 'a': // add new
+                                def_prog_mode();
+                                endwin();
+                                task_add();
+                                refresh();
+                                (*reload) = 1;
+                                statusbar_message("task added", cfg.statusbar_timeout);
+                                break;
+                        case 'v': // view info
+                        case KEY_ENTER:
+                        case 13:
+                                def_prog_mode();
+                                endwin();
+                                task_action(head, ACTION_VIEW);
+                                refresh();
+                                break;
+                        case 's': // re-sort list
+                                attrset(COLOR_PAIR(0));
+                                statusbar_message("enter sort mode: iNdex, Project, Due, pRiority", cfg.statusbar_timeout);
+                                set_curses_mode(NCURSES_MODE_STD_BLOCKING);
+                                c = getch();
+                                set_curses_mode(NCURSES_MODE_STD);
+                                switch (c)
+                                {
+                                        case 'n':
+                                        case 'p':
+                                        case 'd':
+                                        case 'r':
+                                                cfg.sortmode = c;
+                                                sort_wrapper(head);
+                                                break;
+                                        case 'N':
+                                        case 'P':
+                                        case 'D':
+                                        case 'R':
+                                                cfg.sortmode = c+32;
+                                                sort_wrapper(head);
+                                                break;
+                                        default:
+                                                statusbar_message("invalid sort mode", cfg.statusbar_timeout);
+                                                break;
+                                }
+                                (*redraw) = 1;
+                                break;
+                        case '/': // search
+                                statusbar_message("search phrase: ", -1);
+                                set_curses_mode(NCURSES_MODE_STRING);
+                                /* store search string  */
+                                if (searchstring!=NULL)
+                                        free(searchstring);
+                                searchstring = malloc((size[0]-16)*sizeof(char));
+                                getstr(searchstring);
+                                sb_timeout = time(NULL) + 3;
+                                set_curses_mode(NCURSES_MODE_STD);
+                                /* go to first result */
+                                find_next_search_result(head, sel_task(head));
+                                check_curs_pos();
+                                (*redraw) = 1;
+                                break;
+                        case 'n': // next search result
+                                if (searchstring!=NULL)
+                                {
+                                        find_next_search_result(head, sel_task(head));
+                                        check_curs_pos();
+                                        (*redraw) = 1;
+                                }
+                                else
+                                        statusbar_message("no active search string", cfg.statusbar_timeout);
+                                break;
+                        case 'f': // filter
+                                statusbar_message("filter by: Any Clear Proj Desc Tag", cfg.statusbar_timeout);
+                                set_curses_mode(NCURSES_MODE_STD_BLOCKING);
+                                c = getch();
+                                wipe_statusbar();
+                                if (strchr("acdptACDPT", c)==NULL)
+                                {
+                                        statusbar_message("invalid filter mode", cfg.statusbar_timeout);
+                                        break;
+                                }
+                                if (strchr("cC", c)==NULL)
+                                {
+                                        statusbar_message("filter string: ", -1);
+                                        set_curses_mode(NCURSES_MODE_STRING);
+                                        tmpstr = malloc((size[0]-16)*sizeof(char));
+                                        getstr(tmpstr);
+                                }
+                                set_curses_mode(NCURSES_MODE_STD);
+                                /* initialize filter */
+                                task_filter this_filter;
+                                this_filter.mode = -1;
+                                this_filter.string = NULL;
+                                this_filter.next = NULL;
+                                /* determine filter parameters */
+                                switch (c)
+                                {
+                                        case 'a':
+                                        case 'A':
+                                                this_filter.mode = FILTER_BY_STRING;
+                                                this_filter.string = tmpstr;
+                                                break;
+                                        case 'c':
+                                        case 'C':
+                                                this_filter.mode = FILTER_CLEAR;
+                                                break;
+                                        case 'd':
+                                        case 'D':
+                                                this_filter.mode = FILTER_DESCRIPTION;
+                                                this_filter.string = tmpstr;
+                                                break;
+                                        case 'p':
+                                        case 'P':
+                                                this_filter.mode = FILTER_PROJECT;
+                                                this_filter.string = tmpstr;
+                                                break;
+                                        case 't':
+                                        case 'T':
+                                                this_filter.mode = FILTER_TAGS;
+                                                this_filter.string = tmpstr;
+                                                break;
+                                        default:
+                                                statusbar_message("invalid filter mode", cfg.statusbar_timeout);
+                                                break;
+                                }
+                                /* apply filter from struct if available */
+                                if (this_filter.mode>=0)
+                                {
+                                        filter_tasks(head, &this_filter);
+                                        /* make struct persist if configured to */
+                                        if (cfg.filter_persist)
+                                        {
+                                                if (cfg.filter_cascade)
+                                                {
+                                                        /* find end of cascade and append this_filter */ 
+                                                        if (active_filters==NULL)
+                                                                active_filters = &this_filter;
+                                                        else
+                                                        {
+                                                                task_filter *n = active_filters;
+                                                                while (n->next!=NULL)
+                                                                        n = n->next;
+                                                                n->next = &this_filter;
+                                                        }
+                                                }
+                                                else
+                                                {
+                                                        /* free active filter and set it to this_filter */
+                                                        if (active_filters!=NULL)
+                                                                free(active_filters->string);
+                                                        active_filters = &this_filter;
+                                                }
+                                        }
+                                        else
+                                                /* free tmpstr if unused */
+                                                check_free(tmpstr);
+                                }
+                                /* check if task list is empty after filtering */
+                                if (taskcount==0)
+                                {
+                                        task_filter tmp_filter;
+                                        tmp_filter.mode = FILTER_CLEAR;
+                                        filter_tasks(head, &tmp_filter);
+                                        statusbar_message("filter yielded no results; reset", cfg.statusbar_timeout);
+                                }
+                                else
+                                        statusbar_message("filter applied", cfg.statusbar_timeout);
+                                check_curs_pos();
+                                (*redraw) = 1;
+                                break;
+                        case 'y': // sync
+                                def_prog_mode();
+                                endwin();
+                                ret = system("yes n | task merge");
+                                if (ret==0)
+                                        ret = system("task push");
+                                refresh();
+                                if (ret==0)
+                                        statusbar_message("tasks synchronized", cfg.statusbar_timeout);
+                                else
+                                        statusbar_message("task syncronization failed", cfg.statusbar_timeout);
+                                break;
+                        case 'q': // quit
+                                (*done) = 1;
+                                break;
+                        case ERR: // no key was pressed
+                                break;
+                        default: // unhandled
+                                tmpstr = malloc(20*sizeof(char));
+                                sprintf(tmpstr, "unhandled key: %c", c);
+                                attrset(COLOR_PAIR(0));
+                                statusbar_message(tmpstr, cfg.statusbar_timeout);
+                                free(tmpstr);
+                                break;
+                }
 } /* }}} */
 
 void help(void) /* {{{ */
@@ -815,7 +1096,7 @@ void nc_main(task *head) /* {{{ */
 {
         /* ncurses main function */
         WINDOW *stdscr;
-        int c, tmp, oldsize[2], ret;
+        int c, tmp, oldsize[2];
         short projlen = max_project_length(head);
         short desclen;
         const short datelen = DATELENGTH;
@@ -849,7 +1130,6 @@ void nc_main(task *head) /* {{{ */
                 char done = 0;
                 char redraw = 0;
                 char reload = 0;
-                char *tmpstr = NULL;
 
                 /* get the screen size */
                 getmaxyx(stdscr, size[1], size[0]);
@@ -870,277 +1150,8 @@ void nc_main(task *head) /* {{{ */
                 c = getch();
 
                 /* handle the character */
-                switch (c)
-                {
-                        case 'k': // scroll up
-                        case KEY_UP:
-                                if (selline>0)
-                                {
-                                        selline--;
-                                        redraw = 1;
-                                }
-                                check_curs_pos();
-                                break;
-                        case 'j': // scroll down
-                        case KEY_DOWN:
-                                if (selline<taskcount-1)
-                                {
-                                        selline++;
-                                        redraw = 1;
-                                }
-                                check_curs_pos();
-                                break;
-                        case KEY_HOME: // go to first entry
-                                selline = 0;
-                                redraw = 1;
-                                check_curs_pos();
-                                break;
-                        case KEY_END: // go to last entry
-                                selline = taskcount-1;
-                                redraw = 1;
-                                check_curs_pos();
-                                break;
-                        case 'e': // edit task
-                                def_prog_mode();
-                                endwin();
-                                ret = task_action(head, ACTION_EDIT);
-                                reload = 1;
-                                if (ret==0)
-                                        statusbar_message("task edited", cfg.statusbar_timeout);
-                                else
-                                        statusbar_message("task editing failed", cfg.statusbar_timeout);
-                                break;
-                        case 'r': // reload task list
-                                reload = 1;
-                                statusbar_message("task list reloaded", cfg.statusbar_timeout);
-                                break;
-                        case 'u': // undo
-                                def_prog_mode();
-                                endwin();
-                                ret = system("task undo");
-                                refresh();
-                                reload = 1;
-                                if (ret==0)
-                                        statusbar_message("undo executed", cfg.statusbar_timeout);
-                                else
-                                        statusbar_message("undo execution failed", cfg.statusbar_timeout);
-                                break;
-                        case 'd': // delete
-                                def_prog_mode();
-                                endwin();
-                                ret = task_action(head, ACTION_DELETE);
-                                refresh();
-                                reload = 1;
-                                if (ret==0)
-                                        statusbar_message("task deleted", cfg.statusbar_timeout);
-                                else
-                                        statusbar_message("task delete failed", cfg.statusbar_timeout);
-                                break;
-                        case 'c': // complete
-                                def_prog_mode();
-                                endwin();
-                                ret = task_action(head, ACTION_COMPLETE);
-                                refresh();
-                                reload = 1;
-                                wipe_tasklist();
-                                if (ret==0)
-                                        statusbar_message("task completed", cfg.statusbar_timeout);
-                                else
-                                        statusbar_message("task complete failed", cfg.statusbar_timeout);
-                                break;
-                        case 'a': // add new
-                                def_prog_mode();
-                                endwin();
-                                task_add();
-                                refresh();
-                                reload = 1;
-                                statusbar_message("task added", cfg.statusbar_timeout);
-                                break;
-                        case 'v': // view info
-                        case KEY_ENTER:
-                        case 13:
-                                def_prog_mode();
-                                endwin();
-                                task_action(head, ACTION_VIEW);
-                                refresh();
-                                break;
-                        case 's': // re-sort list
-                                attrset(COLOR_PAIR(0));
-                                statusbar_message("enter sort mode: iNdex, Project, Due, pRiority", cfg.statusbar_timeout);
-                                set_curses_mode(NCURSES_MODE_STD_BLOCKING);
-                                c = getch();
-                                set_curses_mode(NCURSES_MODE_STD);
-                                switch (c)
-                                {
-                                        case 'n':
-                                        case 'p':
-                                        case 'd':
-                                        case 'r':
-                                                cfg.sortmode = c;
-                                                sort_wrapper(head);
-                                                break;
-                                        case 'N':
-                                        case 'P':
-                                        case 'D':
-                                        case 'R':
-                                                cfg.sortmode = c+32;
-                                                sort_wrapper(head);
-                                                break;
-                                        default:
-                                                statusbar_message("invalid sort mode", cfg.statusbar_timeout);
-                                                break;
-                                }
-                                redraw = 1;
-                                break;
-                        case '/': // search
-                                statusbar_message("search phrase: ", -1);
-                                set_curses_mode(NCURSES_MODE_STRING);
-                                /* store search string  */
-                                if (searchstring!=NULL)
-                                        free(searchstring);
-                                searchstring = malloc((size[0]-16)*sizeof(char));
-                                getstr(searchstring);
-                                sb_timeout = time(NULL) + 3;
-                                set_curses_mode(NCURSES_MODE_STD);
-                                /* go to first result */
-                                find_next_search_result(head, sel_task(head));
-                                check_curs_pos();
-                                redraw = 1;
-                                break;
-                        case 'n': // next search result
-                                if (searchstring!=NULL)
-                                {
-                                        find_next_search_result(head, sel_task(head));
-                                        check_curs_pos();
-                                        redraw = 1;
-                                }
-                                else
-                                        statusbar_message("no active search string", cfg.statusbar_timeout);
-                                break;
-                        case 'f': // filter
-                                statusbar_message("filter by: Any Clear Proj Desc Tag", cfg.statusbar_timeout);
-                                set_curses_mode(NCURSES_MODE_STD_BLOCKING);
-                                c = getch();
-                                wipe_statusbar();
-                                if (strchr("acdptACDPT", c)==NULL)
-                                {
-                                        statusbar_message("invalid filter mode", cfg.statusbar_timeout);
-                                        break;
-                                }
-                                if (strchr("cC", c)==NULL)
-                                {
-                                        statusbar_message("filter string: ", -1);
-                                        set_curses_mode(NCURSES_MODE_STRING);
-                                        tmpstr = malloc((size[0]-16)*sizeof(char));
-                                        getstr(tmpstr);
-                                }
-                                set_curses_mode(NCURSES_MODE_STD);
-                                /* initialize filter */
-                                task_filter this_filter;
-                                this_filter.mode = -1;
-                                this_filter.string = NULL;
-                                this_filter.next = NULL;
-                                /* determine filter parameters */
-                                switch (c)
-                                {
-                                        case 'a':
-                                        case 'A':
-                                                this_filter.mode = FILTER_BY_STRING;
-                                                this_filter.string = tmpstr;
-                                                break;
-                                        case 'c':
-                                        case 'C':
-                                                this_filter.mode = FILTER_CLEAR;
-                                                break;
-                                        case 'd':
-                                        case 'D':
-                                                this_filter.mode = FILTER_DESCRIPTION;
-                                                this_filter.string = tmpstr;
-                                                break;
-                                        case 'p':
-                                        case 'P':
-                                                this_filter.mode = FILTER_PROJECT;
-                                                this_filter.string = tmpstr;
-                                                break;
-                                        case 't':
-                                        case 'T':
-                                                this_filter.mode = FILTER_TAGS;
-                                                this_filter.string = tmpstr;
-                                                break;
-                                        default:
-                                                statusbar_message("invalid filter mode", cfg.statusbar_timeout);
-                                                break;
-                                }
-                                /* apply filter from struct if available */
-                                if (this_filter.mode>=0)
-                                {
-                                        filter_tasks(head, &this_filter);
-                                        /* make struct persist if configured to */
-                                        if (cfg.filter_persist)
-                                        {
-                                                if (cfg.filter_cascade)
-                                                {
-                                                        /* find end of cascade and append this_filter */ 
-                                                        if (active_filters==NULL)
-                                                                active_filters = &this_filter;
-                                                        else
-                                                        {
-                                                                task_filter *n = active_filters;
-                                                                while (n->next!=NULL)
-                                                                        n = n->next;
-                                                                n->next = &this_filter;
-                                                        }
-                                                }
-                                                else
-                                                {
-                                                        /* free active filter and set it to this_filter */
-                                                        if (active_filters!=NULL)
-                                                                free(active_filters->string);
-                                                        active_filters = &this_filter;
-                                                }
-                                        }
-                                        else
-                                                /* free tmpstr if unused */
-                                                check_free(tmpstr);
-                                }
-                                /* check if task list is empty after filtering */
-                                if (taskcount==0)
-                                {
-                                        task_filter tmp_filter;
-                                        tmp_filter.mode = FILTER_CLEAR;
-                                        filter_tasks(head, &tmp_filter);
-                                        statusbar_message("filter yielded no results; reset", cfg.statusbar_timeout);
-                                }
-                                else
-                                        statusbar_message("filter applied", cfg.statusbar_timeout);
-                                check_curs_pos();
-                                redraw = 1;
-                                break;
-                        case 'y': // sync
-                                def_prog_mode();
-                                endwin();
-                                ret = system("yes n | task merge");
-                                if (ret==0)
-                                        ret = system("task push");
-                                refresh();
-                                if (ret==0)
-                                        statusbar_message("tasks synchronized", cfg.statusbar_timeout);
-                                else
-                                        statusbar_message("task syncronization failed", cfg.statusbar_timeout);
-                                break;
-                        case 'q': // quit
-                                done = 1;
-                                break;
-                        case ERR: // no key was pressed
-                                break;
-                        default: // unhandled
-                                tmpstr = malloc(20*sizeof(char));
-                                sprintf(tmpstr, "unhandled key: %c", c);
-                                attrset(COLOR_PAIR(0));
-                                statusbar_message(tmpstr, cfg.statusbar_timeout);
-                                free(tmpstr);
-                                break;
-                }
+                handle_keypress(c, &redraw, &reload, &done);
+
                 if (done==1)
                         break;
                 if (reload==1)
@@ -1450,6 +1461,7 @@ void print_title(const int width) /* {{{ */
         tmp1 = pad_string(tmp0, width, 0, 0, 'l');
         umvaddstr(0, 0, tmp1);
         free(tmp0);
+        check_free(tmp1);
 
         /* print the current date */
         tmp0 = utc_date(0);
@@ -1698,7 +1710,7 @@ int task_action(task *head, const char action) /* {{{ */
         task *cur;
         char *cmd, *actionstr, wait;
         int ret;
-        
+
         /* move to correct task */
         cur = sel_task(head);
 
@@ -1877,7 +1889,6 @@ void wipe_screen(const short startl, const short stopl) /* {{{ */
 int main(int argc, char **argv)
 {
         /* declare variables */
-        task *head;
         int c, debug = 0;
 
         /* set defaults */
