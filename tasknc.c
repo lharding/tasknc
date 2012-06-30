@@ -105,6 +105,7 @@ static void handle_keypress(int, char *, char *, char *);
 static void help(void);
 static void key_add(char *);
 static void key_scroll(const int, char *);
+static void key_sync(char *);
 static void key_task_action(char *, const char, const char *, const char *);
 static void key_undo(char *);
 static void logmsg(const char *, const char);
@@ -686,7 +687,6 @@ task *get_tasks(void) /* {{{ */
 void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
 {
         /* handle a key press on the main screen */
-        int ret;
         char *tmpstr;
 
         switch (c)
@@ -882,16 +882,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 (*redraw) = 1;
                                 break;
                         case 'y': // sync
-                                def_prog_mode();
-                                endwin();
-                                ret = system("yes n | task merge");
-                                if (ret==0)
-                                        ret = system("task push");
-                                refresh();
-                                if (ret==0)
-                                        statusbar_message("tasks synchronized", cfg.statusbar_timeout);
-                                else
-                                        statusbar_message("task syncronization failed", cfg.statusbar_timeout);
+                                key_sync(reload);
                                 break;
                         case 'q': // quit
                                 (*done) = 1;
@@ -957,6 +948,23 @@ void key_scroll(const int direction, char *redraw) /* {{{ */
         }
         (*redraw) = 1;
         check_curs_pos();
+} /* }}} */
+
+void key_sync(char *reload) /* {{{ */
+{
+        int ret;
+
+        def_prog_mode();
+        endwin();
+        (*reload) = 1;
+        ret = system("yes n | task merge");
+        if (ret==0)
+                ret = system("task push");
+        refresh();
+        if (ret==0)
+                statusbar_message("tasks synchronized", cfg.statusbar_timeout);
+        else
+                statusbar_message("task syncronization failed", cfg.statusbar_timeout);
 } /* }}} */
 
 void key_task_action(char *reload, const char action, const char *msg_success, const char *msg_fail) /* {{{ */
