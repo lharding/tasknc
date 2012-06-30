@@ -105,6 +105,8 @@ static void handle_keypress(int, char *, char *, char *);
 static void help(void);
 static void key_add(char *);
 static void key_scroll(const int, char *);
+static void key_search(char *);
+static void key_sort(char *);
 static void key_sync(char *);
 static void key_task_action(char *, const char, const char *, const char *);
 static void key_undo(char *);
@@ -730,32 +732,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 key_task_action(NULL, ACTION_VIEW, "", "");
                                 break;
                         case 's': // re-sort list
-                                attrset(COLOR_PAIR(0));
-                                statusbar_message("enter sort mode: iNdex, Project, Due, pRiority", cfg.statusbar_timeout);
-                                set_curses_mode(NCURSES_MODE_STD_BLOCKING);
-                                c = getch();
-                                set_curses_mode(NCURSES_MODE_STD);
-                                switch (c)
-                                {
-                                        case 'n':
-                                        case 'p':
-                                        case 'd':
-                                        case 'r':
-                                                cfg.sortmode = c;
-                                                sort_wrapper(head);
-                                                break;
-                                        case 'N':
-                                        case 'P':
-                                        case 'D':
-                                        case 'R':
-                                                cfg.sortmode = c+32;
-                                                sort_wrapper(head);
-                                                break;
-                                        default:
-                                                statusbar_message("invalid sort mode", cfg.statusbar_timeout);
-                                                break;
-                                }
-                                (*redraw) = 1;
+                                key_sort(redraw);
                                 break;
                         case '/': // search
                                 statusbar_message("search phrase: ", -1);
@@ -950,8 +927,43 @@ void key_scroll(const int direction, char *redraw) /* {{{ */
         check_curs_pos();
 } /* }}} */
 
+void key_sort(char *redraw) /* {{{ */
+{
+        /* handle a keyboard direction to sort */
+        char m;
+
+        attrset(COLOR_PAIR(0));
+        statusbar_message("enter sort mode: iNdex, Project, Due, pRiority", cfg.statusbar_timeout);
+        set_curses_mode(NCURSES_MODE_STD_BLOCKING);
+
+        m = getch();
+        set_curses_mode(NCURSES_MODE_STD);
+        switch (m)
+        {
+                case 'n':
+                case 'p':
+                case 'd':
+                case 'r':
+                        cfg.sortmode = m;
+                        sort_wrapper(head);
+                        break;
+                case 'N':
+                case 'P':
+                case 'D':
+                case 'R':
+                        cfg.sortmode = m+32;
+                        sort_wrapper(head);
+                        break;
+                default:
+                        statusbar_message("invalid sort mode", cfg.statusbar_timeout);
+                        break;
+        }
+        (*redraw) = 1;
+} /* }}} */
+
 void key_sync(char *reload) /* {{{ */
 {
+        /* handle a keyboard direction to sync */
         int ret;
 
         def_prog_mode();
