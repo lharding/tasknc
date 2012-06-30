@@ -106,6 +106,7 @@ static void help(void);
 static void key_add(char *);
 static void key_scroll(const int, char *);
 static void key_search(char *);
+static void key_search_next(char *);
 static void key_sort(char *);
 static void key_sync(char *);
 static void key_task_action(char *, const char, const char *, const char *);
@@ -738,14 +739,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 key_search(redraw);
                                 break;
                         case 'n': // next search result
-                                if (searchstring!=NULL)
-                                {
-                                        find_next_search_result(head, sel_task(head));
-                                        check_curs_pos();
-                                        (*redraw) = 1;
-                                }
-                                else
-                                        statusbar_message("no active search string", cfg.statusbar_timeout);
+                                key_search_next(redraw);
                                 break;
                         case 'f': // filter
                                 statusbar_message("filter by: Any Clear Proj Desc Tag", cfg.statusbar_timeout);
@@ -918,7 +912,6 @@ void key_scroll(const int direction, char *redraw) /* {{{ */
 void key_search(char *redraw) /* {{{ */
 {
         /* handle a keyboard direction to search */
-
         statusbar_message("search phrase: ", -1);
         set_curses_mode(NCURSES_MODE_STRING);
 
@@ -933,6 +926,19 @@ void key_search(char *redraw) /* {{{ */
         find_next_search_result(head, sel_task(head));
         check_curs_pos();
         (*redraw) = 1;
+} /* }}} */
+
+void key_search_next(char *redraw) /* {{{ */
+{
+        /* handle a keyboard direction to move to next search result */
+        if (searchstring!=NULL)
+        {
+                find_next_search_result(head, sel_task(head));
+                check_curs_pos();
+                (*redraw) = 1;
+        }
+        else
+                statusbar_message("no active search string", cfg.statusbar_timeout);
 } /* }}} */
 
 void key_sort(char *redraw) /* {{{ */
