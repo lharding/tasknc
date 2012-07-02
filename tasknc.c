@@ -105,6 +105,7 @@ static task *get_tasks(void);
 static void handle_keypress(int, char *, char *, char *);
 static void help(void);
 static void key_add(char *);
+static void key_filter(char *);
 static void key_scroll(const int, char *);
 static void key_search(char *);
 static void key_search_next(char *);
@@ -814,76 +815,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 key_search_next(redraw);
                                 break;
                         case 'f': // filter
-                                statusbar_message("filter by: Any Clear Proj Desc Tag", cfg.statusbar_timeout);
-                                set_curses_mode(NCURSES_MODE_STD_BLOCKING);
-                                c = getch();
-                                wipe_statusbar();
-                                if (strchr("acdptACDPT", c)==NULL)
-                                {
-                                        statusbar_message("invalid filter mode", cfg.statusbar_timeout);
-                                        break;
-                                }
-                                if (strchr("cC", c)==NULL)
-                                {
-                                        statusbar_message("filter string: ", -1);
-                                        set_curses_mode(NCURSES_MODE_STRING);
-                                        tmpstr = calloc(size[0]-16, sizeof(char));
-                                        getstr(tmpstr);
-                                }
-                                set_curses_mode(NCURSES_MODE_STD);
-
-                                /* initialize filter */
-                                task_filter *this_filter;
-                                this_filter = calloc(1, sizeof(task_filter));
-                                this_filter->mode = -1;
-                                this_filter->string = NULL;
-                                this_filter->next = NULL;
-
-                                /* determine filter parameters */
-                                switch (c)
-                                {
-                                        case 'a':
-                                        case 'A':
-                                                this_filter->mode = FILTER_BY_STRING;
-                                                this_filter->string = tmpstr;
-                                                break;
-                                        case 'c':
-                                        case 'C':
-                                                this_filter->mode = FILTER_CLEAR;
-                                                break;
-                                        case 'd':
-                                        case 'D':
-                                                this_filter->mode = FILTER_DESCRIPTION;
-                                                this_filter->string = tmpstr;
-                                                break;
-                                        case 'p':
-                                        case 'P':
-                                                this_filter->mode = FILTER_PROJECT;
-                                                this_filter->string = tmpstr;
-                                                break;
-                                        case 't':
-                                        case 'T':
-                                                this_filter->mode = FILTER_TAGS;
-                                                this_filter->string = tmpstr;
-                                                break;
-                                        default:
-                                                statusbar_message("invalid filter mode", cfg.statusbar_timeout);
-                                                break;
-                                }
-
-                                add_filter(this_filter);
-                                /* check if task list is empty after filtering */
-                                if (taskcount==0)
-                                {
-                                        task_filter tmp_filter;
-                                        tmp_filter.mode = FILTER_CLEAR;
-                                        filter_tasks(&tmp_filter);
-                                        statusbar_message("filter yielded no results; reset", cfg.statusbar_timeout);
-                                }
-                                else
-                                        statusbar_message("filter applied", cfg.statusbar_timeout);
-                                check_curs_pos();
-                                (*redraw) = 1;
+                                key_filter(redraw);
                                 break;
                         case 'y': // sync
                                 key_sync(reload);
@@ -916,12 +848,92 @@ void help(void) /* {{{ */
 
 void key_add(char *reload) /* {{{ */
 {
+        /* handle a keyboard direction to add new task */
         def_prog_mode();
         endwin();
         task_add();
         refresh();
         (*reload) = 1;
         statusbar_message("task added", cfg.statusbar_timeout);
+
+} /* }}} */
+
+void key_filter(char *redraw) /* {{{ */
+{
+        /* handle a keyboard direction to add a new filter */
+        int c;
+        char *tmpstr;
+
+        statusbar_message("filter by: Any Clear Proj Desc Tag", cfg.statusbar_timeout);
+        set_curses_mode(NCURSES_MODE_STD_BLOCKING);
+        c = getch();
+        wipe_statusbar();
+        if (strchr("acdptACDPT", c)==NULL)
+        {
+                statusbar_message("invalid filter mode", cfg.statusbar_timeout);
+                return;
+        }
+        if (strchr("cC", c)==NULL)
+        {
+                statusbar_message("filter string: ", -1);
+                set_curses_mode(NCURSES_MODE_STRING);
+                tmpstr = calloc(size[0]-16, sizeof(char));
+                getstr(tmpstr);
+        }
+        set_curses_mode(NCURSES_MODE_STD);
+
+        /* initialize filter */
+        task_filter *this_filter;
+        this_filter = calloc(1, sizeof(task_filter));
+        this_filter->mode = -1;
+        this_filter->string = NULL;
+        this_filter->next = NULL;
+
+        /* determine filter parameters */
+        switch (c)
+        {
+                case 'a':
+                case 'A':
+                        this_filter->mode = FILTER_BY_STRING;
+                        this_filter->string = tmpstr;
+                        break;
+                case 'c':
+                case 'C':
+                        this_filter->mode = FILTER_CLEAR;
+                        break;
+                case 'd':
+                case 'D':
+                        this_filter->mode = FILTER_DESCRIPTION;
+                        this_filter->string = tmpstr;
+                        break;
+                case 'p':
+                case 'P':
+                        this_filter->mode = FILTER_PROJECT;
+                        this_filter->string = tmpstr;
+                        break;
+                case 't':
+                case 'T':
+                        this_filter->mode = FILTER_TAGS;
+                        this_filter->string = tmpstr;
+                        break;
+                default:
+                        statusbar_message("invalid filter mode", cfg.statusbar_timeout);
+                        break;
+        }
+
+        add_filter(this_filter);
+        /* check if task list is empty after filtering */
+        if (taskcount==0)
+        {
+                task_filter tmp_filter;
+                tmp_filter.mode = FILTER_CLEAR;
+                filter_tasks(&tmp_filter);
+                statusbar_message("filter yielded no results; reset", cfg.statusbar_timeout);
+        }
+        else
+                statusbar_message("filter applied", cfg.statusbar_timeout);
+        check_curs_pos();
+        (*redraw) = 1;
 } /* }}} */
 
 void key_scroll(const int direction, char *redraw) /* {{{ */
