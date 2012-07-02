@@ -505,11 +505,16 @@ void filter_tasks(task_filter *this_filter) /* {{{ */
                                 if (active_filters!=NULL)
                                 {
                                         task_filter *n = active_filters;
-                                        do
+                                        while (n!=NULL)
                                         {
-                                                free(n->string);
+                                                if (n==n->next)
+                                                {
+                                                        logmsg("error: circularly linked task filters", 0);
+                                                        break;
+                                                }
+                                                check_free(n->string);
                                                 n = n->next;
-                                        } while (n!=NULL);
+                                        }
                                         active_filters = NULL;
                                 }
                                 break;
@@ -755,15 +760,17 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 {
                                         statusbar_message("filter string: ", -1);
                                         set_curses_mode(NCURSES_MODE_STRING);
-                                        tmpstr = malloc((size[0]-16)*sizeof(char));
+                                        tmpstr = calloc(size[0]-16, sizeof(char));
                                         getstr(tmpstr);
                                 }
                                 set_curses_mode(NCURSES_MODE_STD);
+
                                 /* initialize filter */
                                 task_filter this_filter;
                                 this_filter.mode = -1;
                                 this_filter.string = NULL;
                                 this_filter.next = NULL;
+
                                 /* determine filter parameters */
                                 switch (c)
                                 {
@@ -800,7 +807,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 {
                                         filter_tasks(&this_filter);
                                         /* make struct persist if configured to */
-                                        if (cfg.filter_persist)
+                                        if (cfg.filter_persist && this_filter.mode!=FILTER_CLEAR)
                                         {
                                                 if (cfg.filter_cascade)
                                                 {
@@ -823,8 +830,8 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                                         active_filters = &this_filter;
                                                 }
                                         }
-                                        else
-                                                /* free tmpstr if unused */
+                                        /* free tmpstr if unused */
+                                        else if (this_filter.mode!=FILTER_CLEAR)
                                                 check_free(tmpstr);
                                 }
                                 /* check if task list is empty after filtering */
