@@ -115,7 +115,7 @@ static void key_sort(char *);
 static void key_sync(char *);
 static void key_task_action(char *, const char, const char *, const char *);
 static void key_undo(char *);
-static void logmsg(const char *, const char);
+static void logmsg(const char, const char *, ...) __attribute__((format(printf,2,3)));
 static task *malloc_task(void);
 static char match_string(const char *, const char *);
 static char max_project_length();
@@ -166,12 +166,12 @@ char taskcount;                         /* number of tasks */
 char totaltaskcount;                    /* number of tasks with no filters applied */
 task_filter *active_filters = NULL;     /* a struct containing the active filter(s) */
 task *head = NULL;                      /* the current top of the list */
+FILE *logfp;                            /* handle for log file */
 /* }}} */
 
 void add_filter(task_filter *this_filter) /* {{{ */
 {
         /* apply a filter, then add it to the filter queue if applicable */
-        char *tmp;
         int counter;
 
         /* apply filter from struct if available */
@@ -195,9 +195,7 @@ void add_filter(task_filter *this_filter) /* {{{ */
                                                 n = n->next;
                                                 counter++;
                                         }
-                                        asprintf(&tmp, "%d filter position (%s)", counter, this_filter->string);
-                                        logmsg(tmp, 3);
-                                        free(tmp);
+                                        logmsg(3, "%d filter position (%s)", counter, this_filter->string);
                                         n->next = this_filter;
                                 }
                         }
@@ -219,7 +217,6 @@ void check_curs_pos(void) /* {{{ */
 {
         /* check if the cursor is in a valid position */
         const short onscreentasks = size[1]-3;
-        char *tmpstr;
 
         /* check for a valid selected line number */
         if (selline<0)
@@ -234,10 +231,7 @@ void check_curs_pos(void) /* {{{ */
                 pageoffset = selline - onscreentasks;
 
         /* log cursor position */
-        tmpstr = malloc(128*sizeof(char));
-        sprintf(tmpstr, "selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, size[1]-3);
-        logmsg(tmpstr, 3);
-        free(tmpstr);
+        logmsg(3, "selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, size[1]-3);
 } /* }}} */
 
 void check_screen_size(short projlen) /* {{{ */
@@ -352,7 +346,7 @@ void configure(void) /* {{{ */
 {
         /* parse config file to get runtime options */
         FILE *cmd, *config;
-        char line[TOTALLENGTH], *tmp, *filepath, *xdg_config_home, *home;
+        char line[TOTALLENGTH], *filepath, *xdg_config_home, *home;
         int ret;
 
         /* set default values */
@@ -371,11 +365,7 @@ void configure(void) /* {{{ */
                 ret = sscanf(line, "task %[^ ]* ", cfg.version);
                 if (ret>0)
                 {
-                        tmp = malloc(64*sizeof(char));
-                        sprintf(tmp, "task version: %s", cfg.version);
-                        puts(tmp);
-                        logmsg(tmp, 1);
-                        free(tmp);
+                        logmsg(1, "task version: %s", cfg.version);
                         break;
                 }
         }
@@ -397,7 +387,7 @@ void configure(void) /* {{{ */
 
         /* open config file */
         config = fopen(filepath, "r");
-        logmsg(filepath, 1);
+        logmsg(1, "config file: %s", filepath);
 
         /* free filepath */
         free(filepath);
@@ -406,12 +396,12 @@ void configure(void) /* {{{ */
         if (config == NULL)
         {
                 puts("config file could not be opened");
-                logmsg("config file could not be opened", 0);
+                logmsg(0, "config file could not be opened");
                 return;
         }
 
         /* read config file */
-        logmsg("reading config file", 1);
+        logmsg(1, "reading config file");
         while (fgets(line, TOTALLENGTH, config))
         {
                 char *val, *tmp;
@@ -432,15 +422,10 @@ void configure(void) /* {{{ */
                         if (!ret)
                         {
                                 puts("error parsing nc_timeout configuration");
-                                logmsg("error parsing nc_timeout configuration", 0);
+                                logmsg(0, "error parsing nc_timeout configuration");
                         }
                         else
-                        {
-                                tmp = malloc(64*sizeof(char));
-                                sprintf(tmp, "nc_timeout set to %d ms", cfg.nc_timeout);
-                                logmsg(tmp, 1);
-                                free(tmp);
-                        }
+                                logmsg(1, "nc_timeout set to %d ms", cfg.nc_timeout);
                 }
                 else if (str_starts_with(line, "statusbar_timeout"))
                 {
@@ -448,15 +433,10 @@ void configure(void) /* {{{ */
                         if (!ret)
                         {
                                 puts("error parsing statusbar_timeout configuration");
-                                logmsg("error parsing statusbar_timeout configuration", 0);
+                                logmsg(0, "error parsing statusbar_timeout configuration");
                         }
                         else
-                        {
-                                tmp = malloc(64*sizeof(char));
-                                sprintf(tmp, "statusbar_timeout set to %d s", cfg.statusbar_timeout);
-                                logmsg(tmp, 1);
-                                free(tmp);
-                        }
+                                logmsg(1, "statusbar_timeout set to %d s", cfg.statusbar_timeout);
                 }
                 else if (str_starts_with(line, "sortmode"))
                 {
@@ -465,16 +445,11 @@ void configure(void) /* {{{ */
                         {
                                 puts("error parsing sortmode configuration");
                                 puts("valid sort modes are: d, n, p, or r");
-                                logmsg("error parsing sortmode configuration", 0);
-                                logmsg("valid sort modes are: d, n, p, or r", 0);
+                                logmsg(0, "error parsing sortmode configuration");
+                                logmsg(0, "valid sort modes are: d, n, p, or r");
                         }
                         else
-                        {
-                                tmp = malloc(64*sizeof(char));
-                                sprintf(tmp, "sortmode set to %c", cfg.sortmode);
-                                logmsg(tmp, 1);
-                                free(tmp);
-                        }
+                                logmsg(1, "sortmode set to %c", cfg.sortmode);
                 }
                 else if (str_starts_with(line, "filter_persist"))
                 {
@@ -483,16 +458,11 @@ void configure(void) /* {{{ */
                         {
                                 puts("error parsing filter_persist configuration");
                                 puts("filter_persist must be a 0 or 1");
-                                logmsg("error parsing filter_persist configuration", 0);
-                                logmsg("filter_persist must be a 0 or 1", 0);
+                                logmsg(0, "error parsing filter_persist configuration");
+                                logmsg(0, "filter_persist must be a 0 or 1");
                         }
                         else
-                        {
-                                tmp = malloc(64*sizeof(char));
-                                sprintf(tmp, "filter_persist set to %d", cfg.filter_persist);
-                                logmsg(tmp, 1);
-                                free(tmp);
-                        }
+                                logmsg(1, "filter_persist set to %d", cfg.filter_persist);
                 }
                 else if (str_starts_with(line, "filter_cascade"))
                 {
@@ -501,22 +471,16 @@ void configure(void) /* {{{ */
                         {
                                 puts("error parsing filter_cascade configuration");
                                 puts("filter_cascade must be a 0 or 1");
-                                logmsg("error parsing filter_cascade configuration", 0);
-                                logmsg("filter_cascade must be a 0 or 1", 0);
+                                logmsg(0, "error parsing filter_cascade configuration");
+                                logmsg(0, "filter_cascade must be a 0 or 1");
                         }
                         else
-                        {
-                                tmp = malloc(64*sizeof(char));
-                                sprintf(tmp, "filter_cascade set to %d", cfg.filter_cascade);
-                                logmsg(tmp, 1);
-                                free(tmp);
-                        }
+                                logmsg(1, "filter_cascade set to %d", cfg.filter_cascade);
                 }
                 else
                 {
-                        tmp = malloc((strlen(line)+32)*sizeof(char));
-                        sprintf(tmp, "unhandled config line: %s", line);
-                        logmsg(tmp, 0);
+                        asprintf(&tmp, "unhandled config line: %s", line);
+                        logmsg(0, tmp);
                         puts(tmp);
                         free(tmp);
                 }
@@ -569,7 +533,7 @@ void filter_tasks(task_filter *this_filter) /* {{{ */
                                         {
                                                 if (n==n->next)
                                                 {
-                                                        logmsg("error: circularly linked task filters", 0);
+                                                        logmsg(0, "error: circularly linked task filters");
                                                         break;
                                                 }
                                                 check_free(n->string);
@@ -619,7 +583,7 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
                                 selline = 0;
                         else
                                 selline = -1;
-                        logmsg("search wrapped", 3);
+                        logmsg(3, "search wrapped");
                 }
 
                 /* skip tasks that are filtered out */
@@ -726,7 +690,7 @@ unsigned short get_task_id(char *uuid) /* {{{ */
 task *get_tasks(void) /* {{{ */
 {
         FILE *cmd;
-        char line[TOTALLENGTH], *tmpstr;
+        char line[TOTALLENGTH];
         unsigned short counter = 0;
         task *last;
 
@@ -747,7 +711,7 @@ task *get_tasks(void) /* {{{ */
                 remove_char(line, '\\');
 
                 /* log line */
-                logmsg(line, 2);
+                logmsg(2, line);
 
                 /* parse line */
                 this = parse_task(line);
@@ -767,10 +731,7 @@ task *get_tasks(void) /* {{{ */
                         last->next = this;
                 last = this;
                 counter++;
-                tmpstr = malloc(1024*sizeof(char));
-                sprintf(tmpstr, "uuid: %s\ndescription: %s\nproject: %s\ntags: %s\n\n\n\n", this->uuid, this->description, this->project, this->tags);
-                logmsg(tmpstr, 2);
-                free(tmpstr);
+                logmsg(2, "uuid: %s\ndescription: %s\nproject: %s\ntags: %s\n\n\n\n", this->uuid, this->description, this->project, this->tags);
         }
         pclose(cmd);
 
@@ -1105,19 +1066,33 @@ void key_undo(char *reload) /* {{{ */
                 statusbar_message("undo execution failed", cfg.statusbar_timeout);
 } /* }}} */
 
-void logmsg(const char *msg, const char minloglvl) /* {{{ */
+void logmsg(const char minloglvl, const char *format, ...) /* {{{ */
 {
-        /* log a message to a file */
-        FILE *fp;
+        /* log a message to the logfile */
+        time_t lt;
+        struct tm *t;
+        va_list args;
+        int ret;
+        const int timesize = 32;
+        char timestr[timesize];
 
         /* determine if msg should be logged */
         if (minloglvl>cfg.loglvl)
                 return;
 
+        /* get time */
+        lt = time(NULL);
+        t = localtime(&lt);
+        ret = strftime(timestr, timesize, "%F %H:%M:%S", t);
+        if (ret==0)
+                return;
+
         /* write log */
-        fp = fopen(LOGFILE, "a");
-        fprintf(fp, "%s\n", msg);
-        fclose(fp);
+        fprintf(logfp, "[%s] ", timestr);
+        va_start(args, format);
+        vfprintf(logfp, format, args);
+        va_end(args);
+        fputc('\n', logfp);
 } /* }}} */
 
 task *malloc_task(void) /* {{{ */
@@ -1226,6 +1201,9 @@ void nc_end(int sig) /* {{{ */
 
         /* free all structs here */
         free_filters();
+
+        /* close open files */
+        fclose(logfp);
 
         exit(0);
 } /* }}} */
@@ -1447,10 +1425,7 @@ task *parse_task(char *line) /* {{{ */
                 }
 
                 /* log content */
-                tmpstr = malloc(TOTALLENGTH*sizeof(char));
-                sprintf(tmpstr, "field: %s; content: %s", field, content);
-                logmsg(tmpstr, 3);
-                free(tmpstr);
+                logmsg(3, "field: %s; content: %s", field, content);
 
                 /* handle data */
                 if (str_eq(field, "uuid"))
@@ -1620,7 +1595,7 @@ void reload_tasks() /* {{{ */
         /* reset head with a new list of tasks */
         task *cur;
 
-        logmsg("reloading tasks", 1);
+        logmsg(1, "reloading tasks");
 
         cur = head;
         free_tasks(cur);
@@ -1631,11 +1606,7 @@ void reload_tasks() /* {{{ */
         cur = head;
         while (cur!=NULL)
         {
-                char *buffer;
-                buffer = malloc(16*1024*sizeof(char));
-                sprintf(buffer, "%d,%s,%s,%d,%d,%d,%d,%s,%c,%s", cur->index, cur->uuid, cur->tags, cur->start, cur->end, cur->entry, cur->due, cur->project, cur->priority, cur->description);
-                logmsg(buffer, 2);
-                free(buffer);
+                logmsg(2, "%d,%s,%s,%d,%d,%d,%d,%s,%c,%s", cur->index, cur->uuid, cur->tags, cur->start, cur->end, cur->entry, cur->due, cur->project, cur->priority, cur->description);
                 cur = cur->next;
         }
 } /* }}} */
@@ -1966,7 +1937,7 @@ int umvaddstr(const int y, const int x, const char *str) /* {{{ */
         wchar_t *wstr = calloc(len, sizeof(wchar_t));
         if (wstr==NULL)
         {
-                logmsg("critical: umvaddstr failed to malloc", 0);
+                logmsg(0, "critical: umvaddstr failed to malloc");
                 return -1;
         }
 
@@ -2029,6 +2000,9 @@ int main(int argc, char **argv)
         /* declare variables */
         int c, debug = 0;
 
+        /* open log */
+        logfp = fopen(LOGFILE, "a");
+
         /* set defaults */
         cfg.loglvl = -1;
         setlocale(LC_ALL, "");
@@ -2075,7 +2049,7 @@ int main(int argc, char **argv)
         /* run ncurses */
         if (!debug)
         {
-                logmsg("running gui", 1);
+                logmsg(1, "running gui");
                 nc_main();
                 nc_end(0);
         }
@@ -2087,6 +2061,6 @@ int main(int argc, char **argv)
                 free(searchstring);
 
         /* done */
-        logmsg("exiting", 1);
+        logmsg(1, "exiting");
         return 0;
 }
