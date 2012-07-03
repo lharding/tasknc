@@ -1184,23 +1184,34 @@ void nc_colors(void) /* {{{ */
 void nc_end(int sig) /* {{{ */
 {
         /* terminate ncurses */
+        delwin(stdscr);
         endwin();
 
         switch (sig)
         {
                 case SIGINT:
                         puts("aborted");
+                        logmsg(0, "received SIGINT, exiting");
                         break;
                 case SIGSEGV:
                         puts("SEGFAULT");
+                        logmsg(0, "segmentation fault, exiting");
+                        break;
+                case SIGKILL:
+                        puts("killed");
+                        logmsg(0, "received SIGKILL, exiting");
                         break;
                 default:
                         puts("done");
+                        logmsg(0, "exiting with code %d", sig);
                         break;
         }
 
-        /* free all structs here */
+        /* free all data here */
         free_filters();
+        if (searchstring!=NULL)
+                free(searchstring);
+        free_tasks(head);
 
         /* close open files */
         fclose(logfp);
@@ -1295,10 +1306,6 @@ void nc_main() /* {{{ */
                         wipe_statusbar();
                 }
         }
-
-        free_tasks(head);
-
-        delwin(stdscr);
 } /* }}} */
 
 char *pad_string(char *argstr, int length, const int lpad, int rpad, const char align) /* {{{ */
@@ -1597,8 +1604,7 @@ void reload_tasks() /* {{{ */
 
         logmsg(1, "reloading tasks");
 
-        cur = head;
-        free_tasks(cur);
+        free_tasks(head);
 
         head = get_tasks();
 
@@ -2002,6 +2008,7 @@ int main(int argc, char **argv)
 
         /* open log */
         logfp = fopen(LOGFILE, "a");
+        logmsg(0, "%s started", SHORTNAME);
 
         /* set defaults */
         cfg.loglvl = -1;
@@ -2053,12 +2060,6 @@ int main(int argc, char **argv)
                 nc_main();
                 nc_end(0);
         }
-
-        /* clean up */
-        if (active_filters!=NULL)
-                free_filters();
-        if (searchstring!=NULL)
-                free(searchstring);
 
         /* done */
         logmsg(1, "exiting");
