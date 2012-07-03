@@ -98,6 +98,8 @@ static char compare_tasks(const task *, const task *, const char);
 static void configure(void);
 static void filter_tasks(task_filter *);
 static void find_next_search_result(task *, task *);
+static void free_filter(task_filter *);
+static void free_filters();
 static char free_task(task *);
 static void free_tasks(task *);
 static unsigned short get_task_id(char *);
@@ -641,6 +643,26 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
         free(tmp);
 
         return;
+} /* }}} */
+
+void free_filter(task_filter *this) /* {{{ */
+{
+        /* free a task_filter struct */
+        check_free(this->string);
+        check_free(this);
+} /* }}} */
+
+void free_filters() /* {{{ */
+{
+        /* free all task_filters in the active_filters stack */
+        task_filter *next, *this = active_filters;
+
+        while (this!=NULL)
+        {
+                next = this->next;
+                free_filter(this);
+                this = next;
+        }
 } /* }}} */
 
 char free_task(task *tsk) /* {{{ */
@@ -1188,7 +1210,7 @@ void nc_end(int sig) /* {{{ */
 {
         /* terminate ncurses */
         endwin();
-        
+
         switch (sig)
         {
                 case SIGINT:
@@ -1203,6 +1225,8 @@ void nc_end(int sig) /* {{{ */
         }
 
         /* free all structs here */
+        free_filters();
+
         exit(0);
 } /* }}} */
 
@@ -2058,8 +2082,7 @@ int main(int argc, char **argv)
 
         /* clean up */
         if (active_filters!=NULL)
-                if (active_filters->string != NULL)
-                        free(active_filters->string);
+                free_filters();
         if (searchstring!=NULL)
                 free(searchstring);
 
