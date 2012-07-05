@@ -141,7 +141,7 @@ static void remove_char(char *, char);
 static void set_curses_mode(char);
 static void sort_tasks(task *, task *);
 static void sort_wrapper(task *);
-static void statusbar_message(const char *, const int);
+static void statusbar_message(const int, const char *, ...) __attribute__((format(printf,2,3)));
 static void swap_tasks(task *, task *);
 static int task_action(task *, const char);
 static void task_add(void);
@@ -575,7 +575,6 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
 {
         /* find the next search result in the list of tasks */
         task *cur;
-        char *tmp;
 
         cur = pos;
         while (1)
@@ -609,10 +608,7 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
                         break;
         }
 
-        tmp = malloc((13+strlen(searchstring))*sizeof(char));
-        sprintf(tmp, "no matches: %s", searchstring);
-        statusbar_message(tmp, cfg.statusbar_timeout);
-        free(tmp);
+        statusbar_message(cfg.statusbar_timeout, "no matches: %s", searchstring);
 
         return;
 } /* }}} */
@@ -800,7 +796,7 @@ void handle_command(char *cmdstr) /* {{{ */
         i = 0;
         while (tmppos!=NULL)
         {
-                (*tmppos) = (char)NULL;
+                (*tmppos) = 0;
                 args[i] = ++tmppos;
                 tmppos = strchr(tmppos, ' ');
                 i++;
@@ -808,7 +804,7 @@ void handle_command(char *cmdstr) /* {{{ */
 
         /* handle command with arguments */
         if (str_eq(cmdstr, "version"))
-                statusbar_message("this version!", cfg.statusbar_timeout);
+                statusbar_message(cfg.statusbar_timeout, "this version!");
 
         /* debug */
         logmsg(LOG_DEBUG_VERBOSE, "command: %s", cmdstr);
@@ -822,8 +818,6 @@ void handle_command(char *cmdstr) /* {{{ */
 void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
 {
         /* handle a key press on the main screen */
-        char *tmpstr;
-
         switch (c)
                 {
                         case 'k': // scroll up
@@ -845,7 +839,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 break;
                         case 'r': // reload task list
                                 (*reload) = 1;
-                                statusbar_message("task list reloaded", cfg.statusbar_timeout);
+                                statusbar_message(cfg.statusbar_timeout, "task list reloaded");
                                 break;
                         case 'u': // undo
                                 key_undo(reload);
@@ -889,11 +883,8 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                         case ERR: // no key was pressed
                                 break;
                         default: // unhandled
-                                tmpstr = malloc(20*sizeof(char));
-                                sprintf(tmpstr, "unhandled key: %c", c);
                                 attrset(COLOR_PAIR(0));
-                                statusbar_message(tmpstr, cfg.statusbar_timeout);
-                                free(tmpstr);
+                                statusbar_message(cfg.statusbar_timeout, "unhandled key: %c", c);
                                 break;
                 }
 } /* }}} */
@@ -917,8 +908,7 @@ void key_add(char *reload) /* {{{ */
         task_add();
         refresh();
         (*reload) = 1;
-        statusbar_message("task added", cfg.statusbar_timeout);
-
+        statusbar_message(cfg.statusbar_timeout, "task added");
 } /* }}} */
 
 void key_command (char *reload) /* {{{ */
@@ -927,12 +917,13 @@ void key_command (char *reload) /* {{{ */
         char *cmdstr;
 
         /* prepare prompt */
-        statusbar_message(":", -1);
+        statusbar_message(-1, ":");
         set_curses_mode(NCURSES_MODE_STRING);
 
         /* get input */
         cmdstr = calloc(size[0], sizeof(char));
         getstr(cmdstr);
+        wipe_statusbar();
         handle_command(cmdstr);
         free(cmdstr);
 
@@ -946,18 +937,18 @@ void key_filter(char *redraw) /* {{{ */
         int c;
         char *tmpstr;
 
-        statusbar_message("filter by: Any Clear Proj Desc Tag", cfg.statusbar_timeout);
+        statusbar_message(cfg.statusbar_timeout, "filter by: Any Clear Proj Desc Tag");
         set_curses_mode(NCURSES_MODE_STD_BLOCKING);
         c = getch();
         wipe_statusbar();
         if (strchr("acdptACDPT", c)==NULL)
         {
-                statusbar_message("invalid filter mode", cfg.statusbar_timeout);
+                statusbar_message(cfg.statusbar_timeout, "invalid filter mode");
                 return;
         }
         if (strchr("cC", c)==NULL)
         {
-                statusbar_message("filter string: ", -1);
+                statusbar_message(-1, "filter string: ");
                 set_curses_mode(NCURSES_MODE_STRING);
                 tmpstr = calloc(size[0]-16, sizeof(char));
                 getstr(tmpstr);
@@ -999,7 +990,7 @@ void key_filter(char *redraw) /* {{{ */
                         this_filter->string = tmpstr;
                         break;
                 default:
-                        statusbar_message("invalid filter mode", cfg.statusbar_timeout);
+                        statusbar_message(cfg.statusbar_timeout, "invalid filter mode");
                         break;
         }
 
@@ -1010,10 +1001,10 @@ void key_filter(char *redraw) /* {{{ */
                 task_filter tmp_filter;
                 tmp_filter.mode = FILTER_CLEAR;
                 filter_tasks(&tmp_filter);
-                statusbar_message("filter yielded no results; reset", cfg.statusbar_timeout);
+                statusbar_message(cfg.statusbar_timeout, "filter yielded no results; reset");
         }
         else
-                statusbar_message("filter applied", cfg.statusbar_timeout);
+                statusbar_message(cfg.statusbar_timeout, "filter applied");
         check_curs_pos();
         (*redraw) = 1;
 } /* }}} */
@@ -1051,7 +1042,7 @@ void key_scroll(const int direction, char *redraw) /* {{{ */
 void key_search(char *redraw) /* {{{ */
 {
         /* handle a keyboard direction to search */
-        statusbar_message("search phrase: ", -1);
+        statusbar_message(-1, "search phrase: ");
         set_curses_mode(NCURSES_MODE_STRING);
 
         /* store search string  */
@@ -1077,7 +1068,7 @@ void key_search_next(char *redraw) /* {{{ */
                 (*redraw) = 1;
         }
         else
-                statusbar_message("no active search string", cfg.statusbar_timeout);
+                statusbar_message(cfg.statusbar_timeout, "no active search string");
 } /* }}} */
 
 void key_sort(char *redraw) /* {{{ */
@@ -1086,7 +1077,7 @@ void key_sort(char *redraw) /* {{{ */
         char m;
 
         attrset(COLOR_PAIR(0));
-        statusbar_message("enter sort mode: iNdex, Project, Due, pRiority", cfg.statusbar_timeout);
+        statusbar_message(cfg.statusbar_timeout, "enter sort mode: iNdex, Project, Due, pRiority");
         set_curses_mode(NCURSES_MODE_STD_BLOCKING);
 
         m = getch();
@@ -1108,7 +1099,7 @@ void key_sort(char *redraw) /* {{{ */
                         sort_wrapper(head);
                         break;
                 default:
-                        statusbar_message("invalid sort mode", cfg.statusbar_timeout);
+                        statusbar_message(cfg.statusbar_timeout, "invalid sort mode");
                         break;
         }
         (*redraw) = 1;
@@ -1127,9 +1118,9 @@ void key_sync(char *reload) /* {{{ */
                 ret = system("task push");
         refresh();
         if (ret==0)
-                statusbar_message("tasks synchronized", cfg.statusbar_timeout);
+                statusbar_message(cfg.statusbar_timeout, "tasks synchronized");
         else
-                statusbar_message("task syncronization failed", cfg.statusbar_timeout);
+                statusbar_message(cfg.statusbar_timeout, "task syncronization failed");
 } /* }}} */
 
 void key_task_action(char *reload, const char action, const char *msg_success, const char *msg_fail) /* {{{ */
@@ -1144,9 +1135,9 @@ void key_task_action(char *reload, const char action, const char *msg_success, c
         ret = task_action(head, action);
         refresh();
         if (ret==0)
-                statusbar_message(msg_success, cfg.statusbar_timeout);
+                statusbar_message(cfg.statusbar_timeout, msg_success);
         else
-                statusbar_message(msg_fail, cfg.statusbar_timeout);
+                statusbar_message(cfg.statusbar_timeout, msg_fail);
 } /* }}} */
 
 void key_undo(char *reload) /* {{{ */
@@ -1160,9 +1151,9 @@ void key_undo(char *reload) /* {{{ */
         refresh();
         (*reload) = 1;
         if (ret==0)
-                statusbar_message("undo executed", cfg.statusbar_timeout);
+                statusbar_message(cfg.statusbar_timeout, "undo executed");
         else
-                statusbar_message("undo execution failed", cfg.statusbar_timeout);
+                statusbar_message(cfg.statusbar_timeout, "undo execution failed");
 } /* }}} */
 
 void logmsg(const char minloglvl, const char *format, ...) /* {{{ */
@@ -1871,14 +1862,27 @@ void sort_wrapper(task *first) /* {{{ */
         sort_tasks(first, last);
 } /* }}} */
 
-void statusbar_message(const char *message, const int dtmout) /* {{{ */
+void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 {
         /* print a message in the statusbar */
+        va_list args;
+        char *message;
+
         wipe_statusbar();
 
+        /* format message */
+        va_start(args, format);
+        vasprintf(&message, format, args);
+        va_end(args);
+
+        /* print message */
         umvaddstr(size[1]-1, 0, message);
+        free(message);
+
+        /* set timeout */
         if (dtmout>=0)
                 sb_timeout = time(NULL) + dtmout;
+
         refresh();
 } /* }}} */
 
