@@ -170,8 +170,8 @@ time_t sb_timeout = 0;                  /* when statusbar should be cleared */
 char *searchstring = NULL;              /* currently active search string */
 short selline = 0;                      /* selected line number */
 int size[2];                            /* size of the ncurses window */
-char taskcount;                         /* number of tasks */
-char totaltaskcount;                    /* number of tasks with no filters applied */
+int taskcount;                          /* number of tasks */
+int totaltaskcount;                     /* number of tasks with no filters applied */
 task_filter *active_filters = NULL;     /* a struct containing the active filter(s) */
 task *head = NULL;                      /* the current top of the list */
 FILE *logfp;                            /* handle for log file */
@@ -2273,6 +2273,11 @@ int main(int argc, char **argv)
                 logmsg(LOG_DEBUG, "running gui");
                 nc_main();
                 nc_end(0);
+        }
+        else
+        {
+                task_count();
+                printf("task count: %d", totaltaskcount);
         }
 
         /* done */
