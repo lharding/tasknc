@@ -113,6 +113,7 @@ static task *get_tasks(void);
 static void handle_keypress(int, char *, char *, char *);
 static void help(void);
 static void key_add(char *);
+static void key_command(char *);
 static void key_filter(char *);
 static void key_scroll(const int, char *);
 static void key_search(char *);
@@ -834,6 +835,10 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                         case 'q': // quit
                                 (*done) = 1;
                                 break;
+                        case ':': // accept command string
+                        case ';':
+                                key_command(reload);
+                                break;
                         case ERR: // no key was pressed
                                 break;
                         default: // unhandled
@@ -867,6 +872,27 @@ void key_add(char *reload) /* {{{ */
         (*reload) = 1;
         statusbar_message("task added", cfg.statusbar_timeout);
 
+} /* }}} */
+
+void key_command (char *reload) /* {{{ */
+{
+        /* accept and attemt to execute a command string */
+        char *cmdstr;
+
+        /* prepare prompt */
+        statusbar_message(":", -1);
+        set_curses_mode(NCURSES_MODE_STRING);
+
+        /* get input */
+        cmdstr = calloc(size[0], sizeof(char));
+        getstr(cmdstr);
+        free(cmdstr);
+
+        /* print output */
+        statusbar_message("command input", 10);
+
+        /* reset */
+        set_curses_mode(NCURSES_MODE_STD);
 } /* }}} */
 
 void key_filter(char *redraw) /* {{{ */
