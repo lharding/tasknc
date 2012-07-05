@@ -696,7 +696,8 @@ unsigned short get_task_id(char *uuid) /* {{{ */
 task *get_tasks(void) /* {{{ */
 {
         FILE *cmd;
-        char line[TOTALLENGTH];
+        char *line, *tmp;
+        int linelen = TOTALLENGTH;
         unsigned short counter = 0;
         task *last;
 
@@ -709,9 +710,22 @@ task *get_tasks(void) /* {{{ */
         /* parse output */
         last = NULL;
         head = NULL;
-        while (fgets(line, sizeof(line)-1, cmd) != NULL)
+        line = calloc(linelen, sizeof(char));
+        while (fgets(line, linelen-1, cmd) != NULL)
         {
                 task *this;
+
+                /* check for longer lines */
+                while (strchr(line, '\n')==NULL)
+                {
+                        linelen += TOTALLENGTH;
+                        line = realloc(line, linelen*sizeof(char));
+                        tmp = calloc(TOTALLENGTH, sizeof(char));
+                        if (fgets(tmp, TOTALLENGTH-1, cmd)==NULL)
+                                break;
+                        strcat(line, tmp);
+                        free(tmp);
+                }
 
                 /* remove escapes */
                 remove_char(line, '\\');
@@ -741,7 +755,12 @@ task *get_tasks(void) /* {{{ */
                 logmsg(LOG_DEBUG_VERBOSE, "description: %s", this->description);
                 logmsg(LOG_DEBUG_VERBOSE, "project: %s", this->project);
                 logmsg(LOG_DEBUG_VERBOSE, "tags: %s", this->tags);
+
+                /* prepare a new line */
+                free(line);
+                line = calloc(linelen, sizeof(char));
         }
+        free(line);
         pclose(cmd);
 
 
