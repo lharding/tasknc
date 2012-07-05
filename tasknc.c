@@ -773,7 +773,7 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
 {
         /* accept a command string, determine what action to take, and execute */
         char **args, *pos, *tmppos;
-        int argn, i;
+        int argn, i, ret;
 
         logmsg(LOG_DEBUG, "command received: %s", cmdstr);
 
@@ -818,6 +818,60 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
         /* redraw: force redraw of screen */
         else if (str_eq(cmdstr, "redraw"))
                 (*redraw) = 1;
+        /* set: set a variables contents */
+        else if (str_eq(cmdstr, "set"))
+        {
+                if (str_eq(args[0], "nc_timeout"))
+                {
+                        ret = sscanf(args[1], "%d", &cfg.nc_timeout);
+                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.nc_timeout);
+                }
+                else if (str_eq(args[0], "statusbar_timeout"))
+                {
+                        ret = sscanf(args[1], "%d", &cfg.statusbar_timeout);
+                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.statusbar_timeout);
+                }
+                else if (str_eq(args[0], "loglvl"))
+                {
+                        ret = sscanf(args[1], "%d", &cfg.loglvl);
+                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.loglvl);
+                }
+                else if (str_eq(args[0], "tasknc_version"))
+                {
+                        strcpy(cfg.version, args[1]);
+                        statusbar_message(cfg.statusbar_timeout, "%s: %s", args[0], cfg.version);
+                }
+                else if (str_eq(args[0], "sortmode"))
+                {
+                        ret = sscanf(args[1], "%c", &cfg.sortmode);
+                        sort_wrapper(head);
+                        (*redraw) = 1;
+                        statusbar_message(cfg.statusbar_timeout, "%s: %c", args[0], cfg.sortmode);
+                }
+                else if (str_eq(args[0], "filter_persist"))
+                {
+                        ret = sscanf(args[1], "%d", &cfg.filter_persist);
+                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.filter_persist);
+                }
+                else if (str_eq(args[0], "filter_cascade"))
+                {
+                        ret = sscanf(args[1], "%d", &cfg.filter_cascade);
+                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.filter_cascade);
+                }
+                else if (str_eq(args[0], "statusbar_timeout"))
+                {
+                        ret = sscanf(args[1], "%d", &cfg.statusbar_timeout);
+                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.statusbar_timeout);
+                }
+                else if (str_eq(args[0], "searchstring"))
+                {
+                        searchstring = malloc(strlen(args[1]));
+                        strcpy(searchstring, args[1]);
+                        statusbar_message(cfg.statusbar_timeout, "%s: %s", args[0], searchstring);
+                }
+                else
+                        statusbar_message(cfg.statusbar_timeout, "unknown variable: %s", args[0]);
+        }
         /* show: print a variable's contents */
         else if (str_eq(cmdstr, "show"))
         {
