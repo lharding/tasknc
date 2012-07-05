@@ -110,11 +110,11 @@ static char free_task(task *);
 static void free_tasks(task *);
 static unsigned short get_task_id(char *);
 static task *get_tasks(void);
-static void handle_command(char *);
+static void handle_command(char *, char *, char *, char *);
 static void handle_keypress(int, char *, char *, char *);
 static void help(void);
 static void key_add(char *);
-static void key_command(char *);
+static void key_command(char *, char *, char *);
 static void key_filter(char *);
 static void key_scroll(const int, char *);
 static void key_search(char *);
@@ -769,7 +769,7 @@ task *get_tasks(void) /* {{{ */
         return head;
 } /* }}} */
 
-void handle_command(char *cmdstr) /* {{{ */
+void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{ */
 {
         /* accept a command string, determine what action to take, and execute */
         char **args, *pos, *tmppos;
@@ -802,17 +802,57 @@ void handle_command(char *cmdstr) /* {{{ */
                 i++;
         }
 
-        /* handle command with arguments */
+        /* handle command & arguments */
+        /* version: print version string */
         if (str_eq(cmdstr, "version"))
-                statusbar_message(cfg.statusbar_timeout, "this version!");
+                statusbar_message(cfg.statusbar_timeout, "%s v%s by %s\n", NAME, VERSION, AUTHOR);
+        /* quit/exit: exit tasknc */
+        else if (str_eq(cmdstr, "quit") || str_eq(cmdstr, "exit"))
+                (*done) = 1;
+        /* reload: force reload of task list */
+        else if (str_eq(cmdstr, "reload"))
+        {
+                (*reload) = 1;
+                statusbar_message(cfg.statusbar_timeout, "task list reloaded");
+        }
+        /* redraw: force redraw of screen */
+        else if (str_eq(cmdstr, "redraw"))
+                (*redraw) = 1;
+        /* show: print a variable's contents */
+        else if (str_eq(cmdstr, "show"))
+        {
+                if (str_eq(args[0], "nc_timeout"))
+                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.nc_timeout);
+                else if (str_eq(args[0], "statusbar_timeout"))
+                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.statusbar_timeout);
+                else if (str_eq(args[0], "loglvl"))
+                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.loglvl);
+                else if (str_eq(args[0], "tasknc_version"))
+                        statusbar_message(cfg.statusbar_timeout, "%s: %s", args[0], cfg.version);
+                else if (str_eq(args[0], "sortmode"))
+                        statusbar_message(cfg.statusbar_timeout, "%s: %c", args[0], cfg.sortmode);
+                else if (str_eq(args[0], "filter_persist"))
+                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.filter_persist);
+                else if (str_eq(args[0], "filter_cascade"))
+                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.filter_cascade);
+                else if (str_eq(args[0], "statusbar_timeout"))
+                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.statusbar_timeout);
+                else if (str_eq(args[0], "searchstring"))
+                        statusbar_message(cfg.statusbar_timeout, "%s: %s", args[0], searchstring);
+                else
+                        statusbar_message(cfg.statusbar_timeout, "unknown variable: %s", args[0]);
+        }
+        else
+        {
+                statusbar_message(cfg.statusbar_timeout, "error: command %s not found", cmdstr);
+                logmsg(LOG_ERROR, "error: command %s not found", cmdstr);
+        }
 
         /* debug */
         logmsg(LOG_DEBUG_VERBOSE, "command: %s", cmdstr);
         logmsg(LOG_DEBUG_VERBOSE, "command: argn %d", argn);
         for (i=0; i<argn; i++)
                 logmsg(LOG_DEBUG_VERBOSE, "command: [arg %d] %s", i, args[i]);
-
-        /* free memory */
 } /* }}} */
 
 void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
@@ -878,7 +918,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 break;
                         case ':': // accept command string
                         case ';':
-                                key_command(reload);
+                                key_command(reload, redraw, done);
                                 break;
                         case ERR: // no key was pressed
                                 break;
@@ -911,7 +951,7 @@ void key_add(char *reload) /* {{{ */
         statusbar_message(cfg.statusbar_timeout, "task added");
 } /* }}} */
 
-void key_command (char *reload) /* {{{ */
+void key_command (char *reload, char *redraw, char *done) /* {{{ */
 {
         /* accept and attemt to execute a command string */
         char *cmdstr;
@@ -924,7 +964,7 @@ void key_command (char *reload) /* {{{ */
         cmdstr = calloc(size[0], sizeof(char));
         getstr(cmdstr);
         wipe_statusbar();
-        handle_command(cmdstr);
+        handle_command(cmdstr, reload, redraw, done);
         free(cmdstr);
 
         /* reset */
