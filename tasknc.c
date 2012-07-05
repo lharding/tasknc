@@ -110,6 +110,7 @@ static char free_task(task *);
 static void free_tasks(task *);
 static unsigned short get_task_id(char *);
 static task *get_tasks(void);
+static void handle_command(char *);
 static void handle_keypress(int, char *, char *, char *);
 static void help(void);
 static void key_add(char *);
@@ -772,6 +773,52 @@ task *get_tasks(void) /* {{{ */
         return head;
 } /* }}} */
 
+void handle_command(char *cmdstr) /* {{{ */
+{
+        /* accept a command string, determine what action to take, and execute */
+        char **args, *pos, *tmppos;
+        int argn, i;
+
+        logmsg(LOG_DEBUG, "command received: %s", cmdstr);
+
+        /* determine command */
+        pos = strchr(cmdstr, ' ');
+
+        /* count args */
+        argn = 0;
+        tmppos = pos;
+        while (tmppos!=NULL)
+        {
+                argn++;
+                logmsg(LOG_DEBUG_VERBOSE, "cmdrem: %s", tmppos);/* debug */
+                tmppos = strchr(++tmppos, ' ');
+        }
+
+        /* put args in array */
+        tmppos = pos;
+        args = calloc(argn+1, sizeof(char *));
+        i = 0;
+        while (tmppos!=NULL)
+        {
+                (*tmppos) = (char)NULL;
+                args[i] = ++tmppos;
+                tmppos = strchr(tmppos, ' ');
+                i++;
+        }
+
+        /* handle command with arguments */
+        if (str_eq(cmdstr, "version"))
+                statusbar_message("this version!", cfg.statusbar_timeout);
+
+        /* debug */
+        logmsg(LOG_DEBUG_VERBOSE, "command: %s", cmdstr);
+        logmsg(LOG_DEBUG_VERBOSE, "command: argn %d", argn);
+        for (i=0; i<argn; i++)
+                logmsg(LOG_DEBUG_VERBOSE, "command: [arg %d] %s", i, args[i]);
+
+        /* free memory */
+} /* }}} */
+
 void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
 {
         /* handle a key press on the main screen */
@@ -886,10 +933,8 @@ void key_command (char *reload) /* {{{ */
         /* get input */
         cmdstr = calloc(size[0], sizeof(char));
         getstr(cmdstr);
+        handle_command(cmdstr);
         free(cmdstr);
-
-        /* print output */
-        statusbar_message("command input", 10);
 
         /* reset */
         set_curses_mode(NCURSES_MODE_STD);
