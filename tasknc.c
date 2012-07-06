@@ -48,13 +48,6 @@
 #define NCURSES_MODE_STD_BLOCKING       1
 #define NCURSES_MODE_STRING             2
 
-/* filter modes */
-#define FILTER_BY_STRING                0
-#define FILTER_CLEAR                    1
-#define FILTER_DESCRIPTION              2
-#define FILTER_TAGS                     3
-#define FILTER_PROJECT                  4
-
 /* log levels */
 #define LOG_DEFAULT                     0
 #define LOG_ERROR                       1
@@ -83,7 +76,6 @@ typedef struct _task
         char *project;
         char priority;
         char *description;
-        char is_filtered;
         struct _task *prev;
         struct _task *next;
 } task;
@@ -148,8 +140,6 @@ struct {
         int loglvl;
         char version[8];
         char sortmode;
-        int filter_persist;
-        int filter_cascade;
 } cfg;
 /* }}} */
 
@@ -308,8 +298,6 @@ void configure(void) /* {{{ */
         if (cfg.loglvl==-1)
                 cfg.loglvl = LOGLVL_DEFAULT;                    /* determine whether log message should be printed */
         cfg.sortmode = 'd';                                     /* determine sort algorithm */
-        cfg.filter_persist = 1;                                 /* filters should persist until they are cleared */
-        cfg.filter_cascade = 1;                                 /* filters should cascade */
 
         /* get task version */
         cmd = popen("task version rc._forcecolor=no", "r");
@@ -404,32 +392,6 @@ void configure(void) /* {{{ */
                         else
                                 logmsg(LOG_DEBUG, "sortmode set to %c", cfg.sortmode);
                 }
-                else if (str_starts_with(line, "filter_persist"))
-                {
-                        ret = sscanf(line, "filter_persist = %d", &(cfg.filter_persist));
-                        if (!ret || cfg.filter_persist<0 || cfg.filter_persist>1)
-                        {
-                                puts("error parsing filter_persist configuration");
-                                puts("filter_persist must be a 0 or 1");
-                                logmsg(LOG_ERROR, "parsing filter_persist configuration");
-                                logmsg(LOG_ERROR, "filter_persist must be a 0 or 1");
-                        }
-                        else
-                                logmsg(LOG_DEBUG, "filter_persist set to %d", cfg.filter_persist);
-                }
-                else if (str_starts_with(line, "filter_cascade"))
-                {
-                        ret = sscanf(line, "filter_cascade = %d", &(cfg.filter_cascade));
-                        if (!ret || cfg.filter_cascade<0 || cfg.filter_cascade>1)
-                        {
-                                puts("error parsing filter_cascade configuration");
-                                puts("filter_cascade must be a 0 or 1");
-                                logmsg(LOG_ERROR, "parsing filter_cascade configuration");
-                                logmsg(LOG_ERROR, "filter_cascade must be a 0 or 1");
-                        }
-                        else
-                                logmsg(LOG_DEBUG, "filter_cascade set to %d", cfg.filter_cascade);
-                }
                 else
                 {
                         asprintf(&tmp, "unhandled config line: %s", line);
@@ -458,18 +420,15 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
                 if (cur == NULL)
                 {
                         cur = head;
-                        if (cur->is_filtered)
-                                selline = 0;
-                        else
-                                selline = -1;
+                        selline = -1;
                         logmsg(LOG_DEBUG_VERBOSE, "search wrapped");
                 }
 
-                /* skip tasks that are filtered out */
-                else if (cur->is_filtered)
-                        selline++;
                 else
+                {
+                        selline++;
                         continue;
+                }
 
                 /* check for match */
                 if (task_match(cur, searchstring)==1)
@@ -642,6 +601,11 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
         char **args, *pos, *tmppos;
         int argn, i, ret;
 
+        /* IGNORE DUMB RET WARNING TODO: DELETE*/
+        ret = 0;
+        if (ret)
+        {}
+
         logmsg(LOG_DEBUG, "command received: %s", cmdstr);
 
         /* determine command */
@@ -715,16 +679,6 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
                         (*redraw) = 1;
                         statusbar_message(cfg.statusbar_timeout, "%s: %c", args[0], cfg.sortmode);
                 }
-                else if (str_eq(args[0], "filter_persist"))
-                {
-                        ret = sscanf(args[1], "%d", &cfg.filter_persist);
-                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.filter_persist);
-                }
-                else if (str_eq(args[0], "filter_cascade"))
-                {
-                        ret = sscanf(args[1], "%d", &cfg.filter_cascade);
-                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.filter_cascade);
-                }
                 else if (str_eq(args[0], "statusbar_timeout"))
                 {
                         ret = sscanf(args[1], "%d", &cfg.statusbar_timeout);
@@ -752,10 +706,6 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
                         statusbar_message(cfg.statusbar_timeout, "%s: %s", args[0], cfg.version);
                 else if (str_eq(args[0], "sortmode"))
                         statusbar_message(cfg.statusbar_timeout, "%s: %c", args[0], cfg.sortmode);
-                else if (str_eq(args[0], "filter_persist"))
-                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.filter_persist);
-                else if (str_eq(args[0], "filter_cascade"))
-                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.filter_cascade);
                 else if (str_eq(args[0], "statusbar_timeout"))
                         statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.statusbar_timeout);
                 else if (str_eq(args[0], "searchstring"))
@@ -903,7 +853,7 @@ void key_filter(char *reload) /* {{{ */
         set_curses_mode(NCURSES_MODE_STD);
 
         statusbar_message(cfg.statusbar_timeout, "filter applied");
-        check_curs_pos();
+        selline = 0;
         (*reload) = 1;
 } /* }}} */
 
@@ -1121,7 +1071,6 @@ task *malloc_task(void) /* {{{ */
         tsk->project = NULL;
         tsk->priority = 0;
         tsk->description = NULL;
-        tsk->is_filtered = 1;
         tsk->next = NULL;
         tsk->prev = NULL;
 
@@ -1291,6 +1240,8 @@ void nc_main() /* {{{ */
                         task_count();
                         check_curs_pos();
                         print_title(size[0]);
+                        wipe_tasklist();
+                        refresh();
                         redraw = 1;
                 }
                 if (redraw==1)
@@ -1341,7 +1292,7 @@ char *pad_string(char *argstr, int length, const int lpad, int rpad, const char 
         if (align=='l')
         {
                 int slen = strlen(str);
-                rpad = rpad + length - slen;
+                rpad = rpad + length - slen - 1;
                 length = slen;
         }
 
@@ -1507,12 +1458,8 @@ void print_task_list(const short projlen, const short desclen, const short datel
                 char skip = 0;
                 char sel = 0;
 
-                /* skip filtered tasks */
-                if (!cur->is_filtered)
-                        skip = 1;
-
                 /* skip tasks that are off screen */
-                else if (counter<pageoffset)
+                if (counter<pageoffset)
                         skip = 1;
                 else if (counter>pageoffset+onscreentasks)
                         skip = 1;
@@ -1520,8 +1467,7 @@ void print_task_list(const short projlen, const short desclen, const short datel
                 /* skip row if necessary */
                 if (skip==1)
                 {
-                        if (cur->is_filtered)
-                                counter++;
+                        counter++;
                         cur = cur->next;
                         continue;
                 }
@@ -1584,7 +1530,7 @@ void print_title(const int width) /* {{{ */
         /* print program info */
         attrset(COLOR_PAIR(1));
         tmp0 = calloc(width, sizeof(char));
-        snprintf(tmp0, width, "%s v%s  (%d/%d)", SHORTNAME, VERSION, taskcount, totaltaskcount);
+        snprintf(tmp0, width, "%s v%s  (%d/%d)  ", SHORTNAME, VERSION, selline+1, totaltaskcount);
         tmp1 = pad_string(tmp0, width, 0, 0, 'l');
         umvaddstr(0, 0, tmp1);
         free(tmp0);
@@ -1691,7 +1637,7 @@ task *sel_task() /* {{{ */
         cur = head;
         while (cur!=NULL)
         {
-                i += cur->is_filtered;
+                i++;
                 if (i==selline)
                         break;
                 cur = cur->next;
@@ -1833,10 +1779,6 @@ void swap_tasks(task *a, task *b) /* {{{ */
         strtmp = a->description;
         a->description = b->description;
         b->description = strtmp;
-
-        ctmp = a->is_filtered;
-        a->is_filtered = b->is_filtered;
-        b->is_filtered = ctmp;
 } /* }}} */
 
 int task_action(task *head, const char action) /* {{{ */
