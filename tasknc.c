@@ -54,6 +54,13 @@
 #define LOG_DEBUG                       2
 #define LOG_DEBUG_VERBOSE               3
 
+/* var struct management */
+#define VAR_UNDEF                       0
+#define VAR_CHAR                        1
+#define VAR_STR                         2
+#define VAR_INT                         3
+#define NVARS                           (int)(sizeof(vars)/sizeof(var))
+
 /* regex options */
 #define REGEX_OPTS REG_ICASE|REG_EXTENDED|REG_NOSUB|REG_NEWLINE
 
@@ -79,6 +86,13 @@ typedef struct _task
         struct _task *prev;
         struct _task *next;
 } task;
+
+typedef struct _var
+{
+        char *name;
+        char type;
+        void *ptr;
+} var;
 /* }}} */
 
 /* function prototypes {{{ */
@@ -87,6 +101,7 @@ static void check_screen_size(short);
 static char compare_tasks(const task *, const task *, const char);
 static void configure(void);
 static void find_next_search_result(task *, task *);
+static var *find_var(const char *);
 static char free_task(task *);
 static void free_tasks(task *);
 static unsigned short get_task_id(char *);
@@ -130,6 +145,7 @@ static void task_count();
 static char task_match(const task *, const char *);
 int umvaddstr(const int, const int, const char *);
 static char *utc_date(const unsigned int);
+static char *var_value_message(var *);
 static void wipe_screen(const short, const short);
 /* }}} */
 
@@ -138,7 +154,7 @@ struct {
         int nc_timeout;
         int statusbar_timeout;
         int loglvl;
-        char version[8];
+        char *version;
         char sortmode;
 } cfg;
 /* }}} */
@@ -154,6 +170,20 @@ int totaltaskcount;                     /* number of tasks with no filters appli
 char *active_filter = NULL;             /* a string containing the active filter string */
 task *head = NULL;                      /* the current top of the list */
 FILE *logfp;                            /* handle for log file */
+/* }}} */
+
+/* user-exposed variables {{{ */
+var vars[] = {
+        {"ncurses_timeout", VAR_INT, &(cfg.nc_timeout)},
+        {"statusbar_timeout", VAR_INT, &(cfg.statusbar_timeout)},
+        {"log_level", VAR_INT, &(cfg.loglvl)},
+        {"task_version", VAR_STR, &(cfg.version)},
+        {"sort_mode", VAR_CHAR, &(cfg.sortmode)},
+        {"search_string", VAR_STR, &searchstring},
+        {"selected_line", VAR_INT, &selline},
+        {"task_count", VAR_INT, &totaltaskcount},
+        {"filter_string", VAR_STR, &active_filter}
+};
 /* }}} */
 
 void check_curs_pos(void) /* {{{ */
@@ -303,6 +333,7 @@ void configure(void) /* {{{ */
         cmd = popen("task version rc._forcecolor=no", "r");
         while (fgets(line, sizeof(line)-1, cmd) != NULL)
         {
+                cfg.version = calloc(8, sizeof(char));
                 ret = sscanf(line, "task %[^ ]* ", cfg.version);
                 if (ret>0)
                 {
@@ -442,6 +473,20 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
         statusbar_message(cfg.statusbar_timeout, "no matches: %s", searchstring);
 
         return;
+} /* }}} */
+
+var *find_var(const char *name) /* {{{ */
+{
+        /* attempt to find an exposed variable matching <name> */
+        int i;
+
+        for (i=0; i<NVARS; i++)
+        {
+                if (str_eq(name, vars[i].name))
+                        return &(vars[i]);
+        }
+
+        return NULL;
 } /* }}} */
 
 char free_task(task *tsk) /* {{{ */
@@ -598,8 +643,9 @@ task *get_tasks(void) /* {{{ */
 void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{ */
 {
         /* accept a command string, determine what action to take, and execute */
-        char **args, *pos, *tmppos;
+        char **args, *pos, *tmppos, *msg;
         int argn, i, ret;
+        var *this_var;
 
         /* IGNORE DUMB RET WARNING TODO: DELETE*/
         ret = 0;
@@ -649,69 +695,46 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
         /* redraw: force redraw of screen */
         else if (str_eq(cmdstr, "redraw"))
                 (*redraw) = 1;
-        /* set: set a variables contents */
-        else if (str_eq(cmdstr, "set"))
+        /* show: print a variable's value */
+        /* set: set a variable's value */
+        else if (str_eq(cmdstr, "show") || str_eq(cmdstr, "set"))
         {
-                if (str_eq(args[0], "nc_timeout"))
-                {
-                        ret = sscanf(args[1], "%d", &cfg.nc_timeout);
-                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.nc_timeout);
-                }
-                else if (str_eq(args[0], "statusbar_timeout"))
-                {
-                        ret = sscanf(args[1], "%d", &cfg.statusbar_timeout);
-                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.statusbar_timeout);
-                }
-                else if (str_eq(args[0], "loglvl"))
-                {
-                        ret = sscanf(args[1], "%d", &cfg.loglvl);
-                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.loglvl);
-                }
-                else if (str_eq(args[0], "tasknc_version"))
-                {
-                        strcpy(cfg.version, args[1]);
-                        statusbar_message(cfg.statusbar_timeout, "%s: %s", args[0], cfg.version);
-                }
-                else if (str_eq(args[0], "sortmode"))
-                {
-                        ret = sscanf(args[1], "%c", &cfg.sortmode);
-                        sort_wrapper(head);
-                        (*redraw) = 1;
-                        statusbar_message(cfg.statusbar_timeout, "%s: %c", args[0], cfg.sortmode);
-                }
-                else if (str_eq(args[0], "statusbar_timeout"))
-                {
-                        ret = sscanf(args[1], "%d", &cfg.statusbar_timeout);
-                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.statusbar_timeout);
-                }
-                else if (str_eq(args[0], "searchstring"))
-                {
-                        searchstring = malloc(strlen(args[1]));
-                        strcpy(searchstring, args[1]);
-                        statusbar_message(cfg.statusbar_timeout, "%s: %s", args[0], searchstring);
-                }
+                this_var = (var *)find_var(args[0]);
+                if (this_var == NULL)
+                        statusbar_message(cfg.statusbar_timeout, "variable not found: %s", args[0]);
                 else
-                        statusbar_message(cfg.statusbar_timeout, "unknown variable: %s", args[0]);
-        }
-        /* show: print a variable's contents */
-        else if (str_eq(cmdstr, "show"))
-        {
-                if (str_eq(args[0], "nc_timeout"))
-                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.nc_timeout);
-                else if (str_eq(args[0], "statusbar_timeout"))
-                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.statusbar_timeout);
-                else if (str_eq(args[0], "loglvl"))
-                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.loglvl);
-                else if (str_eq(args[0], "tasknc_version"))
-                        statusbar_message(cfg.statusbar_timeout, "%s: %s", args[0], cfg.version);
-                else if (str_eq(args[0], "sortmode"))
-                        statusbar_message(cfg.statusbar_timeout, "%s: %c", args[0], cfg.sortmode);
-                else if (str_eq(args[0], "statusbar_timeout"))
-                        statusbar_message(cfg.statusbar_timeout, "%s: %d", args[0], cfg.statusbar_timeout);
-                else if (str_eq(args[0], "searchstring"))
-                        statusbar_message(cfg.statusbar_timeout, "%s: %s", args[0], searchstring);
-                else
-                        statusbar_message(cfg.statusbar_timeout, "unknown variable: %s", args[0]);
+                {
+                        if (str_eq(cmdstr, "set"))
+                        {
+                                switch (this_var->type)
+                                {
+                                        case VAR_INT:
+                                                ret = sscanf(args[1], "%d", (int *)this_var->ptr);
+                                                break;
+                                        case VAR_CHAR:
+                                                ret = sscanf(args[1], "%c", (char *)this_var->ptr);
+                                                break;
+                                        case VAR_STR:
+                                                /* TODO: free old value here */
+                                                if (*(char **)(this_var->ptr)!=NULL)
+                                                        free(*(char **)(this_var->ptr));
+                                                *(char **)(this_var->ptr) = calloc(strlen(args[1]), sizeof(char));
+                                                ret = NULL==strcpy(*(char **)(this_var->ptr), args[1]);
+                                                break;
+                                        default:
+                                                ret = 0;
+                                                break;
+                                }
+                        }
+                        msg = var_value_message(this_var);
+                        if (stdscr!=NULL)
+                                statusbar_message(cfg.statusbar_timeout, msg);
+                        else
+                                puts(msg);
+                        if (str_eq(cmdstr, "set"))
+                                logmsg(LOG_DEBUG, msg);
+                        free(msg);
+                }
         }
         else
         {
@@ -1165,6 +1188,7 @@ void nc_end(int sig) /* {{{ */
         if (searchstring!=NULL)
                 free(searchstring);
         free_tasks(head);
+        free(cfg.version);
 
         /* close open files */
         fclose(logfp);
@@ -1424,7 +1448,7 @@ task *parse_task(char *line) /* {{{ */
                         strcpy(tsk->tags, content);
                 }
 
-                /* free tmpstr if necessary */
+                /* free tmpcontent if necessary */
                 if (tmpcontent!=NULL)
                 {
                         free(tmpcontent);
@@ -1949,6 +1973,30 @@ char *utc_date(const unsigned int timeint) /* {{{ */
         return timestr;
 } /* }}} */
 
+char *var_value_message(var *v) /* {{{ */
+{
+        /* format a message containing the name and value of a variable */
+        char *message;
+
+        switch(v->type)
+        {
+                case VAR_INT:
+                        asprintf(&message, "%s: %d", v->name, *(int *)(v->ptr));
+                        break;
+                case VAR_CHAR:
+                        asprintf(&message, "%s: %c", v->name, *(char *)(v->ptr));
+                        break;
+                case VAR_STR:
+                        asprintf(&message, "%s: %s", v->name, *(char **)(v->ptr));
+                        break;
+                default:
+                        asprintf(&message, "variable type unhandled");
+                        break;
+        }
+
+        return message;
+} /* }}} */
+
 void wipe_screen(const short startl, const short stopl) /* {{{ */
 {
         /* clear the screen except the title and status bars */
@@ -2025,7 +2073,17 @@ int main(int argc, char **argv)
         else
         {
                 task_count();
-                printf("task count: %d", totaltaskcount);
+                printf("task count: %d\n", totaltaskcount);
+                char *test;
+                asprintf(&test, "set task_version 2.1");
+                char *tmp = var_value_message(find_var("task_version"));
+                puts(tmp);
+                free(tmp);
+                handle_command(test, NULL, NULL, NULL);
+                tmp = var_value_message(find_var("task_version"));
+                puts(tmp);
+                free(tmp);
+                free(test);
         }
 
         /* done */
