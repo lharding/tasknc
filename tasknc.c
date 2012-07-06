@@ -647,11 +647,6 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
         int argn, i, ret;
         var *this_var;
 
-        /* IGNORE DUMB RET WARNING TODO: DELETE*/
-        ret = 0;
-        if (ret)
-        {}
-
         logmsg(LOG_DEBUG, "command received: %s", cmdstr);
 
         /* determine command */
@@ -715,7 +710,6 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
                                                 ret = sscanf(args[1], "%c", (char *)this_var->ptr);
                                                 break;
                                         case VAR_STR:
-                                                /* TODO: free old value here */
                                                 if (*(char **)(this_var->ptr)!=NULL)
                                                         free(*(char **)(this_var->ptr));
                                                 *(char **)(this_var->ptr) = calloc(strlen(args[1]), sizeof(char));
@@ -726,6 +720,8 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
                                                 break;
                                 }
                         }
+                        if (ret<=0)
+                                logmsg(LOG_ERROR, "failed to parse value from command: %s %s %s", cmdstr, args[0], args[1]);
                         msg = var_value_message(this_var);
                         if (stdscr!=NULL)
                                 statusbar_message(cfg.statusbar_timeout, msg);
