@@ -87,25 +87,14 @@ typedef struct _task
         struct _task *prev;
         struct _task *next;
 } task;
-
-typedef struct _filter
-{
-        char mode;
-        char *string;
-        struct _filter *next;
-} task_filter;
 /* }}} */
 
 /* function prototypes {{{ */
-static void add_filter(task_filter *);
 static void check_curs_pos(void);
 static void check_screen_size(short);
 static char compare_tasks(const task *, const task *, const char);
 static void configure(void);
-static void filter_tasks(task_filter *);
 static void find_next_search_result(task *, task *);
-static void free_filter(task_filter *);
-static void free_filters();
 static char free_task(task *);
 static void free_tasks(task *);
 static unsigned short get_task_id(char *);
@@ -172,54 +161,10 @@ short selline = 0;                      /* selected line number */
 int size[2];                            /* size of the ncurses window */
 int taskcount;                          /* number of tasks */
 int totaltaskcount;                     /* number of tasks with no filters applied */
-task_filter *active_filters = NULL;     /* a struct containing the active filter(s) */
+char *active_filter = NULL;             /* a string containing the active filter string */
 task *head = NULL;                      /* the current top of the list */
 FILE *logfp;                            /* handle for log file */
 /* }}} */
-
-void add_filter(task_filter *this_filter) /* {{{ */
-{
-        /* apply a filter, then add it to the filter queue if applicable */
-        int counter;
-
-        /* apply filter from struct if available */
-        if (this_filter->mode>=0)
-        {
-                filter_tasks(this_filter);
-                /* make struct persist if configured to */
-                if (cfg.filter_persist && this_filter->mode!=FILTER_CLEAR)
-                {
-                        if (cfg.filter_cascade)
-                        {
-                                /* find end of cascade and append this_filter */ 
-                                if (active_filters==NULL)
-                                        active_filters = this_filter;
-                                else
-                                {
-                                        counter = 1;
-                                        task_filter *n = active_filters;
-                                        while (n->next!=NULL)
-                                        {
-                                                n = n->next;
-                                                counter++;
-                                        }
-                                        logmsg(LOG_DEBUG_VERBOSE, "%d filter position (%s)", counter, this_filter->string);
-                                        n->next = this_filter;
-                                }
-                        }
-                        else
-                        {
-                                /* free active filter and set it to this_filter */
-                                if (active_filters!=NULL)
-                                        check_free(active_filters->string);
-                                active_filters = this_filter;
-                        }
-                }
-                /* free tmpstr if unused */
-                else if (this_filter->mode!=FILTER_CLEAR)
-                        check_free(this_filter->string);
-        }
-} /* }}} */
 
 void check_curs_pos(void) /* {{{ */
 {
@@ -498,79 +443,6 @@ void configure(void) /* {{{ */
         fclose(config);
 } /* }}} */
 
-void filter_tasks(task_filter *this_filter) /* {{{ */
-{
-        /* iterate through task list and filter them */
-        task *cur = head;
-        const char filter_mode = this_filter->mode;
-        const char *filter_value = this_filter->string;
-
-        /* reset task counters */
-        taskcount = 0;
-        totaltaskcount = 0;
-
-        /* loop through tasks */
-        if (cfg.filter_persist && filter_mode!=FILTER_CLEAR)
-        {
-                while (cur!=NULL && cur->is_filtered==0)
-                {
-                        cur = cur->next;
-                        totaltaskcount++;
-                }
-        }
-        while (cur!=NULL)
-        {
-                switch (filter_mode)
-                {
-                        case FILTER_DESCRIPTION:
-                                cur->is_filtered = match_string(cur->description, filter_value);
-                                break;
-                        case FILTER_TAGS:
-                                cur->is_filtered = match_string(cur->tags, filter_value);
-                                break;
-                        case FILTER_PROJECT:
-                                cur->is_filtered = match_string(cur->project, filter_value);
-                                break;
-                        case FILTER_CLEAR:
-                                cur->is_filtered = 1;
-                                if (active_filters!=NULL)
-                                {
-                                        task_filter *n = active_filters;
-                                        task_filter *last;
-                                        while (n!=NULL)
-                                        {
-                                                if (n==n->next)
-                                                {
-                                                        logmsg(LOG_ERROR, "circularly linked task filters");
-                                                        break;
-                                                }
-                                                check_free(n->string);
-                                                last = n;
-                                                n = n->next;
-                                                check_free(last);
-                                        }
-                                        active_filters = NULL;
-                                }
-                                break;
-                        case FILTER_BY_STRING:
-                        default:
-                                cur->is_filtered = task_match(cur, filter_value);
-                                break;
-                }
-                taskcount += cur->is_filtered;
-                totaltaskcount++;
-                cur = cur->next;
-                if (cfg.filter_persist && filter_mode!=FILTER_CLEAR)
-                {
-                        while (cur!=NULL && cur->is_filtered==0)
-                        {
-                                cur = cur->next;
-                                totaltaskcount++;
-                        }
-                }
-        }
-} /* }}} */
-
 void find_next_search_result(task *head, task *pos) /* {{{ */
 {
         /* find the next search result in the list of tasks */
@@ -611,26 +483,6 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
         statusbar_message(cfg.statusbar_timeout, "no matches: %s", searchstring);
 
         return;
-} /* }}} */
-
-void free_filter(task_filter *this) /* {{{ */
-{
-        /* free a task_filter struct */
-        check_free(this->string);
-        check_free(this);
-} /* }}} */
-
-void free_filters() /* {{{ */
-{
-        /* free all task_filters in the active_filters stack */
-        task_filter *next, *this = active_filters;
-
-        while (this!=NULL)
-        {
-                next = this->next;
-                free_filter(this);
-                this = next;
-        }
 } /* }}} */
 
 char free_task(task *tsk) /* {{{ */
@@ -694,16 +546,29 @@ unsigned short get_task_id(char *uuid) /* {{{ */
 task *get_tasks(void) /* {{{ */
 {
         FILE *cmd;
-        char *line, *tmp;
+        char *line, *tmp, *cmdstr, free_filter = 0;
         int linelen = TOTALLENGTH;
         unsigned short counter = 0;
         task *last;
 
-        /* run command */
+        /* generate & run command */
+        if (active_filter==NULL)
+        {
+                asprintf(&active_filter, " ");
+                free_filter = 1;
+        }
         if (cfg.version[0]<'2')
-                cmd = popen("task export.json status:pending", "r");
+                asprintf(&cmdstr, "task export.json status:pending %s", active_filter);
         else
-                cmd = popen("task export status:pending", "r");
+                asprintf(&cmdstr, "task export status:pending %s", active_filter);
+        logmsg(LOG_DEBUG, "reloading tasks (%s)", cmdstr);
+        cmd = popen(cmdstr, "r");
+        free(cmdstr);
+        if (free_filter == 1)
+        {
+                free(active_filter);
+                active_filter = NULL;
+        }
 
         /* parse output */
         last = NULL;
@@ -735,6 +600,8 @@ task *get_tasks(void) /* {{{ */
                 this = parse_task(line);
                 if (this == NULL)
                         return NULL;
+                else if (this == (task *)-1)
+                        continue;
                 else if (this->uuid == NULL ||
                                 this->description == NULL)
                         return NULL;
@@ -962,7 +829,7 @@ void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
                                 key_search_next(redraw);
                                 break;
                         case 'f': // filter
-                                key_filter(redraw);
+                                key_filter(reload);
                                 break;
                         case 'y': // sync
                                 key_sync(reload);
@@ -1025,82 +892,19 @@ void key_command (char *reload, char *redraw, char *done) /* {{{ */
         set_curses_mode(NCURSES_MODE_STD);
 } /* }}} */
 
-void key_filter(char *redraw) /* {{{ */
+void key_filter(char *reload) /* {{{ */
 {
         /* handle a keyboard direction to add a new filter */
-        int c;
-        char *tmpstr;
-
-        statusbar_message(cfg.statusbar_timeout, "filter by: Any Clear Proj Desc Tag");
-        set_curses_mode(NCURSES_MODE_STD_BLOCKING);
-        c = getch();
+        statusbar_message(-1, "filter by: ");
+        set_curses_mode(NCURSES_MODE_STRING);
+        active_filter = calloc(2*size[0], sizeof(char));
+        getstr(active_filter);
         wipe_statusbar();
-        if (strchr("acdptACDPT", c)==NULL)
-        {
-                statusbar_message(cfg.statusbar_timeout, "invalid filter mode");
-                return;
-        }
-        if (strchr("cC", c)==NULL)
-        {
-                statusbar_message(-1, "filter string: ");
-                set_curses_mode(NCURSES_MODE_STRING);
-                tmpstr = calloc(size[0]-16, sizeof(char));
-                getstr(tmpstr);
-        }
         set_curses_mode(NCURSES_MODE_STD);
 
-        /* initialize filter */
-        task_filter *this_filter;
-        this_filter = calloc(1, sizeof(task_filter));
-        this_filter->mode = -1;
-        this_filter->string = NULL;
-        this_filter->next = NULL;
-
-        /* determine filter parameters */
-        switch (c)
-        {
-                case 'a':
-                case 'A':
-                        this_filter->mode = FILTER_BY_STRING;
-                        this_filter->string = tmpstr;
-                        break;
-                case 'c':
-                case 'C':
-                        this_filter->mode = FILTER_CLEAR;
-                        break;
-                case 'd':
-                case 'D':
-                        this_filter->mode = FILTER_DESCRIPTION;
-                        this_filter->string = tmpstr;
-                        break;
-                case 'p':
-                case 'P':
-                        this_filter->mode = FILTER_PROJECT;
-                        this_filter->string = tmpstr;
-                        break;
-                case 't':
-                case 'T':
-                        this_filter->mode = FILTER_TAGS;
-                        this_filter->string = tmpstr;
-                        break;
-                default:
-                        statusbar_message(cfg.statusbar_timeout, "invalid filter mode");
-                        break;
-        }
-
-        add_filter(this_filter);
-        /* check if task list is empty after filtering */
-        if (taskcount==0)
-        {
-                task_filter tmp_filter;
-                tmp_filter.mode = FILTER_CLEAR;
-                filter_tasks(&tmp_filter);
-                statusbar_message(cfg.statusbar_timeout, "filter yielded no results; reset");
-        }
-        else
-                statusbar_message(cfg.statusbar_timeout, "filter applied");
+        statusbar_message(cfg.statusbar_timeout, "filter applied");
         check_curs_pos();
-        (*redraw) = 1;
+        (*reload) = 1;
 } /* }}} */
 
 void key_scroll(const int direction, char *redraw) /* {{{ */
@@ -1409,7 +1213,6 @@ void nc_end(int sig) /* {{{ */
         }
 
         /* free all data here */
-        free_filters();
         if (searchstring!=NULL)
                 free(searchstring);
         free_tasks(head);
@@ -1486,8 +1289,6 @@ void nc_main() /* {{{ */
                 {
                         reload_tasks();
                         task_count();
-                        if (active_filters!=NULL)
-                                filter_tasks(active_filters);
                         check_curs_pos();
                         print_title(size[0]);
                         redraw = 1;
@@ -1580,6 +1381,11 @@ task *parse_task(char *line) /* {{{ */
         tmpcontent = NULL;
         int tokencounter = 0;
 
+        /* detect lines that are not json */
+        if (line[0]!='{')
+                return (task *) -1;
+
+        /* parse json */
         token = strtok(line, ",");
         while (token != NULL)
         {
