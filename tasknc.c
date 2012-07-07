@@ -30,7 +30,7 @@
 /* program information */
 #define NAME                            "taskwarrior ncurses shell"
 #define SHORTNAME                       "tasknc"
-#define VERSION                         "0.5"
+#define VERSION                         "0.6"
 #define AUTHOR                          "mjheagle"
 
 /* field lengths */

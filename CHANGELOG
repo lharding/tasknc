@@ -1,5 +1,16 @@
 tasknc changelog
 
+v0.6
+    * general code cleanup
+        * make more variables global
+        * creating infrastructure to facilitate keybinds, etc
+    * handle printing unicode strings (umvaddstr)
+    * make config file a rc format (set <var> <value>)
+    * added (basic) command prompt
+    * fixed segfaulting on very long tasks
+    * have filters handled by taskwarrior instead of internally
+    * added (un)install to Makefile
+
 v0.5
     * task 2.0 support
     * move to json parsing over csv
