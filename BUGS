@@ -1,3 +1,4 @@
 tasknc: known bugs or other things to improve
 
-    eliminate unnecessary struct task fields
+    string length on unicode-containing strings
+    highlighting padded strings (pad_string not functioning as intended?)

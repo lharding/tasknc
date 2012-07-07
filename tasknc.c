@@ -107,18 +107,18 @@ static void free_tasks(task *);
 static unsigned short get_task_id(char *);
 static task *get_tasks(void);
 static void handle_command(char *, char *, char *, char *);
-static void handle_keypress(int, char *, char *, char *);
+static void handle_keypress(int);
 static void help(void);
-static void key_add(char *);
-static void key_command(char *, char *, char *);
-static void key_filter(char *);
-static void key_scroll(const int, char *);
-static void key_search(char *);
-static void key_search_next(char *);
-static void key_sort(char *);
-static void key_sync(char *);
-static void key_task_action(char *, const char, const char *, const char *);
-static void key_undo(char *);
+static void key_add();
+static void key_command();
+static void key_filter();
+static void key_scroll(const int);
+static void key_search();
+static void key_search_next();
+static void key_sort();
+static void key_sync();
+static void key_task_action(const char, const char *, const char *);
+static void key_undo();
 static void logmsg(const char, const char *, ...) __attribute__((format(printf,2,3)));
 static task *malloc_task(void);
 static char match_string(const char *, const char *);
@@ -159,12 +159,18 @@ struct {
 } cfg;
 /* }}} */
 
-/* field lengths struct {{{ */
+/* run state structs {{{ */
 struct {
         short project;
         short description;
         short date;
 } fieldlengths;
+
+struct {
+        char redraw;
+        char reload;
+        char done;
+} state;
 /* }}} */
 
 /* global variables {{{ */
@@ -719,70 +725,70 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
                 logmsg(LOG_DEBUG_VERBOSE, "command: [arg %d] %s", i, args[i]);
 } /* }}} */
 
-void handle_keypress(int c, char *redraw, char *reload, char *done) /* {{{ */
+void handle_keypress(int c) /* {{{ */
 {
         /* handle a key press on the main screen */
         switch (c)
                 {
                         case 'k': // scroll up
                         case KEY_UP:
-                                key_scroll(-1, redraw);
+                                key_scroll(-1);
                                 break;
                         case 'j': // scroll down
                         case KEY_DOWN:
-                                key_scroll(1, redraw);
+                                key_scroll(1);
                                 break;
                         case KEY_HOME: // go to first entry
-                                key_scroll(-2, redraw);
+                                key_scroll(-2);
                                 break;
                         case KEY_END: // go to last entry
-                                key_scroll(2, redraw);
+                                key_scroll(2);
                                 break;
                         case 'e': // edit task
-                                key_task_action(reload, ACTION_EDIT, "task edited", "task edit failed");
+                                key_task_action(ACTION_EDIT, "task edited", "task edit failed");
                                 break;
                         case 'r': // reload task list
-                                (*reload) = 1;
+                                state.reload = 1;
                                 statusbar_message(cfg.statusbar_timeout, "task list reloaded");
                                 break;
                         case 'u': // undo
-                                key_undo(reload);
+                                key_undo();
                                 break;
                         case 'd': // delete
-                                key_task_action(reload, ACTION_DELETE, "task deleted", "task delete fail");
+                                key_task_action(ACTION_DELETE, "task deleted", "task delete fail");
                                 break;
                         case 'c': // complete
-                                key_task_action(reload, ACTION_COMPLETE, "task completed", "task complete failed");
+                                key_task_action(ACTION_COMPLETE, "task completed", "task complete failed");
                                 break;
                         case 'a': // add new
-                                key_add(reload);
+                                key_add();
                                 break;
                         case 'v': // view info
                         case KEY_ENTER:
                         case 13:
-                                key_task_action(NULL, ACTION_VIEW, "", "");
+                                key_task_action(ACTION_VIEW, "", "");
                                 break;
                         case 's': // re-sort list
-                                key_sort(redraw);
+                                key_sort();
                                 break;
                         case '/': // search
-                                key_search(redraw);
+                                key_search();
                                 break;
                         case 'n': // next search result
-                                key_search_next(redraw);
+                                key_search_next();
                                 break;
                         case 'f': // filter
-                                key_filter(reload);
+                                key_filter();
                                 break;
                         case 'y': // sync
-                                key_sync(reload);
+                                key_sync();
                                 break;
                         case 'q': // quit
-                                (*done) = 1;
+                                state.done = 1;
                                 break;
                         case ':': // accept command string
                         case ';':
-                                key_command(reload, redraw, done);
+                                key_command();
                                 break;
                         case ERR: // no key was pressed
                                 break;
@@ -804,14 +810,14 @@ void help(void) /* {{{ */
         puts("  -v: print the version of tasknc");
 } /* }}} */
 
-void key_add(char *reload) /* {{{ */
+void key_add() /* {{{ */
 {
         /* handle a keyboard direction to add new task */
         def_prog_mode();
         endwin();
         task_add();
         refresh();
-        (*reload) = 1;
+        state.reload = 1;
         statusbar_message(cfg.statusbar_timeout, "task added");
 } /* }}} */
 
@@ -835,7 +841,7 @@ void key_command (char *reload, char *redraw, char *done) /* {{{ */
         set_curses_mode(NCURSES_MODE_STD);
 } /* }}} */
 
-void key_filter(char *reload) /* {{{ */
+void key_filter() /* {{{ */
 {
         /* handle a keyboard direction to add a new filter */
         statusbar_message(-1, "filter by: ");
@@ -847,10 +853,10 @@ void key_filter(char *reload) /* {{{ */
 
         statusbar_message(cfg.statusbar_timeout, "filter applied");
         selline = 0;
-        (*reload) = 1;
+        state.reload = 1;
 } /* }}} */
 
-void key_scroll(const int direction, char *redraw) /* {{{ */
+void key_scroll(const int direction) /* {{{ */
 {
         /* handle a keyboard direction to scroll */
         switch (direction)
@@ -876,11 +882,11 @@ void key_scroll(const int direction, char *redraw) /* {{{ */
                 default:
                         break;
         }
-        (*redraw) = 1;
+        state.redraw = 1;
         check_curs_pos();
 } /* }}} */
 
-void key_search(char *redraw) /* {{{ */
+void key_search() /* {{{ */
 {
         /* handle a keyboard direction to search */
         statusbar_message(-1, "search phrase: ");
@@ -896,23 +902,23 @@ void key_search(char *redraw) /* {{{ */
         /* go to first result */
         find_next_search_result(head, sel_task(head));
         check_curs_pos();
-        (*redraw) = 1;
+        state.redraw = 1;
 } /* }}} */
 
-void key_search_next(char *redraw) /* {{{ */
+void key_search_next() /* {{{ */
 {
         /* handle a keyboard direction to move to next search result */
         if (searchstring!=NULL)
         {
                 find_next_search_result(head, sel_task(head));
                 check_curs_pos();
-                (*redraw) = 1;
+                state.redraw = 1;
         }
         else
                 statusbar_message(cfg.statusbar_timeout, "no active search string");
 } /* }}} */
 
-void key_sort(char *redraw) /* {{{ */
+void key_sort() /* {{{ */
 {
         /* handle a keyboard direction to sort */
         char m;
@@ -943,17 +949,17 @@ void key_sort(char *redraw) /* {{{ */
                         statusbar_message(cfg.statusbar_timeout, "invalid sort mode");
                         break;
         }
-        (*redraw) = 1;
+        state.redraw = 1;
 } /* }}} */
 
-void key_sync(char *reload) /* {{{ */
+void key_sync() /* {{{ */
 {
         /* handle a keyboard direction to sync */
         int ret;
 
         def_prog_mode();
         endwin();
-        (*reload) = 1;
+        state.reload = 1;
         ret = system("yes n | task merge");
         if (ret==0)
                 ret = system("task push");
@@ -964,15 +970,15 @@ void key_sync(char *reload) /* {{{ */
                 statusbar_message(cfg.statusbar_timeout, "task syncronization failed");
 } /* }}} */
 
-void key_task_action(char *reload, const char action, const char *msg_success, const char *msg_fail) /* {{{ */
+void key_task_action(const char action, const char *msg_success, const char *msg_fail) /* {{{ */
 {
         /* handle a keyboard direction to run a task command */
         int ret;
 
         def_prog_mode();
         endwin();
-        if (reload!=NULL)
-                (*reload) = 1;
+        if (action!=ACTION_VIEW)
+                state.reload = 1;
         ret = task_action(head, action);
         refresh();
         if (ret==0)
@@ -981,7 +987,7 @@ void key_task_action(char *reload, const char action, const char *msg_success, c
                 statusbar_message(cfg.statusbar_timeout, msg_fail);
 } /* }}} */
 
-void key_undo(char *reload) /* {{{ */
+void key_undo() /* {{{ */
 {
         /* handle a keyboard direction to run an undo */
         int ret;
@@ -990,7 +996,7 @@ void key_undo(char *reload) /* {{{ */
         endwin();
         ret = system("task undo");
         refresh();
-        (*reload) = 1;
+        state.reload = 1;
         if (ret==0)
                 statusbar_message(cfg.statusbar_timeout, "undo executed");
         else
@@ -1200,9 +1206,9 @@ void nc_main() /* {{{ */
         while (1)
         {
                 /* set variables for determining actions */
-                char done = 0;
-                char redraw = 0;
-                char reload = 0;
+                state.done = 0;
+                state.redraw = 0;
+                state.reload = 0;
 
                 /* get the screen size */
                 getmaxyx(stdscr, size[1], size[0]);
@@ -1213,7 +1219,7 @@ void nc_main() /* {{{ */
                 /* check for size changes */
                 if (size[0]!=oldsize[0] || size[1]!=oldsize[1])
                 {
-                        redraw = 1;
+                        state.redraw = 1;
                         wipe_statusbar();
                 }
                 for (tmp=0; tmp<2; tmp++)
@@ -1223,11 +1229,11 @@ void nc_main() /* {{{ */
                 c = getch();
 
                 /* handle the character */
-                handle_keypress(c, &redraw, &reload, &done);
+                handle_keypress(c);
 
-                if (done==1)
+                if (state.done==1)
                         break;
-                if (reload==1)
+                if (state.reload==1)
                 {
                         reload_tasks();
                         task_count();
@@ -1235,9 +1241,9 @@ void nc_main() /* {{{ */
                         print_title(size[0]);
                         wipe_tasklist();
                         refresh();
-                        redraw = 1;
+                        state.redraw = 1;
                 }
-                if (redraw==1)
+                if (state.redraw==1)
                 {
                         wipe_tasklist();
                         fieldlengths.project = max_project_length();
