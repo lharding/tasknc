@@ -143,7 +143,7 @@ static int task_action(task *, const char);
 static void task_add(void);
 static void task_count();
 static char task_match(const task *, const char *);
-int umvaddstr(const int, const int, const char *);
+int umvaddstr(const int, const int, const char *, ...) __attribute__((format(printf,3,4)));
 static char *utc_date(const unsigned int);
 static char *var_value_message(var *);
 static void wipe_screen(const short, const short);
@@ -1883,21 +1883,37 @@ static char task_match(const task *cur, const char *str) /* {{{ */
                 return 0;
 } /* }}} */
 
-int umvaddstr(const int y, const int x, const char *str) /* {{{ */
+int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
 {
         /* convert a string to a wchar string and mvaddwstr */
-        const int len = strlen(str)+1;
-        int r;
-        wchar_t *wstr = calloc(len, sizeof(wchar_t));
+        int len, r;
+        wchar_t *wstr;
+        char *str;
+        va_list args;
+
+        /* build str */
+        va_start(args, format);
+        vasprintf(&str, format, args);
+        va_end(args);
+
+        /* allocate wchar_t string */
+        len = strlen(str)+1;
+        wstr = calloc(len, sizeof(wchar_t));
+
+        /* check for valid allocation */
         if (wstr==NULL)
         {
                 logmsg(LOG_ERROR, "critical: umvaddstr failed to malloc");
                 return -1;
         }
 
+        /* perform conversion and write to screen */
         mbstowcs(wstr, str, len);
         r = mvaddnwstr(y, x, wstr, len-1);
+
+        /* free memory allocated */
         free(wstr);
+        free(str);
 
         return r;
 } /* }}} */
