@@ -677,7 +677,10 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
         /* handle command & arguments */
         /* version: print version string */
         if (str_eq(cmdstr, "version"))
-                statusbar_message(cfg.statusbar_timeout, "%s v%s by %s\n", NAME, VERSION, AUTHOR);
+        {
+                if (stdscr!=NULL)
+                        statusbar_message(cfg.statusbar_timeout, "%s v%s by %s\n", NAME, VERSION, AUTHOR);
+        }
         /* quit/exit: exit tasknc */
         else if (str_eq(cmdstr, "quit") || str_eq(cmdstr, "exit"))
                 (*done) = 1;
@@ -685,7 +688,8 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
         else if (str_eq(cmdstr, "reload"))
         {
                 (*reload) = 1;
-                statusbar_message(cfg.statusbar_timeout, "task list reloaded");
+                if (stdscr!=NULL)
+                        statusbar_message(cfg.statusbar_timeout, "task list reloaded");
         }
         /* redraw: force redraw of screen */
         else if (str_eq(cmdstr, "redraw"))
@@ -696,7 +700,10 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
         {
                 this_var = (var *)find_var(args[0]);
                 if (this_var == NULL)
-                        statusbar_message(cfg.statusbar_timeout, "variable not found: %s", args[0]);
+                        if (stdscr!=NULL)
+                                statusbar_message(cfg.statusbar_timeout, "variable not found: %s", args[0]);
+                        else
+                                logmsg(LOG_ERROR, "variable not found: %s", args[0]);
                 else
                 {
                         if (str_eq(cmdstr, "set"))
@@ -726,7 +733,7 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
                         if (stdscr!=NULL)
                                 statusbar_message(cfg.statusbar_timeout, msg);
                         else
-                                puts(msg);
+                                logmsg(LOG_DEBUG, msg);
                         if (str_eq(cmdstr, "set"))
                                 logmsg(LOG_DEBUG, msg);
                         free(msg);
