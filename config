@@ -5,20 +5,14 @@
 # time for ncurses cmds (getch) to expire (in ms)
 # this is visible in the time that the window takes to refresh on resize
 # but will consume more cpu with a lower time
-nc_timeout = 500
+set nc_timeout 500
 
 # time for statusbar messages to expire (in s)
-statusbar_timeout = 3
+set statusbar_timeout 2
 
 # default sort mode
 # d: due date
 # n: index
 # p: project
 # r: priority
-sortmode = d
-
-# boolean to determine if filters should persist until they are cleared
-filter_persist = 1
-
-# boolean to determine if filters should cascade
-filter_cascade = 1
+set sort_mode d

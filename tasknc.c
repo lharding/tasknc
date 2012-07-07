@@ -343,7 +343,7 @@ void configure(void) /* {{{ */
         }
         pclose(cmd);
 
-        /* read config file */
+        /* determine config path */
         xdg_config_home = getenv("XDG_CONFIG_HOME");
         if (xdg_config_home == NULL)
         {
@@ -376,8 +376,7 @@ void configure(void) /* {{{ */
         logmsg(LOG_DEBUG, "reading config file");
         while (fgets(line, TOTALLENGTH, config))
         {
-                char *val, *tmp;
-                int ret;
+                char *val;
 
                 /* discard comment lines or blank lines */
                 if (line[0]=='#' || line[0]=='\n')
@@ -385,51 +384,11 @@ void configure(void) /* {{{ */
 
                 /* handle comments that are mid-line */
                 if((val = strchr(line, '#')))
-                          *val = '\0';
+                        *val = '\0';
 
-
-                if (str_starts_with(line, "nc_timeout"))
-                {
-                        ret = sscanf(line, "nc_timeout = %d", &(cfg.nc_timeout));
-                        if (!ret)
-                        {
-                                puts("error parsing nc_timeout configuration");
-                                logmsg(LOG_ERROR, "parsing nc_timeout configuration");
-                        }
-                        else
-                                logmsg(LOG_DEBUG, "nc_timeout set to %d ms", cfg.nc_timeout);
-                }
-                else if (str_starts_with(line, "statusbar_timeout"))
-                {
-                        ret = sscanf(line, "statusbar_timeout = %d", &(cfg.statusbar_timeout));
-                        if (!ret)
-                        {
-                                puts("error parsing statusbar_timeout configuration");
-                                logmsg(LOG_ERROR, "parsing statusbar_timeout configuration");
-                        }
-                        else
-                                logmsg(LOG_DEBUG, "statusbar_timeout set to %d s", cfg.statusbar_timeout);
-                }
-                else if (str_starts_with(line, "sortmode"))
-                {
-                        ret = sscanf(line, "sortmode = %c", &(cfg.sortmode));
-                        if (!ret || strchr("dnpr", cfg.sortmode)==NULL)
-                        {
-                                puts("error parsing sortmode configuration");
-                                puts("valid sort modes are: d, n, p, or r");
-                                logmsg(LOG_ERROR, "parsing sortmode configuration");
-                                logmsg(LOG_ERROR, "  valid sort modes are: d, n, p, or r");
-                        }
-                        else
-                                logmsg(LOG_DEBUG, "sortmode set to %c", cfg.sortmode);
-                }
+                /* handle config commands */
                 else
-                {
-                        asprintf(&tmp, "unhandled config line: %s", line);
-                        logmsg(LOG_ERROR, tmp);
-                        puts(tmp);
-                        free(tmp);
-                }
+                        handle_command(line, NULL, NULL, NULL);
         }
 
         /* close config file */
