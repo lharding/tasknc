@@ -97,7 +97,7 @@ typedef struct _var
 
 /* function prototypes {{{ */
 static void check_curs_pos(void);
-static void check_screen_size(short);
+static void check_screen_size();
 static char compare_tasks(const task *, const task *, const char);
 static void configure(void);
 static void find_next_search_result(task *, task *);
@@ -129,7 +129,7 @@ static void nc_end(int);
 static void nc_main();
 static char *pad_string(char *, int, const int, int, const char);
 static task *parse_task(char *);
-static void print_task_list(const short, const short, const short);
+static void print_task_list();
 static void print_title(const int);
 static void print_version(void);
 static void reload_tasks();
@@ -157,6 +157,14 @@ struct {
         char *version;
         char sortmode;
 } cfg;
+/* }}} */
+
+/* field lengths struct {{{ */
+struct {
+        short project;
+        short description;
+        short date;
+} fieldlengths;
 /* }}} */
 
 /* global variables {{{ */
@@ -207,7 +215,7 @@ void check_curs_pos(void) /* {{{ */
         logmsg(LOG_DEBUG_VERBOSE, "selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, size[1]-3);
 } /* }}} */
 
-void check_screen_size(short projlen) /* {{{ */
+void check_screen_size() /* {{{ */
 {
         /* check for a screen thats too small */
         int count = 0;
@@ -229,7 +237,7 @@ void check_screen_size(short projlen) /* {{{ */
                 }
                 count++;
                 getmaxyx(stdscr, size[1], size[0]);
-        } while (size[0]<DATELENGTH+20+projlen || size[1]<5);
+        } while (size[0]<DATELENGTH+20+fieldlengths.project || size[1]<5);
 } /* }}} */
 
 char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
@@ -1163,9 +1171,8 @@ void nc_main() /* {{{ */
         /* ncurses main function */
         WINDOW *stdscr;
         int c, tmp, oldsize[2];
-        short projlen = max_project_length();
-        short desclen;
-        const short datelen = DATELENGTH;
+        fieldlengths.project = max_project_length();
+        fieldlengths.date = DATELENGTH;
 
         /* initialize ncurses */
         puts("starting ncurses...");
@@ -1180,13 +1187,13 @@ void nc_main() /* {{{ */
         set_curses_mode(NCURSES_MODE_STD);
 
         /* print main screen */
-        check_screen_size(projlen);
+        check_screen_size();
         getmaxyx(stdscr, oldsize[1], oldsize[0]);
-        desclen = oldsize[0]-projlen-1-datelen;
+        fieldlengths.description = oldsize[0]-fieldlengths.project-1-fieldlengths.date;
         task_count();
         print_title(oldsize[0]);
         attrset(COLOR_PAIR(0));
-        print_task_list(projlen, desclen, datelen);
+        print_task_list();
         refresh();
 
         /* main loop */
@@ -1201,7 +1208,7 @@ void nc_main() /* {{{ */
                 getmaxyx(stdscr, size[1], size[0]);
 
                 /* check for a screen thats too small */
-                check_screen_size(projlen);
+                check_screen_size();
 
                 /* check for size changes */
                 if (size[0]!=oldsize[0] || size[1]!=oldsize[1])
@@ -1233,10 +1240,10 @@ void nc_main() /* {{{ */
                 if (redraw==1)
                 {
                         wipe_tasklist();
-                        projlen = max_project_length();
-                        desclen = size[0]-projlen-1-datelen;
+                        fieldlengths.project = max_project_length();
+                        fieldlengths.description = size[0]-fieldlengths.project-1-fieldlengths.date;
                         print_title(size[0]);
-                        print_task_list(projlen, desclen, datelen);
+                        print_task_list();
                         refresh();
                 }
                 if (sb_timeout>0 && sb_timeout<time(NULL))
@@ -1430,7 +1437,7 @@ task *parse_task(char *line) /* {{{ */
                 return tsk;
 } /* }}} */
 
-void print_task_list(const short projlen, const short desclen, const short datelen) /* {{{ */
+void print_task_list() /* {{{ */
 {
         task *cur;
         short counter = 0;
@@ -1468,16 +1475,16 @@ void print_task_list(const short projlen, const short desclen, const short datel
                 /* print project */
                 attrset(COLOR_PAIR(2+3*sel));
                 if (cur->project==NULL)
-                        bufstr = pad_string(" ", projlen, 0, 1, 'r');
+                        bufstr = pad_string(" ", fieldlengths.project, 0, 1, 'r');
                 else
-                        bufstr = pad_string(cur->project, projlen, 0, 1, 'r');
+                        bufstr = pad_string(cur->project, fieldlengths.project, 0, 1, 'r');
                 umvaddstr(thisline, 0, bufstr);
                 check_free(bufstr);
 
                 /* print description */
                 attrset(COLOR_PAIR(3+3*sel));
-                bufstr = pad_string(cur->description, desclen, 0, 1, 'l');
-                umvaddstr(thisline, projlen+1, bufstr);
+                bufstr = pad_string(cur->description, fieldlengths.description, 0, 1, 'l');
+                umvaddstr(thisline, fieldlengths.project+1, bufstr);
                 check_free(bufstr);
 
                 /* print due date or priority if available */
@@ -1486,7 +1493,7 @@ void print_task_list(const short projlen, const short desclen, const short datel
                 {
                         char *tmp;
                         tmp = utc_date(cur->due);
-                        bufstr = pad_string(tmp, datelen, 0, 0, 'r');
+                        bufstr = pad_string(tmp, fieldlengths.date, 0, 0, 'r');
                         free(tmp);
                 }
                 else if (cur->priority)
@@ -1494,12 +1501,12 @@ void print_task_list(const short projlen, const short desclen, const short datel
                         char *tmp;
                         tmp = malloc(2*sizeof(char));
                         sprintf(tmp, "%c", cur->priority);
-                        bufstr = pad_string(tmp, datelen, 0, 0, 'r');
+                        bufstr = pad_string(tmp, fieldlengths.date, 0, 0, 'r');
                         check_free(tmp);
                 }
                 else
-                        bufstr = pad_string(" ", datelen, 0, 0, 'r');
-                umvaddstr(thisline, projlen+desclen+1, bufstr);
+                        bufstr = pad_string(" ", fieldlengths.date, 0, 0, 'r');
+                umvaddstr(thisline, fieldlengths.project+fieldlengths.description+1, bufstr);
                 check_free(bufstr);
 
                 /* move to next item */
