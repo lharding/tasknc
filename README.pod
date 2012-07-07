@@ -15,19 +15,19 @@ tasknc is a simple wrapper, written in C, around the taskwarrior task manager.
 
 =over 4
 
-=item B<-h>
+=item B<-h, --help>
 
 Print the help message
 
-=item B<-v>
+=item B<-v, --version>
 
 Print the version of tasknc
 
-=item B<-d>
+=item B<-d, --debug>
 
 Debug mode (no ncurses gui)
 
-=item B<-l> I<loglvl>
+=item B<-l, --loglevel> I<loglvl>
 
 Set log level to I<loglvl>, which must be a non-negative integer.
 
@@ -99,18 +99,22 @@ go to next task result
 
 =item B<f>
 
-filter (prompted for filter algorithm)
+filter (prompted for filter string)
+
+=item B<:>
+
+open command prompt
 
 =back
 
 =head1 CONFIG FILE
 
 tasknc honors a config file located at 
-    
+
     $XDG_CONFIG_HOME/tasknc/config
 
 or, if $XDG_CONFIG_HOME doesnt exist,
-    
+
     $HOME/.config/tasknc/config
 
 A documented example config can be found at /usr/share/tasknc/config.

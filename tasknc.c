@@ -6,6 +6,7 @@
 #define _GNU_SOURCE
 #define _XOPEN_SOURCE
 #include <curses.h>
+#include <getopt.h>
 #include <locale.h>
 #include <regex.h>
 #include <signal.h>
@@ -792,11 +793,12 @@ void help(void) /* {{{ */
 {
         /* print a list of options and program info */
         print_version();
-        puts("\noptions:");
-        puts("  -l [value]: set log level");
-        puts("  -d: debug mode (no ncurses run)");
-        puts("  -h: print this help message");
-        puts("  -v: print the version of tasknc");
+        fprintf(stderr, "\nUsage: %s [options]\n\n", NAME);
+        fprintf(stderr, "  Options:\n"
+                        "    -l, --loglevel [value]   set log level\n"
+                        "    -d, --debug              debug mode\n"
+                        "    -h, --help               print this help message and exit\n"
+                        "    -v, --version            print the version and exit\n");
 } /* }}} */
 
 void key_add() /* {{{ */
@@ -1991,7 +1993,7 @@ void wipe_screen(const short startl, const short stopl) /* {{{ */
         check_free(blank);
 } /* }}} */
 
-int main(int argc, char **argv)
+int main(int argc, char **argv) /* {{{ */
 {
         /* declare variables */
         int c, debug = 0;
@@ -2005,7 +2007,16 @@ int main(int argc, char **argv)
         setlocale(LC_ALL, "");
 
         /* handle arguments */
-        while ((c = getopt(argc, argv, "l:hvd")) != -1)
+        static struct option long_options[] =
+        {
+                {"help",     no_argument,       0, 'h'},
+                {"debug",    no_argument,       0, 'd'},
+                {"version",  no_argument,       0, 'v'},
+                {"loglevel", required_argument, 0, 'l'},
+                {0, 0, 0, 0}
+        };
+        int option_index = 0;
+        while ((c = getopt_long(argc, argv, "l:hvd", long_options, &option_index)) != -1)
         {
                 switch (c)
                 {
@@ -2069,4 +2080,4 @@ int main(int argc, char **argv)
         /* done */
         logmsg(LOG_DEBUG, "exiting");
         return 0;
-}
+} /* }}} */
