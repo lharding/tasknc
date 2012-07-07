@@ -106,7 +106,7 @@ static char free_task(task *);
 static void free_tasks(task *);
 static unsigned short get_task_id(char *);
 static task *get_tasks(void);
-static void handle_command(char *, char *, char *, char *);
+static void handle_command(char *);
 static void handle_keypress(int);
 static void help(void);
 static void key_add();
@@ -402,7 +402,7 @@ void configure(void) /* {{{ */
 
                 /* handle config commands */
                 else
-                        handle_command(line, NULL, NULL, NULL);
+                        handle_command(line);
         }
 
         /* close config file */
@@ -613,11 +613,11 @@ task *get_tasks(void) /* {{{ */
         return head;
 } /* }}} */
 
-void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{ */
+void handle_command(char *cmdstr) /* {{{ */
 {
         /* accept a command string, determine what action to take, and execute */
         char **args, *pos, *tmppos, *msg;
-        int argn, i, ret;
+        int argn = 0, ret, i;
         var *this_var;
 
         logmsg(LOG_DEBUG, "command received: %s", cmdstr);
@@ -625,26 +625,15 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
         /* determine command */
         pos = strchr(cmdstr, ' ');
 
-        /* count args */
-        argn = 0;
-        tmppos = pos;
-        while (tmppos!=NULL)
-        {
-                argn++;
-                logmsg(LOG_DEBUG_VERBOSE, "cmdrem: %s", tmppos);/* debug */
-                tmppos = strchr(++tmppos, ' ');
-        }
-
         /* put args in array */
         tmppos = pos;
-        args = calloc(argn+1, sizeof(char *));
-        i = 0;
-        while (tmppos!=NULL)
+        args = calloc(3, sizeof(char *));
+        while (tmppos!=NULL && argn<2)
         {
                 (*tmppos) = 0;
-                args[i] = ++tmppos;
+                args[argn] = ++tmppos;
                 tmppos = strchr(tmppos, ' ');
-                i++;
+                argn++;
         }
 
         /* handle command & arguments */
@@ -656,17 +645,17 @@ void handle_command(char *cmdstr, char *reload, char *redraw, char *done) /* {{{
         }
         /* quit/exit: exit tasknc */
         else if (str_eq(cmdstr, "quit") || str_eq(cmdstr, "exit"))
-                (*done) = 1;
+                state.done = 1;
         /* reload: force reload of task list */
         else if (str_eq(cmdstr, "reload"))
         {
-                (*reload) = 1;
+                state.reload = 1;
                 if (stdscr!=NULL)
                         statusbar_message(cfg.statusbar_timeout, "task list reloaded");
         }
         /* redraw: force redraw of screen */
         else if (str_eq(cmdstr, "redraw"))
-                (*redraw) = 1;
+                state.redraw = 1;
         /* show: print a variable's value */
         /* set: set a variable's value */
         else if (str_eq(cmdstr, "show") || str_eq(cmdstr, "set"))
@@ -821,7 +810,7 @@ void key_add() /* {{{ */
         statusbar_message(cfg.statusbar_timeout, "task added");
 } /* }}} */
 
-void key_command (char *reload, char *redraw, char *done) /* {{{ */
+void key_command() /* {{{ */
 {
         /* accept and attemt to execute a command string */
         char *cmdstr;
@@ -834,7 +823,7 @@ void key_command (char *reload, char *redraw, char *done) /* {{{ */
         cmdstr = calloc(size[0], sizeof(char));
         getstr(cmdstr);
         wipe_statusbar();
-        handle_command(cmdstr, reload, redraw, done);
+        handle_command(cmdstr);
         free(cmdstr);
 
         /* reset */
@@ -2070,7 +2059,7 @@ int main(int argc, char **argv)
                 char *tmp = var_value_message(find_var("task_version"));
                 puts(tmp);
                 free(tmp);
-                handle_command(test, NULL, NULL, NULL);
+                handle_command(test);
                 tmp = var_value_message(find_var("task_version"));
                 puts(tmp);
                 free(tmp);
