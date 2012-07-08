@@ -120,14 +120,24 @@ static void handle_keypress(int);
 static void help(void);
 static void key_add();
 static void key_command();
+static void key_complete();
+static void key_delete();
+static void key_done();
+static void key_edit();
 static void key_filter();
+static void key_reload();
 static void key_scroll(const int);
+static void key_scroll_beginning();
+static void key_scroll_down();
+static void key_scroll_end();
+static void key_scroll_up();
 static void key_search();
 static void key_search_next();
 static void key_sort();
 static void key_sync();
 static void key_task_action(const char, const char *, const char *);
 static void key_undo();
+static void key_view();
 static void logmsg(const char, const char *, ...) __attribute__((format(printf,2,3)));
 static task *malloc_task(void);
 static char match_string(const char *, const char *);
@@ -756,33 +766,32 @@ void handle_keypress(int c) /* {{{ */
                 {
                         case 'k': // scroll up
                         case KEY_UP:
-                                key_scroll(-1);
+                                key_scroll_up();
                                 break;
                         case 'j': // scroll down
                         case KEY_DOWN:
-                                key_scroll(1);
+                                key_scroll_down();
                                 break;
                         case KEY_HOME: // go to first entry
-                                key_scroll(-2);
+                                key_scroll_beginning();
                                 break;
                         case KEY_END: // go to last entry
-                                key_scroll(2);
+                                key_scroll_end();
                                 break;
                         case 'e': // edit task
-                                key_task_action(ACTION_EDIT, "task edited", "task edit failed");
+                                key_edit();
                                 break;
                         case 'r': // reload task list
-                                state.reload = 1;
-                                statusbar_message(cfg.statusbar_timeout, "task list reloaded");
+                                key_reload();
                                 break;
                         case 'u': // undo
                                 key_undo();
                                 break;
                         case 'd': // delete
-                                key_task_action(ACTION_DELETE, "task deleted", "task delete fail");
+                                key_delete();
                                 break;
                         case 'c': // complete
-                                key_task_action(ACTION_COMPLETE, "task completed", "task complete failed");
+                                key_complete();
                                 break;
                         case 'a': // add new
                                 key_add();
@@ -790,7 +799,7 @@ void handle_keypress(int c) /* {{{ */
                         case 'v': // view info
                         case KEY_ENTER:
                         case 13:
-                                key_task_action(ACTION_VIEW, "", "");
+                                key_view();
                                 break;
                         case 's': // re-sort list
                                 key_sort();
@@ -808,7 +817,7 @@ void handle_keypress(int c) /* {{{ */
                                 key_sync();
                                 break;
                         case 'q': // quit
-                                state.done = 1;
+                                key_done();
                                 break;
                         case ':': // accept command string
                         case ';':
@@ -866,6 +875,30 @@ void key_command() /* {{{ */
         set_curses_mode(NCURSES_MODE_STD);
 } /* }}} */
 
+void key_complete() /* {{{ */
+{
+        /* wrapper function to handle keyboard instruction to complete task */
+        key_task_action(ACTION_COMPLETE, "task completed", "task complete failed");
+} /* }}} */
+
+void key_delete() /* {{{ */
+{
+        /* wrapper function to handle keyboard instruction to delete task */
+        key_task_action(ACTION_DELETE, "task deleted", "task delete fail");
+} /* }}} */
+
+void key_done() /* {{{ */
+{
+        /* wrapper function to handle keyboard instruction to quit */
+        state.done = 1;
+} /* }}} */
+
+void key_edit() /* {{{ */
+{
+        /* wrapper function to handle keyboard instruction to edit task */
+        key_task_action(ACTION_EDIT, "task edited", "task edit failed");
+} /* }}} */
+
 void key_filter() /* {{{ */
 {
         /* handle a keyboard direction to add a new filter */
@@ -879,6 +912,13 @@ void key_filter() /* {{{ */
         statusbar_message(cfg.statusbar_timeout, "filter applied");
         selline = 0;
         state.reload = 1;
+} /* }}} */
+
+void key_reload() /* {{{ */
+{
+        /* wrapper function to handle keyboard instruction to reload task list */
+        state.reload = 1;
+        statusbar_message(cfg.statusbar_timeout, "task list reloaded");
 } /* }}} */
 
 void key_scroll(const int direction) /* {{{ */
@@ -909,6 +949,30 @@ void key_scroll(const int direction) /* {{{ */
         }
         state.redraw = 1;
         check_curs_pos();
+} /* }}} */
+
+void key_scroll_beginning() /* {{{ */
+{
+        /* wrapper function to handle keyboard instruction to scroll home */
+        key_scroll(-2);
+} /* }}} */
+
+void key_scroll_down() /* {{{ */
+{
+        /* wrapper function to handle keyboard instruction to scroll down */
+        key_scroll(1);
+} /* }}} */
+
+void key_scroll_end() /* {{{ */
+{
+        /* wrapper function to handle keyboard instruction to scroll to end */
+        key_scroll(2);
+} /* }}} */
+
+void key_scroll_up() /* {{{ */
+{
+        /* wrapper function to handle keyboard instruction to scroll up */
+        key_scroll(-1);
 } /* }}} */
 
 void key_search() /* {{{ */
@@ -1026,6 +1090,12 @@ void key_undo() /* {{{ */
                 statusbar_message(cfg.statusbar_timeout, "undo executed");
         else
                 statusbar_message(cfg.statusbar_timeout, "undo execution failed");
+} /* }}} */
+
+void key_view() /* {{{ */
+{
+        /* wrapper function to handle keyboard instruction to view task */
+        key_task_action(ACTION_VIEW, "", "");
 } /* }}} */
 
 void logmsg(const char minloglvl, const char *format, ...) /* {{{ */
