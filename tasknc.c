@@ -98,7 +98,7 @@ typedef struct _var
 typedef struct _bind
 {
         char key;
-        void *function;
+        void (*function)();
         struct _bind *next;
 } keybind;
 /* }}} */
@@ -418,6 +418,7 @@ void configure(void) /* {{{ */
         add_keybind('u',       key_undo);
         add_keybind('d',       key_delete);
         add_keybind('c',       key_complete);
+        add_keybind('a',       key_add);
         add_keybind('v',       key_view);
         add_keybind(13,        key_view);
         add_keybind(KEY_ENTER, key_view);
@@ -790,74 +791,22 @@ void handle_command(char *cmdstr) /* {{{ */
 void handle_keypress(int c) /* {{{ */
 {
         /* handle a key press on the main screen */
-        switch (c)
+        keybind *this_bind;
+
+        this_bind = keybinds;
+        while (this_bind!=NULL)
+        {
+                if (c == this_bind->key)
                 {
-                        case 'k': // scroll up
-                        case KEY_UP:
-                                key_scroll_up();
-                                break;
-                        case 'j': // scroll down
-                        case KEY_DOWN:
-                                key_scroll_down();
-                                break;
-                        case KEY_HOME: // go to first entry
-                                key_scroll_beginning();
-                                break;
-                        case KEY_END: // go to last entry
-                                key_scroll_end();
-                                break;
-                        case 'e': // edit task
-                                key_edit();
-                                break;
-                        case 'r': // reload task list
-                                key_reload();
-                                break;
-                        case 'u': // undo
-                                key_undo();
-                                break;
-                        case 'd': // delete
-                                key_delete();
-                                break;
-                        case 'c': // complete
-                                key_complete();
-                                break;
-                        case 'a': // add new
-                                key_add();
-                                break;
-                        case 'v': // view info
-                        case KEY_ENTER:
-                        case 13:
-                                key_view();
-                                break;
-                        case 's': // re-sort list
-                                key_sort();
-                                break;
-                        case '/': // search
-                                key_search();
-                                break;
-                        case 'n': // next search result
-                                key_search_next();
-                                break;
-                        case 'f': // filter
-                                key_filter();
-                                break;
-                        case 'y': // sync
-                                key_sync();
-                                break;
-                        case 'q': // quit
-                                key_done();
-                                break;
-                        case ':': // accept command string
-                        case ';':
-                                key_command();
-                                break;
-                        case ERR: // no key was pressed
-                                break;
-                        default: // unhandled
-                                attrset(COLOR_PAIR(0));
-                                statusbar_message(cfg.statusbar_timeout, "unhandled key: %c", c);
-                                break;
+                        logmsg(LOG_DEBUG_VERBOSE, "calling function @%p", this_bind->function);
+                        if (this_bind->function != NULL)
+                                (*(this_bind->function))();
+                        break;
                 }
+                this_bind = this_bind->next;
+        }
+        if (this_bind==NULL)
+                statusbar_message(cfg.statusbar_timeout, "unhandled key: %c (%d)", c, c);
 } /* }}} */
 
 void help(void) /* {{{ */
