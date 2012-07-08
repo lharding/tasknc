@@ -94,9 +94,17 @@ typedef struct _var
         char type;
         void *ptr;
 } var;
+
+typedef struct _bind
+{
+        char key;
+        void *function;
+        struct _bind *next;
+} keybind;
 /* }}} */
 
 /* function prototypes {{{ */
+static void add_keybind(char, void *);
 static void check_curs_pos(void);
 static void check_screen_size();
 static char compare_tasks(const task *, const task *, const char);
@@ -185,6 +193,7 @@ int totaltaskcount;                     /* number of tasks with no filters appli
 char *active_filter = NULL;             /* a string containing the active filter string */
 task *head = NULL;                      /* the current top of the list */
 FILE *logfp;                            /* handle for log file */
+keybind *keybinds = NULL;                  /* linked list of keybinds */
 /* }}} */
 
 /* user-exposed variables {{{ */
@@ -200,6 +209,29 @@ var vars[] = {
         {"filter_string", VAR_STR, &active_filter}
 };
 /* }}} */
+
+void add_keybind(char key, void *function) /* {{{ */
+{
+        /* add a keybind to the list of binds */
+        keybind *this_bind, *new;
+
+        /* create new bind */
+        new = calloc(1, sizeof(keybind));
+        new->key = key;
+        new->function = function;
+        new->next = NULL;
+
+        /* append it to the list */
+        if (keybinds==NULL)
+                keybinds = new;
+        else
+        {
+                this_bind = keybinds;
+                while (this_bind->next!=NULL)
+                        this_bind = this_bind->next;
+                this_bind->next = new;
+        }
+} /* }}} */
 
 void check_curs_pos(void) /* {{{ */
 {
@@ -357,6 +389,8 @@ void configure(void) /* {{{ */
                 }
         }
         pclose(cmd);
+
+        /* TODO: create default keybinds */
 
         /* determine config path */
         xdg_config_home = getenv("XDG_CONFIG_HOME");
