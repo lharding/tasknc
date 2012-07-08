@@ -104,7 +104,7 @@ typedef struct _bind
 /* }}} */
 
 /* function prototypes {{{ */
-static void add_keybind(char, void *);
+static void add_keybind(int, void *);
 static void check_curs_pos(void);
 static void check_screen_size();
 static char compare_tasks(const task *, const task *, const char);
@@ -220,10 +220,11 @@ var vars[] = {
 };
 /* }}} */
 
-void add_keybind(char key, void *function) /* {{{ */
+void add_keybind(int key, void *function) /* {{{ */
 {
         /* add a keybind to the list of binds */
         keybind *this_bind, *new;
+        int n = 0;
 
         /* create new bind */
         new = calloc(1, sizeof(keybind));
@@ -237,10 +238,14 @@ void add_keybind(char key, void *function) /* {{{ */
         else
         {
                 this_bind = keybinds;
-                while (this_bind->next!=NULL)
+                for (n=0; this_bind->next!=NULL; n++)
                         this_bind = this_bind->next;
                 this_bind->next = new;
+                n++;
         }
+
+        /* write log */
+        logmsg(LOG_DEBUG, "bind #%d: key %c (%d) bound to @%p", n, key, key, function);
 } /* }}} */
 
 void check_curs_pos(void) /* {{{ */
@@ -401,6 +406,29 @@ void configure(void) /* {{{ */
         pclose(cmd);
 
         /* TODO: create default keybinds */
+        add_keybind(ERR,       NULL);
+        add_keybind('k',       key_scroll_up);
+        add_keybind(KEY_UP,    key_scroll_up);
+        add_keybind('j',       key_scroll_down);
+        add_keybind(KEY_DOWN,  key_scroll_down);
+        add_keybind(KEY_HOME,  key_scroll_beginning);
+        add_keybind(KEY_END,   key_scroll_end);
+        add_keybind('e',       key_edit);
+        add_keybind('r',       key_reload);
+        add_keybind('u',       key_undo);
+        add_keybind('d',       key_delete);
+        add_keybind('c',       key_complete);
+        add_keybind('v',       key_view);
+        add_keybind(13,        key_view);
+        add_keybind(KEY_ENTER, key_view);
+        add_keybind('s',       key_sort);
+        add_keybind('/',       key_search);
+        add_keybind('n',       key_search_next);
+        add_keybind('f',       key_filter);
+        add_keybind('y',       key_sync);
+        add_keybind('q',       key_done);
+        add_keybind(';',       key_command);
+        add_keybind(':',       key_command);
 
         /* determine config path */
         xdg_config_home = getenv("XDG_CONFIG_HOME");
