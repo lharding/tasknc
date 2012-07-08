@@ -425,15 +425,12 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
                 if (cur == NULL)
                 {
                         cur = head;
-                        selline = -1;
+                        selline = 0;
                         logmsg(LOG_DEBUG_VERBOSE, "search wrapped");
                 }
 
                 else
-                {
                         selline++;
-                        continue;
-                }
 
                 /* check for match */
                 if (task_match(cur, searchstring)==1)
@@ -444,7 +441,10 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
                         break;
         }
 
-        statusbar_message(cfg.statusbar_timeout, "no matches: %s", searchstring);
+        if (stdscr==NULL)
+                printf("no matches: %s", searchstring);
+        else
+                statusbar_message(cfg.statusbar_timeout, "no matches: %s", searchstring);
 
         return;
 } /* }}} */
@@ -2075,6 +2075,20 @@ int main(int argc, char **argv) /* {{{ */
                 puts(tmp);
                 free(tmp);
                 free(test);
+                asprintf(&tmp, "set search_string e");
+                handle_command(tmp);
+                test = var_value_message(find_var("search_string"));
+                puts(test);
+                free(test);
+                printf("selline: %d\n", selline);
+                find_next_search_result(head, head);
+                printf("selline: %d\n", selline);
+                task *t = sel_task(head);
+                if (t==NULL)
+                        puts("???");
+                else
+                        puts(t->description);
+                free(tmp);
         }
 
         /* done */
