@@ -99,7 +99,7 @@ typedef struct _var
 
 typedef struct _bind
 {
-	char key;
+	int key;
 	void (*function)();
 	struct _bind *next;
 } keybind;
