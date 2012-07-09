@@ -693,7 +693,7 @@ task *get_tasks(void) /* {{{ */
 void handle_command(char *cmdstr) /* {{{ */
 {
 	/* accept a command string, determine what action to take, and execute */
-	char *pos, *args;
+	char *pos, *args = NULL;
 
 	logmsg(LOG_DEBUG, "command received: %s", cmdstr);
 
@@ -1622,6 +1622,13 @@ void run_command_set(char *args) /* {{{ */
 	char *message, *varname, *value;
 	int ret;
 
+	/* check for a variable */
+	if (args==NULL)
+	{
+		statusbar_message(cfg.statusbar_timeout, "no variable specified!");
+		return;
+	}
+
 	/* split the variable and value in the args */
 	varname = args;
 	value = strchr(args, ' ');
@@ -1674,6 +1681,13 @@ void run_command_show(const char *arg) /* {{{ */
 	/* display a variable in the statusbar */
 	var *this_var;
 	char *message;
+
+	/* check for a variable */
+	if (arg==NULL)
+	{
+		statusbar_message(cfg.statusbar_timeout, "no variable specified!");
+		return;
+	}
 
 	/* find the variable */
 	this_var = (var *)find_var(arg);
