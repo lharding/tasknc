@@ -161,6 +161,7 @@ static void set_curses_mode(char);
 static void sort_tasks(task *, task *);
 static void sort_wrapper(task *);
 static void statusbar_message(const int, const char *, ...) __attribute__((format(printf,2,3)));
+static char *str_trim(char *);
 static void swap_tasks(task *, task *);
 static int task_action(task *, const char);
 static void task_add(void);
@@ -1852,6 +1853,26 @@ void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 	refresh();
 } /* }}} */
 
+char *str_trim(char *str) /* {{{ */
+{
+	/* remove trailing and leading spaces from a string in place
+	 * returns the pointer to the new start */
+	char *pos;
+
+	/* leading */
+	while ((*str)==' ')
+		str++;
+
+	/* trailing */
+	pos = str;
+	while ((*pos)!=0)
+		pos++;
+	while (*(--pos)==' ')
+		(*pos) = 0;
+
+	return str;
+} /* }}} */
+
 void swap_tasks(task *a, task *b) /* {{{ */
 {
 	/* swap the contents of two tasks */
@@ -2218,6 +2239,11 @@ int main(int argc, char **argv) /* {{{ */
 			puts("???");
 		else
 			puts(t->description);
+		free(tmp);
+		asprintf(&tmp, "  test string  ");
+		printf("%s (%d)\n", tmp, strlen(tmp));
+		test = str_trim(tmp);
+		printf("%s (%d)\n", test, strlen(test));
 		free(tmp);
 	}
 
