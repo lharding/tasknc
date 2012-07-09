@@ -516,10 +516,7 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
                         break;
         }
 
-        if (stdscr==NULL)
-                printf("no matches: %s", searchstring);
-        else
-                statusbar_message(cfg.statusbar_timeout, "no matches: %s", searchstring);
+        statusbar_message(cfg.statusbar_timeout, "no matches: %s", searchstring);
 
         return;
 } /* }}} */
@@ -715,10 +712,7 @@ void handle_command(char *cmdstr) /* {{{ */
         /* handle command & arguments */
         /* version: print version string */
         if (str_eq(cmdstr, "version"))
-        {
-                if (stdscr!=NULL)
-                        statusbar_message(cfg.statusbar_timeout, "%s v%s by %s\n", NAME, VERSION, AUTHOR);
-        }
+                statusbar_message(cfg.statusbar_timeout, "%s v%s by %s\n", NAME, VERSION, AUTHOR);
         /* quit/exit: exit tasknc */
         else if (str_eq(cmdstr, "quit") || str_eq(cmdstr, "exit"))
                 state.done = 1;
@@ -726,8 +720,7 @@ void handle_command(char *cmdstr) /* {{{ */
         else if (str_eq(cmdstr, "reload"))
         {
                 state.reload = 1;
-                if (stdscr!=NULL)
-                        statusbar_message(cfg.statusbar_timeout, "task list reloaded");
+                statusbar_message(cfg.statusbar_timeout, "task list reloaded");
         }
         /* redraw: force redraw of screen */
         else if (str_eq(cmdstr, "redraw"))
@@ -738,10 +731,7 @@ void handle_command(char *cmdstr) /* {{{ */
         {
                 this_var = (var *)find_var(args[0]);
                 if (this_var == NULL)
-                        if (stdscr!=NULL)
-                                statusbar_message(cfg.statusbar_timeout, "variable not found: %s", args[0]);
-                        else
-                                logmsg(LOG_ERROR, "variable not found: %s", args[0]);
+                        statusbar_message(cfg.statusbar_timeout, "variable not found: %s", args[0]);
                 else
                 {
                         if (str_eq(cmdstr, "set"))
@@ -768,10 +758,7 @@ void handle_command(char *cmdstr) /* {{{ */
                         if (ret<=0)
                                 logmsg(LOG_ERROR, "failed to parse value from command: %s %s %s", cmdstr, args[0], args[1]);
                         msg = var_value_message(this_var);
-                        if (stdscr!=NULL)
-                                statusbar_message(cfg.statusbar_timeout, msg);
-                        else
-                                logmsg(LOG_DEBUG, msg);
+                        statusbar_message(cfg.statusbar_timeout, msg);
                         if (str_eq(cmdstr, "set"))
                                 logmsg(LOG_DEBUG, msg);
                         free(msg);
@@ -1787,12 +1774,21 @@ void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
         va_list args;
         char *message;
 
-        wipe_statusbar();
-
         /* format message */
         va_start(args, format);
         vasprintf(&message, format, args);
         va_end(args);
+
+        /* check for active screen */
+        if (stdscr==NULL)
+        {
+                puts(message);
+                logmsg(LOG_DEBUG, "(stdscr==NULL) %s", message);
+                free(message);
+                return;
+        }
+
+        wipe_statusbar();
 
         /* print message */
         umvaddstr(size[1]-1, 0, message);
