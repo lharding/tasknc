@@ -2,7 +2,7 @@
  * task nc - a ncurses wrapper around taskwarrior
  * by mjheagle
  *
- * vim: noet ts=4
+ * vim: noet ts=4 sw=4 sts=4
  */
 
 #define _GNU_SOURCE
@@ -155,6 +155,8 @@ static void print_title(const int);
 static void print_version(void);
 static void reload_tasks();
 static void remove_char(char *, char);
+static void run_command_set(char *);
+static void run_command_show(const char *);
 static void set_curses_mode(char);
 static void sort_tasks(task *, task *);
 static void sort_wrapper(task *);
@@ -691,24 +693,18 @@ task *get_tasks(void) /* {{{ */
 void handle_command(char *cmdstr) /* {{{ */
 {
 	/* accept a command string, determine what action to take, and execute */
-	char **args, *pos, *tmppos, *msg;
-	int argn = 0, ret, i;
-	var *this_var;
+	char *pos, *args;
 
 	logmsg(LOG_DEBUG, "command received: %s", cmdstr);
 
 	/* determine command */
 	pos = strchr(cmdstr, ' ');
 
-	/* put args in array */
-	tmppos = pos;
-	args = calloc(3, sizeof(char *));
-	while (tmppos!=NULL && argn<2)
+	/* split off arguments */
+	if (pos!=NULL)
 	{
-		(*tmppos) = 0;
-		args[argn] = ++tmppos;
-		tmppos = strchr(tmppos, ' ');
-		argn++;
+		(*pos) = 0;
+		args = ++pos;
 	}
 
 	/* handle command & arguments */
@@ -728,44 +724,11 @@ void handle_command(char *cmdstr) /* {{{ */
 	else if (str_eq(cmdstr, "redraw"))
 		state.redraw = 1;
 	/* show: print a variable's value */
+	else if (str_eq(cmdstr, "show"))
+		run_command_show(args);
 	/* set: set a variable's value */
-	else if (str_eq(cmdstr, "show") || str_eq(cmdstr, "set"))
-	{
-		this_var = (var *)find_var(args[0]);
-		if (this_var == NULL)
-			statusbar_message(cfg.statusbar_timeout, "variable not found: %s", args[0]);
-		else
-		{
-			if (str_eq(cmdstr, "set"))
-			{
-				switch (this_var->type)
-				{
-					case VAR_INT:
-						ret = sscanf(args[1], "%d", (int *)this_var->ptr);
-						break;
-					case VAR_CHAR:
-						ret = sscanf(args[1], "%c", (char *)this_var->ptr);
-						break;
-					case VAR_STR:
-						if (*(char **)(this_var->ptr)!=NULL)
-							free(*(char **)(this_var->ptr));
-						*(char **)(this_var->ptr) = calloc(strlen(args[1]), sizeof(char));
-						ret = NULL==strcpy(*(char **)(this_var->ptr), args[1]);
-						break;
-					default:
-						ret = 0;
-						break;
-				}
-			}
-			if (ret<=0)
-				logmsg(LOG_ERROR, "failed to parse value from command: %s %s %s", cmdstr, args[0], args[1]);
-			msg = var_value_message(this_var);
-			statusbar_message(cfg.statusbar_timeout, msg);
-			if (str_eq(cmdstr, "set"))
-				logmsg(LOG_DEBUG, msg);
-			free(msg);
-		}
-	}
+	else if (str_eq(cmdstr, "set"))
+		run_command_set(args);
 	else
 	{
 		statusbar_message(cfg.statusbar_timeout, "error: command %s not found", cmdstr);
@@ -774,9 +737,7 @@ void handle_command(char *cmdstr) /* {{{ */
 
 	/* debug */
 	logmsg(LOG_DEBUG_VERBOSE, "command: %s", cmdstr);
-	logmsg(LOG_DEBUG_VERBOSE, "command: argn %d", argn);
-	for (i=0; i<argn; i++)
-		logmsg(LOG_DEBUG_VERBOSE, "command: [arg %d] %s", i, args[i]);
+	logmsg(LOG_DEBUG_VERBOSE, "command: [args] %s", args);
 } /* }}} */
 
 void handle_keypress(int c) /* {{{ */
@@ -1652,6 +1613,80 @@ void remove_char(char *str, char remove) /* {{{ */
 			break;
 	}
 
+} /* }}} */
+
+void run_command_set(char *args) /* {{{ */
+{
+	/* set a variable in the statusbar */
+	var *this_var;
+	char *message, *varname, *value;
+	int ret;
+
+	/* split the variable and value in the args */
+	varname = args;
+	value = strchr(args, ' ');
+	if (value==NULL)
+	{
+		statusbar_message(cfg.statusbar_timeout, "no value to set %s to!", varname);
+		return;
+	}
+	(*value) = 0;
+	value++;
+
+	/* find the variable */
+	this_var = (var *)find_var(varname);
+	if (this_var==NULL)
+	{
+		statusbar_message(cfg.statusbar_timeout, "variable not found: %s", varname);
+		return;
+	}
+
+	/* set the value */
+	switch (this_var->type)
+	{
+		case VAR_INT:
+			ret = sscanf(value, "%d", (int *)this_var->ptr);
+			break;
+		case VAR_CHAR:
+			ret = sscanf(value, "%c", (char *)this_var->ptr);
+			break;
+		case VAR_STR:
+			if (*(char **)(this_var->ptr)!=NULL)
+				free(*(char **)(this_var->ptr));
+			*(char **)(this_var->ptr) = calloc(strlen(value), sizeof(char));
+			ret = NULL==strcpy(*(char **)(this_var->ptr), value);
+			break;
+		default:
+			ret = 0;
+			break;
+	}
+	if (ret<=0)
+		logmsg(LOG_ERROR, "failed to parse value from command: set %s %s", varname, value);
+
+	/* acquire the value string and print it */
+	message = var_value_message(this_var);
+	statusbar_message(cfg.statusbar_timeout, message);
+	free(message);
+} /* }}} */
+
+void run_command_show(const char *arg) /* {{{ */
+{
+	/* display a variable in the statusbar */
+	var *this_var;
+	char *message;
+
+	/* find the variable */
+	this_var = (var *)find_var(arg);
+	if (this_var==NULL)
+	{
+		statusbar_message(cfg.statusbar_timeout, "variable not found: %s", arg);
+		return;
+	}
+
+	/* acquire the value string and print it */
+	message = var_value_message(this_var);
+	statusbar_message(cfg.statusbar_timeout, message);
+	free(message);
 } /* }}} */
 
 void set_curses_mode(char curses_mode) /* {{{ */
