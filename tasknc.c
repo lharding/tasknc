@@ -405,14 +405,16 @@ void configure(void) /* {{{ */
         }
         pclose(cmd);
 
-        /* TODO: create default keybinds */
+        /* default keybinds */
         add_keybind(ERR,       NULL);
         add_keybind('k',       key_scroll_up);
         add_keybind(KEY_UP,    key_scroll_up);
         add_keybind('j',       key_scroll_down);
         add_keybind(KEY_DOWN,  key_scroll_down);
         add_keybind(KEY_HOME,  key_scroll_beginning);
+        add_keybind('g',       key_scroll_beginning);
         add_keybind(KEY_END,   key_scroll_end);
+        add_keybind('G',       key_scroll_end);
         add_keybind('e',       key_edit);
         add_keybind('r',       key_reload);
         add_keybind('u',       key_undo);

@@ -41,11 +41,11 @@ Set log level to I<loglvl>, which must be a non-negative integer.
 
 navigation up and down
 
-=item B<home>
+=item B<home/g>
 
 go to first task
 
-=item B<end>
+=item B<end/G>
 
 go to last task
 
