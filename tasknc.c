@@ -117,7 +117,7 @@ static var *find_var(const char *);
 static char free_task(task *);
 static void free_tasks(task *);
 static unsigned short get_task_id(char *);
-static task *get_tasks(void);
+static task *get_tasks(char *);
 static void handle_command(char *);
 static void handle_keypress(int);
 static void help(void);
@@ -153,6 +153,7 @@ static void print_task(int, task *);
 static void print_task_list();
 static void print_title();
 static void print_version(void);
+static void reload_task(task *);
 static void reload_tasks();
 static void remove_char(char *, char);
 static void run_command_set(char *);
@@ -642,32 +643,26 @@ unsigned short get_task_id(char *uuid) /* {{{ */
 	return id;
 } /* }}} */
 
-task *get_tasks(void) /* {{{ */
+task *get_tasks(char *uuid) /* {{{ */
 {
 	FILE *cmd;
-	char *line, *tmp, *cmdstr, free_filter = 0;
+	char *line, *tmp, *cmdstr;
 	int linelen = TOTALLENGTH;
 	unsigned short counter = 0;
 	task *last;
 
 	/* generate & run command */
 	if (active_filter==NULL)
-	{
-		asprintf(&active_filter, " ");
-		free_filter = 1;
-	}
+		active_filter = " ";
+	if (uuid==NULL)
+		uuid = " ";
 	if (cfg.version[0]<'2')
-		asprintf(&cmdstr, "task export.json status:pending %s", active_filter);
+		asprintf(&cmdstr, "task export.json status:pending %s %s", active_filter, uuid);
 	else
-		asprintf(&cmdstr, "task export status:pending %s", active_filter);
+		asprintf(&cmdstr, "task export status:pending %s %s", active_filter, uuid);
 	logmsg(LOG_DEBUG, "reloading tasks (%s)", cmdstr);
 	cmd = popen(cmdstr, "r");
 	free(cmdstr);
-	if (free_filter == 1)
-	{
-		free(active_filter);
-		active_filter = NULL;
-	}
 
 	/* parse output */
 	last = NULL;
@@ -1087,7 +1082,7 @@ void key_task_action(const char action, const char *msg_success, const char *msg
 
 	def_prog_mode();
 	endwin();
-	if (action!=ACTION_VIEW)
+	if (action!=ACTION_VIEW && action!=ACTION_EDIT)
 		state.reload = 1;
 	ret = task_action(action);
 	refresh();
@@ -1592,6 +1587,30 @@ void print_version(void) /* {{{ */
 	printf("%s v%s by %s\n", NAME, VERSION, AUTHOR);
 } /* }}} */
 
+void reload_task(task *this) /* {{{ */
+{
+	/* reload an individual task's data by number */
+	task *new;
+
+	/* get new task */
+	new = get_tasks(this->uuid);
+
+	/* transfer pointers */
+	new->prev = this->prev;
+	new->next = this->next;
+	if (this->prev!=NULL)
+		this->prev->next = new;
+	if (this->next!=NULL)
+		this->next->prev = new;
+
+	/* move to head if necessary */
+	if (this==head)
+		head = new;
+
+	/* free old task */
+	free_task(this);
+} /* }}} */
+
 void reload_tasks() /* {{{ */
 {
 	/* reset head with a new list of tasks */
@@ -1601,7 +1620,7 @@ void reload_tasks() /* {{{ */
 
 	free_tasks(head);
 
-	head = get_tasks();
+	head = get_tasks(NULL);
 
 	/* debug */
 	cur = head;
@@ -1988,6 +2007,7 @@ int task_action(const char action) /* {{{ */
 		fflush(0);
 		getchar();
 	}
+
 	return ret;
 } /* }}} */
 
@@ -2231,7 +2251,7 @@ int main(int argc, char **argv) /* {{{ */
 
 
 	/* build task list */
-	head = get_tasks();
+	head = get_tasks(NULL);
 	if (head==NULL)
 	{
 		puts("it appears that your task list is empty");
