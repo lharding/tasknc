@@ -1475,61 +1475,50 @@ void print_task_list() /* {{{ */
 	cur = head;
 	while (cur!=NULL)
 	{
-		char skip = 0;
 		char sel = 0;
 
 		/* skip tasks that are off screen */
-		if (counter<pageoffset)
-			skip = 1;
-		else if (counter>pageoffset+onscreentasks)
-			skip = 1;
-
-		/* skip row if necessary */
-		if (skip==1)
+		if (!(counter<pageoffset || counter>pageoffset+onscreentasks))
 		{
-			counter++;
-			cur = cur->next;
-			continue;
+			/* check if item is selected */
+			if (counter==selline)
+				sel = 1;
+
+			/* move to next line */
+			thisline++;
+
+			/* wipe line */
+			attrset(COLOR_PAIR(0));
+			for (x=0; x<size[0]; x++)
+				mvaddch(thisline, x, ' ');
+
+			/* print project */
+			attrset(COLOR_PAIR(2+3*sel));
+			if (cur->project==NULL)
+				umvaddstr(thisline, fieldlengths.project-1, " ");
+			else
+				umvaddstr(thisline, fieldlengths.project-strlen(cur->project), cur->project);
+
+			/* print description */
+			attrset(COLOR_PAIR(3+3*sel));
+			umvaddstr(thisline, fieldlengths.project+1, cur->description);
+
+			/* print due date or priority if available */
+			attrset(COLOR_PAIR(4+3*sel));
+			if (cur->due != 0)
+			{
+				char *tmp;
+				tmp = utc_date(cur->due);
+				umvaddstr(thisline, size[0]-strlen(tmp), tmp);
+				free(tmp);
+			}
+			else if (cur->priority)
+			{
+				mvaddch(thisline, size[0]-1, cur->priority);
+			}
+			else
+				mvaddch(thisline, size[0]-1, ' ');
 		}
-
-		/* check if item is selected */
-		if (counter==selline)
-			sel = 1;
-
-		/* move to next line */
-		thisline++;
-
-		/* wipe line */
-		attrset(COLOR_PAIR(0));
-		for (x=0; x<size[0]; x++)
-			mvaddch(thisline, x, ' ');
-
-		/* print project */
-		attrset(COLOR_PAIR(2+3*sel));
-		if (cur->project==NULL)
-			umvaddstr(thisline, fieldlengths.project-1, " ");
-		else
-			umvaddstr(thisline, fieldlengths.project-strlen(cur->project), cur->project);
-
-		/* print description */
-		attrset(COLOR_PAIR(3+3*sel));
-		umvaddstr(thisline, fieldlengths.project+1, cur->description);
-
-		/* print due date or priority if available */
-		attrset(COLOR_PAIR(4+3*sel));
-		if (cur->due != 0)
-		{
-			char *tmp;
-			tmp = utc_date(cur->due);
-			umvaddstr(thisline, size[0]-strlen(tmp), tmp);
-			free(tmp);
-		}
-		else if (cur->priority)
-		{
-			mvaddch(thisline, size[0]-1, cur->priority);
-		}
-		else
-			mvaddch(thisline, size[0]-1, ' ');
 
 		/* move to next item */
 		counter++;
