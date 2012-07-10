@@ -145,7 +145,6 @@ static void logmsg(const char, const char *, ...) __attribute__((format(printf,2
 static task *malloc_task(void);
 static char match_string(const char *, const char *);
 static char max_project_length();
-static task *sel_task();
 static void nc_colors(void);
 static void nc_end(int);
 static void nc_main();
@@ -163,7 +162,7 @@ static void sort_wrapper(task *);
 static void statusbar_message(const int, const char *, ...) __attribute__((format(printf,2,3)));
 static char *str_trim(char *);
 static void swap_tasks(task *, task *);
-static int task_action(task *, const char);
+static int task_action(const char);
 static void task_add(void);
 static void task_count();
 static char task_match(const task *, const char *);
@@ -595,6 +594,26 @@ void free_tasks(task *head) /* {{{ */
 	}
 } /* }}} */
 
+task *get_task_by_position(int n) /* {{{ */
+{
+	/* navigate to line n
+	 * and return its task pointer
+	 */
+	task *cur;
+	short i = -1;
+
+	cur = head;
+	while (cur!=NULL)
+	{
+		i++;
+		if (i==n)
+			break;
+		cur = cur->next;
+	}
+
+	return cur;
+} /* }}} */
+
 unsigned short get_task_id(char *uuid) /* {{{ */
 {
 	/* given a task uuid, find its id
@@ -969,7 +988,7 @@ void key_search() /* {{{ */
 	set_curses_mode(NCURSES_MODE_STD);
 
 	/* go to first result */
-	find_next_search_result(head, sel_task(head));
+	find_next_search_result(head, get_task_by_position(selline));
 	check_curs_pos();
 	state.redraw = 1;
 } /* }}} */
@@ -979,7 +998,7 @@ void key_search_next() /* {{{ */
 	/* handle a keyboard direction to move to next search result */
 	if (searchstring!=NULL)
 	{
-		find_next_search_result(head, sel_task(head));
+		find_next_search_result(head, get_task_by_position(selline));
 		check_curs_pos();
 		state.redraw = 1;
 	}
@@ -1060,7 +1079,7 @@ void key_task_action(const char action, const char *msg_success, const char *msg
 	endwin();
 	if (action!=ACTION_VIEW)
 		state.reload = 1;
-	ret = task_action(head, action);
+	ret = task_action(action);
 	refresh();
 	if (ret==0)
 		statusbar_message(cfg.statusbar_timeout, msg_success);
@@ -1721,26 +1740,6 @@ void set_curses_mode(char curses_mode) /* {{{ */
 	}
 } /* }}} */
 
-task *sel_task() /* {{{ */
-{
-	/* navigate to the selected line
-	 * and return its task pointer
-	 */
-	task *cur;
-	short i = -1;
-
-	cur = head;
-	while (cur!=NULL)
-	{
-		i++;
-		if (i==selline)
-			break;
-		cur = cur->next;
-	}
-
-	return cur;
-} /* }}} */
-
 void sort_tasks(task *first, task *last) /* {{{ */
 {
 	/* sort the list of tasks */
@@ -1905,7 +1904,7 @@ void swap_tasks(task *a, task *b) /* {{{ */
 	b->description = strtmp;
 } /* }}} */
 
-int task_action(task *head, const char action) /* {{{ */
+int task_action(const char action) /* {{{ */
 {
 	/* spawn a command to perform an action on a task */
 	task *cur;
@@ -1913,7 +1912,7 @@ int task_action(task *head, const char action) /* {{{ */
 	int ret;
 
 	/* move to correct task */
-	cur = sel_task(head);
+	cur = get_task_by_position(selline);
 
 	/* determine action */
 	actionstr = malloc(5*sizeof(char));
@@ -2251,7 +2250,7 @@ int main(int argc, char **argv) /* {{{ */
 		printf("selline: %d\n", selline);
 		find_next_search_result(head, head);
 		printf("selline: %d\n", selline);
-		task *t = sel_task(head);
+		task *t = get_task_by_position(selline);
 		if (t==NULL)
 			puts("???");
 		else
