@@ -2105,7 +2105,10 @@ int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
 
 	/* perform conversion and write to screen */
 	mbstowcs(wstr, str, len);
-	r = mvaddnwstr(y, x, wstr, len-1);
+	len = wcslen(wstr);
+	if (len>size[0]-x)
+		len = size[0]-x;
+	r = mvaddnwstr(y, x, wstr, len);
 
 	/* free memory allocated */
 	free(wstr);
