@@ -717,6 +717,7 @@ void handle_command(char *cmdstr) /* {{{ */
 {
 	/* accept a command string, determine what action to take, and execute */
 	char *pos, *args = NULL;
+	cmdstr = str_trim(cmdstr);
 
 	logmsg(LOG_DEBUG, "command received: %s", cmdstr);
 
@@ -748,10 +749,10 @@ void handle_command(char *cmdstr) /* {{{ */
 		state.redraw = 1;
 	/* show: print a variable's value */
 	else if (str_eq(cmdstr, "show"))
-		run_command_show(args);
+		run_command_show(str_trim(args));
 	/* set: set a variable's value */
 	else if (str_eq(cmdstr, "set"))
-		run_command_set(args);
+		run_command_set(str_trim(args));
 	else
 	{
 		statusbar_message(cfg.statusbar_timeout, "error: command %s not found", cmdstr);
@@ -820,7 +821,10 @@ void key_command() /* {{{ */
 	cmdstr = calloc(size[0], sizeof(char));
 	getstr(cmdstr);
 	wipe_statusbar();
-	handle_command(cmdstr);
+
+	/* run input command */
+	if (cmdstr[0]!=0)
+		handle_command(cmdstr);
 	free(cmdstr);
 
 	/* reset */
@@ -1675,6 +1679,8 @@ void run_command_set(char *args) /* {{{ */
 		case VAR_STR:
 			if (*(char **)(this_var->ptr)!=NULL)
 				free(*(char **)(this_var->ptr));
+			while ((*value)==' ')
+				value++;
 			*(char **)(this_var->ptr) = calloc(strlen(value)+1, sizeof(char));
 			ret = NULL==strcpy(*(char **)(this_var->ptr), value);
 			break;
