@@ -149,6 +149,7 @@ static void nc_colors(void);
 static void nc_end(int);
 static void nc_main();
 static task *parse_task(char *);
+static void print_task(int, task *);
 static void print_task_list();
 static void print_title();
 static void print_version(void);
@@ -1483,61 +1484,68 @@ task *parse_task(char *line) /* {{{ */
 		return tsk;
 } /* }}} */
 
+void print_task(int tasknum, task *this) /* {{{ */
+{
+	/* print a task specified by number */
+	char sel = 0;
+	int x, y;
+
+	/* determine position to print */
+	y = tasknum-pageoffset+1;
+	if (y<=0 || y>=size[1]-1)
+		return;
+
+	/* find task pointer if necessary */
+	if (this==NULL)
+		this = get_task_by_position(tasknum);
+
+	/* determine if line is selected */
+	if (tasknum==selline)
+		sel = 1;
+
+	/* wipe line */
+	attrset(COLOR_PAIR(0));
+	for (x=0; x<size[0]; x++)
+		mvaddch(y, x, ' ');
+
+	/* print project */
+	attrset(COLOR_PAIR(2+3*sel));
+	if (this->project==NULL)
+		umvaddstr(y, fieldlengths.project-1, " ");
+	else
+		umvaddstr(y, fieldlengths.project-strlen(this->project), this->project);
+
+	/* print description */
+	attrset(COLOR_PAIR(3+3*sel));
+	umvaddstr(y, fieldlengths.project+1, this->description);
+
+	/* print due date or priority if available */
+	attrset(COLOR_PAIR(4+3*sel));
+	if (this->due != 0)
+	{
+		char *tmp;
+		tmp = utc_date(this->due);
+		umvaddstr(y, size[0]-strlen(tmp), tmp);
+		free(tmp);
+	}
+	else if (this->priority)
+	{
+		mvaddch(y, size[0]-1, this->priority);
+	}
+	else
+		mvaddch(y, size[0]-1, ' ');
+} /* }}} */
+
 void print_task_list() /* {{{ */
 {
+	/* print every task in the task list */
 	task *cur;
 	short counter = 0;
-	const short onscreentasks = size[1]-3;
-	short thisline = 0;
-	int x;
 
 	cur = head;
 	while (cur!=NULL)
 	{
-		char sel = 0;
-
-		/* skip tasks that are off screen */
-		if (!(counter<pageoffset || counter>pageoffset+onscreentasks))
-		{
-			/* check if item is selected */
-			if (counter==selline)
-				sel = 1;
-
-			/* move to next line */
-			thisline++;
-
-			/* wipe line */
-			attrset(COLOR_PAIR(0));
-			for (x=0; x<size[0]; x++)
-				mvaddch(thisline, x, ' ');
-
-			/* print project */
-			attrset(COLOR_PAIR(2+3*sel));
-			if (cur->project==NULL)
-				umvaddstr(thisline, fieldlengths.project-1, " ");
-			else
-				umvaddstr(thisline, fieldlengths.project-strlen(cur->project), cur->project);
-
-			/* print description */
-			attrset(COLOR_PAIR(3+3*sel));
-			umvaddstr(thisline, fieldlengths.project+1, cur->description);
-
-			/* print due date or priority if available */
-			attrset(COLOR_PAIR(4+3*sel));
-			if (cur->due != 0)
-			{
-				char *tmp;
-				tmp = utc_date(cur->due);
-				umvaddstr(thisline, size[0]-strlen(tmp), tmp);
-				free(tmp);
-			}
-			else if (cur->priority)
-			{
-				mvaddch(thisline, size[0]-1, cur->priority);
-			}
-			else
-				mvaddch(thisline, size[0]-1, ' ');
-		}
+		print_task(counter, cur);
 
 		/* move to next item */
 		counter++;
