@@ -149,10 +149,9 @@ static task *sel_task();
 static void nc_colors(void);
 static void nc_end(int);
 static void nc_main();
-static char *pad_string(char *, int, const int, int, const char);
 static task *parse_task(char *);
 static void print_task_list();
-static void print_title(const int);
+static void print_title();
 static void print_version(void);
 static void reload_tasks();
 static void remove_char(char *, char);
@@ -1328,70 +1327,6 @@ void nc_main() /* {{{ */
 	}
 } /* }}} */
 
-char *pad_string(char *argstr, int length, const int lpad, int rpad, const char align) /* {{{ */
-{
-	/* function to add padding to strings and align them with spaces */
-	char *ft;
-	char *ret;
-	char *str;
-
-	/* copy argstr to placeholder that we can modify */
-	str = malloc((strlen(argstr)+1)*sizeof(char));
-	str = strcpy(str, argstr);
-
-	/* check if string will be zero length */
-	if (length-lpad-rpad==0)
-	{
-		free(str);
-		return NULL;
-	}
-
-	/* cut string if necessary */
-	if ((int)strlen(str)>length-lpad-rpad)
-	{
-		str[length-lpad-rpad] = '\0';
-		int i;
-		for (i=1; i<=3; i++)
-			str[length-lpad-rpad-i] = '.';
-	}
-
-	/* handle left alignment */
-	if (align=='l')
-	{
-		int slen = strlen(str);
-		rpad = rpad + length - slen - 1;
-		length = slen;
-	}
-
-	/* generate format strings and return value */
-	ret = malloc((length+lpad+rpad+1)*sizeof(char));
-	ft = malloc(16*sizeof(char));
-	if (lpad>0 && rpad>0)
-	{
-		sprintf(ft, "%%%ds%%%ds%%%ds", lpad, length, rpad);
-		sprintf(ret, ft, " ", str, " ");
-	}
-	else if (lpad>0)
-	{
-		sprintf(ft, "%%%ds%%%ds", lpad, length);
-		sprintf(ret, ft, " ", str);
-	}
-	else if (rpad>0)
-	{
-		sprintf(ft, "%%%ds%%%ds", length, rpad);
-		sprintf(ret, ft, str, " ");
-	}
-	else
-	{
-		sprintf(ft, "%%%ds", length);
-		sprintf(ret, ft, str);
-	}
-	free(ft);
-	free(str);
-
-	return ret;
-} /* }}} */
-
 task *parse_task(char *line) /* {{{ */
 {
 	task *tsk = malloc_task();
@@ -1516,9 +1451,9 @@ void print_task_list() /* {{{ */
 {
 	task *cur;
 	short counter = 0;
-	char *bufstr;
 	const short onscreentasks = size[1]-3;
 	short thisline = 0;
+	int x;
 
 	cur = head;
 	while (cur!=NULL)
@@ -1547,20 +1482,21 @@ void print_task_list() /* {{{ */
 		/* move to next line */
 		thisline++;
 
+		/* wipe line */
+		attrset(COLOR_PAIR(0));
+		for (x=0; x<size[0]; x++)
+			mvaddch(thisline, x, ' ');
+
 		/* print project */
 		attrset(COLOR_PAIR(2+3*sel));
 		if (cur->project==NULL)
-			bufstr = pad_string(" ", fieldlengths.project, 0, 1, 'r');
+			umvaddstr(thisline, fieldlengths.project-1, " ");
 		else
-			bufstr = pad_string(cur->project, fieldlengths.project, 0, 1, 'r');
-		umvaddstr(thisline, 0, bufstr);
-		check_free(bufstr);
+			umvaddstr(thisline, fieldlengths.project-strlen(cur->project), cur->project);
 
 		/* print description */
 		attrset(COLOR_PAIR(3+3*sel));
-		bufstr = pad_string(cur->description, fieldlengths.description, 0, 1, 'l');
-		umvaddstr(thisline, fieldlengths.project+1, bufstr);
-		check_free(bufstr);
+		umvaddstr(thisline, fieldlengths.project+1, cur->description);
 
 		/* print due date or priority if available */
 		attrset(COLOR_PAIR(4+3*sel));
@@ -1568,21 +1504,15 @@ void print_task_list() /* {{{ */
 		{
 			char *tmp;
 			tmp = utc_date(cur->due);
-			bufstr = pad_string(tmp, fieldlengths.date, 0, 0, 'r');
+			umvaddstr(thisline, size[0]-strlen(tmp), tmp);
 			free(tmp);
 		}
 		else if (cur->priority)
 		{
-			char *tmp;
-			tmp = malloc(2*sizeof(char));
-			sprintf(tmp, "%c", cur->priority);
-			bufstr = pad_string(tmp, fieldlengths.date, 0, 0, 'r');
-			check_free(tmp);
+			mvaddch(thisline, size[0]-1, cur->priority);
 		}
 		else
-			bufstr = pad_string(" ", fieldlengths.date, 0, 0, 'r');
-		umvaddstr(thisline, fieldlengths.project+fieldlengths.description+1, bufstr);
-		check_free(bufstr);
+			mvaddch(thisline, size[0]-1, ' ');
 
 		/* move to next item */
 		counter++;
@@ -1590,26 +1520,27 @@ void print_task_list() /* {{{ */
 	}
 } /* }}} */
 
-void print_title(const int width) /* {{{ */
+void print_title() /* {{{ */
 {
 	/* print the window title bar */
-	char *tmp0, *tmp1;
+	char *tmp0;
+	int x;
+
+	/* wipe bar and print bg color */
+	attrset(COLOR_PAIR(1));
+	for (x=0; x<size[0]; x++)
+		mvaddch(0, x, ' ');
 
 	/* print program info */
-	attrset(COLOR_PAIR(1));
-	tmp0 = calloc(width, sizeof(char));
-	snprintf(tmp0, width, "%s v%s  (%d/%d)  ", SHORTNAME, VERSION, selline+1, totaltaskcount);
-	tmp1 = pad_string(tmp0, width, 0, 0, 'l');
-	umvaddstr(0, 0, tmp1);
+	tmp0 = calloc(size[0], sizeof(char));
+	snprintf(tmp0, size[0], "%s v%s  (%d/%d)", SHORTNAME, VERSION, selline+1, totaltaskcount);
+	umvaddstr(0, 0, tmp0);
 	free(tmp0);
-	check_free(tmp1);
 
 	/* print the current date */
 	tmp0 = utc_date(0);
-	tmp1 = pad_string(tmp0, DATELENGTH, 0, 0, 'r');
-	umvaddstr(0, width-DATELENGTH, tmp1);
+	umvaddstr(0, size[0]-strlen(tmp0), tmp0);
 	free(tmp0);
-	check_free(tmp1);
 } /* }}} */
 
 void print_version(void) /* {{{ */
@@ -2080,7 +2011,7 @@ void task_add(void) /* {{{ */
 	system(cmd);
 	free(cmd);
 	reset_shell_mode();
-	print_title(size[0]);
+	print_title();
 } /* }}} */
 
 void task_count() /* {{{ */
@@ -2120,6 +2051,16 @@ int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
 	va_start(args, format);
 	vasprintf(&str, format, args);
 	va_end(args);
+
+	/* DEBUG: check for invalid prints to title bar */
+	if (y==0 && x<fieldlengths.project)
+	{
+		if (strncmp("tasknc", str, 6)!=0)
+		{
+			logmsg(LOG_ERROR, "printing to bad position (%d, %d): %s", y, x, str);
+			fflush(logfp);
+		}
+	}
 
 	/* allocate wchar_t string */
 	len = strlen(str)+1;
@@ -2202,16 +2143,14 @@ char *var_value_message(var *v) /* {{{ */
 
 void wipe_screen(const short startl, const short stopl) /* {{{ */
 {
-	/* clear the screen except the title and status bars */
-	int pos;
-	char *blank;
+	/* clear specified lines of the screen */
+	int y, x;
 
 	attrset(COLOR_PAIR(0));
-	blank = pad_string(" ", size[0], 0, 0, 'r');
 
-	for (pos=startl; pos<=stopl; pos++)
-		mvaddstr(pos, 0, blank);
-	check_free(blank);
+	for (y=startl; y<=stopl; y++)
+		for (x=0; x<size[0]; x++)
+			mvaddch(y, x, ' ');
 } /* }}} */
 
 int main(int argc, char **argv) /* {{{ */
