@@ -1352,6 +1352,7 @@ void nc_main() /* {{{ */
 			break;
 		if (state.reload==1)
 		{
+			wipe_tasklist();
 			reload_tasks();
 			task_count();
 			state.redraw = 1;
