@@ -915,6 +915,9 @@ void key_reload() /* {{{ */
 void key_scroll(const int direction) /* {{{ */
 {
 	/* handle a keyboard direction to scroll */
+	const char oldsel = selline;
+	const char oldoffset = pageoffset;
+
 	switch (direction)
 	{
 		case -1:
@@ -948,7 +951,13 @@ void key_scroll(const int direction) /* {{{ */
 		default:
 			break;
 	}
-	state.redraw = 1;
+	if (pageoffset!=oldoffset)
+		state.redraw = 1;
+	else
+	{
+		print_task(oldsel, NULL);
+		print_task(selline, NULL);
+	}
 } /* }}} */
 
 void key_scroll_beginning() /* {{{ */
