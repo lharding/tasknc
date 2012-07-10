@@ -755,6 +755,19 @@ void handle_command(char *cmdstr) /* {{{ */
 	/* set: set a variable's value */
 	else if (str_eq(cmdstr, "set"))
 		run_command_set(str_trim(args));
+	/* dump: write all displayed tasks to log file */
+	else if (str_eq(cmdstr, "dump"))
+	{
+		task *this = head;
+		while (this!=NULL)
+		{
+			logmsg(-1, "uuid: %s", this->uuid);
+			logmsg(-1, "description: %s", this->description);
+			logmsg(-1, "project: %s", this->project);
+			logmsg(-1, "tags: %s", this->tags);
+			this = this->next;
+		}
+	}
 	else
 	{
 		statusbar_message(cfg.statusbar_timeout, "error: command %s not found", cmdstr);
