@@ -109,6 +109,7 @@ typedef struct _bind
 static void add_keybind(int, void *);
 static void check_curs_pos(void);
 static void check_screen_size();
+static void cleanup();
 static char compare_tasks(const task *, const task *, const char);
 static void configure(void);
 static void find_next_search_result(task *, task *);
@@ -297,6 +298,27 @@ void check_screen_size() /* {{{ */
 		count++;
 		getmaxyx(stdscr, size[1], size[0]);
 	} while (size[0]<DATELENGTH+20+fieldlengths.project || size[1]<5);
+} /* }}} */
+
+void cleanup() /* {{{ */
+{
+	/* function to run on termination */
+	keybind *lastbind;
+
+	/* free memory allocated normally */
+	if (searchstring!=NULL)
+		free(searchstring);
+	free_tasks(head);
+	free(cfg.version);
+	while (keybinds!=NULL)
+	{
+		lastbind = keybinds;
+		keybinds = keybinds->next;
+		free(lastbind);
+	}
+
+	/* close open files */
+	fclose(logfp);
 } /* }}} */
 
 char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
@@ -1079,10 +1101,8 @@ task *malloc_task(void) /* {{{ */
 	/* allocate memory for a new task
 	 * and initialize values where ncessary
 	 */
-	task *tsk = malloc(sizeof(task));
-	if (tsk)
-		memset(tsk, 0, sizeof(task));
-	else
+	task *tsk = calloc(1, sizeof(task));
+	if (tsk==NULL)
 		return NULL;
 
 	tsk->index = 0;
@@ -1107,8 +1127,8 @@ char match_string(const char *haystack, const char *needle) /* {{{ */
 	regex_t regex;
 	char ret;
 
-	/* check for NULL haystack */
-	if (haystack==NULL)
+	/* check for NULL haystack or needle */
+	if (haystack==NULL || needle==NULL)
 		return 0;
 
 	/* compile and run regex */
@@ -1185,14 +1205,7 @@ void nc_end(int sig) /* {{{ */
 			break;
 	}
 
-	/* free all data here */
-	if (searchstring!=NULL)
-		free(searchstring);
-	free_tasks(head);
-	free(cfg.version);
-
-	/* close open files */
-	fclose(logfp);
+	cleanup();
 
 	exit(0);
 } /* }}} */
@@ -1436,6 +1449,7 @@ task *parse_task(char *line) /* {{{ */
 			tsk->priority = content[0];
 		else if (str_eq(field, "due"))
 		{
+			memset(&tmr, 0, sizeof(tmr));
 			strptime(content, "%Y%m%dT%H%M%S%z", &tmr);
 			tmpstr = malloc(32*sizeof(char));
 			strftime(tmpstr, 32, "%s", &tmr);
@@ -1661,7 +1675,7 @@ void run_command_set(char *args) /* {{{ */
 		case VAR_STR:
 			if (*(char **)(this_var->ptr)!=NULL)
 				free(*(char **)(this_var->ptr));
-			*(char **)(this_var->ptr) = calloc(strlen(value), sizeof(char));
+			*(char **)(this_var->ptr) = calloc(strlen(value)+1, sizeof(char));
 			ret = NULL==strcpy(*(char **)(this_var->ptr), value);
 			break;
 		default:
@@ -2226,7 +2240,7 @@ int main(int argc, char **argv) /* {{{ */
 		puts(tmp);
 		free(tmp);
 		free(test);
-		asprintf(&tmp, "set search_string e");
+		asprintf(&tmp, "set search_string tasknc");
 		handle_command(tmp);
 		test = var_value_message(find_var("search_string"));
 		puts(test);
@@ -2245,6 +2259,7 @@ int main(int argc, char **argv) /* {{{ */
 		test = str_trim(tmp);
 		printf("%s (%d)\n", test, strlen(test));
 		free(tmp);
+		cleanup();
 	}
 
 	/* done */
