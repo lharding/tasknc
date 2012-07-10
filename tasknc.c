@@ -901,26 +901,43 @@ void key_scroll(const int direction) /* {{{ */
 		case -1:
 			/* scroll one up */
 			if (selline>0)
+			{
 				selline--;
+				if (selline<pageoffset)
+					pageoffset--;
+			}
 			break;
 		case 1:
 			/* scroll one down */
 			if (selline<taskcount-1)
+			{
 				selline++;
+				if (selline>=pageoffset+size[1]-2)
+					pageoffset++;
+			}
 			break;
 		case -2:
 			/* go to first entry */
+			pageoffset = 0;
 			selline = 0;
+			wipe_tasklist();
+			wredrawln(stdscr, 1, size[1]-2);
+			touchwin(stdscr);
+			wnoutrefresh(stdscr);
 			break;
 		case 2:
 			/* go to last entry */
+			pageoffset = taskcount-size[1]+2;
 			selline = taskcount-1;
+			wipe_tasklist();
+			wredrawln(stdscr, 1, size[1]-2);
+			touchwin(stdscr);
+			wnoutrefresh(stdscr);
 			break;
 		default:
 			break;
 	}
 	state.redraw = 1;
-	check_curs_pos();
 } /* }}} */
 
 void key_scroll_beginning() /* {{{ */
