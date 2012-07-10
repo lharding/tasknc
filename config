@@ -16,3 +16,7 @@ set statusbar_timeout 2
 # p: project
 # r: priority
 set sort_mode d
+
+# show shell commands
+# warning: no confirm should be set in your taskrc before setting this
+set silent_shell 0

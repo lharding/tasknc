@@ -181,6 +181,7 @@ struct {
 	int loglvl;
 	char *version;
 	char sortmode;
+	char silent_shell;
 } cfg;
 /* }}} */
 
@@ -222,7 +223,8 @@ var vars[] = {
 	{"search_string", VAR_STR, &searchstring},
 	{"selected_line", VAR_INT, &selline},
 	{"task_count", VAR_INT, &totaltaskcount},
-	{"filter_string", VAR_STR, &active_filter}
+	{"filter_string", VAR_STR, &active_filter},
+	{"silent_shell", VAR_CHAR, &(cfg.silent_shell)}
 };
 /* }}} */
 
@@ -412,11 +414,12 @@ void configure(void) /* {{{ */
 	int ret;
 
 	/* set default values */
-	cfg.nc_timeout = NCURSES_WAIT;			  /* time getch will wait */
+	cfg.nc_timeout = NCURSES_WAIT;                          /* time getch will wait */
 	cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;      /* default time before resetting statusbar */
 	if (cfg.loglvl==-1)
-		cfg.loglvl = LOGLVL_DEFAULT;		    /* determine whether log message should be printed */
-	cfg.sortmode = 'd';				     /* determine sort algorithm */
+		cfg.loglvl = LOGLVL_DEFAULT;                        /* determine whether log message should be printed */
+	cfg.sortmode = 'd';                                     /* determine sort algorithm */
+	cfg.silent_shell = 0;                                   /* determine whether shell commands should be visible */
 
 	/* get task version */
 	cmd = popen("task version rc._forcecolor=no", "r");
@@ -449,7 +452,7 @@ void configure(void) /* {{{ */
 	add_keybind('c',       key_complete);
 	add_keybind('a',       key_add);
 	add_keybind('v',       key_view);
-	add_keybind(13,	key_view);
+	add_keybind(13,        key_view);
 	add_keybind(KEY_ENTER, key_view);
 	add_keybind('s',       key_sort);
 	add_keybind('/',       key_search);
@@ -875,6 +878,7 @@ void key_reload() /* {{{ */
 	/* wrapper function to handle keyboard instruction to reload task list */
 	state.reload = 1;
 	statusbar_message(cfg.statusbar_timeout, "task list reloaded");
+	print_title(size[0]);
 } /* }}} */
 
 void key_scroll(const int direction) /* {{{ */
@@ -1002,15 +1006,27 @@ void key_sync() /* {{{ */
 	/* handle a keyboard direction to sync */
 	int ret;
 
-	def_prog_mode();
-	endwin();
-	state.reload = 1;
-	ret = system("yes n | task merge");
-	if (ret==0)
-		ret = system("task push");
+	if (cfg.silent_shell == '1')
+	{
+		statusbar_message(cfg.statusbar_timeout, "synchronizing tasks...");
+		ret = system("yes n | task merge 2&> /dev/null");
+		if (ret==0)
+			ret = system("task push 2&> /dev/null");
+	}
+	else
+	{
+		def_prog_mode();
+		endwin();
+		ret = system("yes n | task merge");
+		if (ret==0)
+			ret = system("task push");
+	}
 	refresh();
 	if (ret==0)
+	{
 		statusbar_message(cfg.statusbar_timeout, "tasks synchronized");
+		state.reload = 1;
+	}
 	else
 		statusbar_message(cfg.statusbar_timeout, "task syncronization failed");
 } /* }}} */
@@ -1037,15 +1053,25 @@ void key_undo() /* {{{ */
 	/* handle a keyboard direction to run an undo */
 	int ret;
 
-	def_prog_mode();
-	endwin();
-	ret = system("task undo");
-	refresh();
-	state.reload = 1;
-	if (ret==0)
-		statusbar_message(cfg.statusbar_timeout, "undo executed");
+	if (cfg.silent_shell=='1')
+	{
+		statusbar_message(cfg.statusbar_timeout, "running task undo...");
+		ret = system("task undo > /dev/null");
+	}
 	else
-		statusbar_message(cfg.statusbar_timeout, "undo execution failed");
+	{
+		def_prog_mode();
+		endwin();
+		ret = system("task undo");
+	}
+	refresh();
+	if (ret==0)
+	{
+		statusbar_message(cfg.statusbar_timeout, "undo executed");
+		state.reload = 1;
+	}
+	else
+		statusbar_message(cfg.statusbar_timeout, "undo execution failed (%d)", ret);
 } /* }}} */
 
 void key_view() /* {{{ */
@@ -1172,14 +1198,14 @@ void nc_colors(void) /* {{{ */
 	{
 		start_color();
 		use_default_colors();
-		init_pair(1, COLOR_BLUE,	COLOR_BLACK);   /* title bar */
-		init_pair(2, COLOR_GREEN,       -1);	    /* project */
-		init_pair(3, COLOR_CYAN,	-1);	    /* description */
-		init_pair(4, COLOR_YELLOW,      -1);	    /* date */
+		init_pair(1, COLOR_BLUE,        COLOR_BLACK);   /* title bar */
+		init_pair(2, COLOR_GREEN,       -1);            /* project */
+		init_pair(3, COLOR_CYAN,        -1);            /* description */
+		init_pair(4, COLOR_YELLOW,      -1);            /* date */
 		init_pair(5, COLOR_BLACK,       COLOR_GREEN);   /* selected project */
 		init_pair(6, COLOR_BLACK,       COLOR_CYAN);    /* selected description */
 		init_pair(7, COLOR_BLACK,       COLOR_YELLOW);  /* selected date */
-		init_pair(8, COLOR_RED,	 -1);	    /* error message */
+		init_pair(8, COLOR_RED,         -1);            /* error message */
 	}
 } /* }}} */
 
@@ -1946,7 +1972,7 @@ int task_action(task *head, const char action) /* {{{ */
 {
 	/* spawn a command to perform an action on a task */
 	task *cur;
-	char *cmd, *actionstr, wait;
+	char *cmd, *actionstr, wait, *redir;
 	int ret;
 
 	/* move to correct task */
@@ -1973,6 +1999,15 @@ int task_action(task *head, const char action) /* {{{ */
 			break;
 	}
 
+	/* determine whether stdio should be used */
+	if (cfg.silent_shell && action!=ACTION_VIEW && action!=ACTION_EDIT)
+	{
+		statusbar_message(cfg.statusbar_timeout, "running task %s", actionstr);
+		redir = "> /dev/null";
+	}
+	else
+		redir = "";
+
 	/* generate and run command */
 	cmd = malloc(128*sizeof(char));
 
@@ -1982,20 +2017,21 @@ int task_action(task *head, const char action) /* {{{ */
 		cur->index = get_task_id(cur->uuid);
 		if (cur->index==0)
 			return -1;
-		sprintf(cmd, "task %s %d", actionstr, cur->index);
+		sprintf(cmd, "task %s %d %s", actionstr, cur->index, redir);
 	}
 
 	/* if version is >=2, use uuid index */
 	else
-		sprintf(cmd, "task %s %s", cur->uuid, actionstr);
+		sprintf(cmd, "task %s %s %s", cur->uuid, actionstr, redir);
 
 	free(actionstr);
-	puts(cmd);
+	logmsg(LOG_DEBUG, "running: %s", cmd);
 	ret = system(cmd);
 	free(cmd);
 	if (wait)
 	{
 		puts("press ENTER to return");
+		fflush(0);
 		getchar();
 	}
 	return ret;
@@ -2007,12 +2043,23 @@ void task_add(void) /* {{{ */
 	 * then letting the user edit it
 	 */
 	FILE *cmdout;
-	char *cmd, line[TOTALLENGTH];
+	char *cmd, line[TOTALLENGTH], *redir;
 	const char addstr[] = "Created task ";
 	unsigned short tasknum;
 
+	/* determine whether stdio should be used */
+	if (cfg.silent_shell)
+	{
+		statusbar_message(cfg.statusbar_timeout, "running task add");
+		redir = "> /dev/null";
+	}
+	else
+		redir = "";
+
 	/* add new task */
-	puts("task add new task");
+	cmd = malloc(128*sizeof(char));
+	sprintf(cmd, "task add new task %s", redir);
+	logmsg(LOG_DEBUG, "running: %s", cmd);
 	cmdout = popen("task add new task", "r");
 	while (fgets(line, sizeof(line)-1, cmdout) != NULL)
 	{
@@ -2021,16 +2068,19 @@ void task_add(void) /* {{{ */
 				break;
 	}
 	pclose(cmdout);
+	free(cmd);
 
 	/* edit task */
-	cmd = malloc(32*sizeof(char));
+	def_shell_mode();
+	cmd = malloc(128*sizeof(char));
 	if (cfg.version[0]<'2')
 		sprintf(cmd, "task edit %d", tasknum);
 	else
 		sprintf(cmd, "task %d edit", tasknum);
-	puts(cmd);
 	system(cmd);
 	free(cmd);
+	reset_shell_mode();
+	print_title(size[0]);
 } /* }}} */
 
 void task_count() /* {{{ */
