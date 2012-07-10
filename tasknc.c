@@ -890,7 +890,6 @@ void key_reload() /* {{{ */
 	/* wrapper function to handle keyboard instruction to reload task list */
 	state.reload = 1;
 	statusbar_message(cfg.statusbar_timeout, "task list reloaded");
-	print_title(size[0]);
 } /* }}} */
 
 void key_scroll(const int direction) /* {{{ */
@@ -920,19 +919,11 @@ void key_scroll(const int direction) /* {{{ */
 			/* go to first entry */
 			pageoffset = 0;
 			selline = 0;
-			wipe_tasklist();
-			wredrawln(stdscr, 1, size[1]-2);
-			touchwin(stdscr);
-			wnoutrefresh(stdscr);
 			break;
 		case 2:
 			/* go to last entry */
 			pageoffset = taskcount-size[1]+2;
 			selline = taskcount-1;
-			wipe_tasklist();
-			wredrawln(stdscr, 1, size[1]-2);
-			touchwin(stdscr);
-			wnoutrefresh(stdscr);
 			break;
 		default:
 			break;
@@ -1334,19 +1325,15 @@ void nc_main() /* {{{ */
 		{
 			reload_tasks();
 			task_count();
-			check_curs_pos();
-			print_title(size[0]);
-			wipe_tasklist();
-			refresh();
 			state.redraw = 1;
 		}
 		if (state.redraw==1)
 		{
-			wipe_tasklist();
 			fieldlengths.project = max_project_length();
 			fieldlengths.description = size[0]-fieldlengths.project-1-fieldlengths.date;
 			print_title(size[0]);
 			print_task_list();
+			check_curs_pos();
 			refresh();
 		}
 		if (sb_timeout>0 && sb_timeout<time(NULL))
@@ -2041,7 +2028,6 @@ void task_add(void) /* {{{ */
 	system(cmd);
 	free(cmd);
 	reset_shell_mode();
-	print_title();
 } /* }}} */
 
 void task_count() /* {{{ */
