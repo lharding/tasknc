@@ -73,7 +73,7 @@
 #define LOGLVL_DEFAULT                  0
 /* }}} */
 
-/* struct definitions {{{ */
+/* data struct definitions {{{ */
 typedef struct _task
 {
 	unsigned short index;
@@ -101,12 +101,13 @@ typedef struct _bind
 {
 	int key;
 	void (*function)();
+	void *arg;
 	struct _bind *next;
 } keybind;
 /* }}} */
 
 /* function prototypes {{{ */
-static void add_keybind(int, void *);
+static void add_keybind(int, void *, void *);
 static void check_curs_pos(void);
 static void check_screen_size();
 static void cleanup();
@@ -123,24 +124,16 @@ static void handle_keypress(int);
 static void help(void);
 static void key_add();
 static void key_command();
-static void key_complete();
-static void key_delete();
 static void key_done();
-static void key_edit();
 static void key_filter();
 static void key_reload();
 static void key_scroll(const int);
-static void key_scroll_beginning();
-static void key_scroll_down();
-static void key_scroll_end();
-static void key_scroll_up();
 static void key_search();
 static void key_search_next();
 static void key_sort();
 static void key_sync();
 static void key_task_action(const char, const char *, const char *);
 static void key_undo();
-static void key_view();
 static void logmsg(const char, const char *, ...) __attribute__((format(printf,2,3)));
 static task *malloc_task(void);
 static char match_string(const char *, const char *);
@@ -228,7 +221,7 @@ var vars[] = {
 };
 /* }}} */
 
-void add_keybind(int key, void *function) /* {{{ */
+void add_keybind(int key, void *function, void *arg) /* {{{ */
 {
 	/* add a keybind to the list of binds */
 	keybind *this_bind, *new;
@@ -238,6 +231,7 @@ void add_keybind(int key, void *function) /* {{{ */
 	new = calloc(1, sizeof(keybind));
 	new->key = key;
 	new->function = function;
+	new->arg = arg;
 	new->next = NULL;
 
 	/* append it to the list */
@@ -436,32 +430,32 @@ void configure(void) /* {{{ */
 	pclose(cmd);
 
 	/* default keybinds */
-	add_keybind(ERR,       NULL);
-	add_keybind('k',       key_scroll_up);
-	add_keybind(KEY_UP,    key_scroll_up);
-	add_keybind('j',       key_scroll_down);
-	add_keybind(KEY_DOWN,  key_scroll_down);
-	add_keybind(KEY_HOME,  key_scroll_beginning);
-	add_keybind('g',       key_scroll_beginning);
-	add_keybind(KEY_END,   key_scroll_end);
-	add_keybind('G',       key_scroll_end);
-	add_keybind('e',       key_edit);
-	add_keybind('r',       key_reload);
-	add_keybind('u',       key_undo);
-	add_keybind('d',       key_delete);
-	add_keybind('c',       key_complete);
-	add_keybind('a',       key_add);
-	add_keybind('v',       key_view);
-	add_keybind(13,        key_view);
-	add_keybind(KEY_ENTER, key_view);
-	add_keybind('s',       key_sort);
-	add_keybind('/',       key_search);
-	add_keybind('n',       key_search_next);
-	add_keybind('f',       key_filter);
-	add_keybind('y',       key_sync);
-	add_keybind('q',       key_done);
-	add_keybind(';',       key_command);
-	add_keybind(':',       key_command);
+	add_keybind(ERR,       NULL,                 NULL);
+	add_keybind('k',       key_scroll,           (void *)-1);
+	add_keybind(KEY_UP,    key_scroll,           (void *)-1);
+	add_keybind('j',       key_scroll,           (void *)1);
+	add_keybind(KEY_DOWN,  key_scroll,           (void *)1);
+	add_keybind(KEY_HOME,  key_scroll,           (void *)-2);
+	add_keybind('g',       key_scroll,           (void *)-2);
+	add_keybind(KEY_END,   key_scroll,           (void *)2);
+	add_keybind('G',       key_scroll,           (void *)2);
+	add_keybind('e',       key_task_action,      (void *)ACTION_EDIT);
+	add_keybind('r',       key_reload,           NULL);
+	add_keybind('u',       key_undo,             NULL);
+	add_keybind('d',       key_task_action,      (void *)ACTION_DELETE);
+	add_keybind('c',       key_task_action,      (void *)ACTION_COMPLETE);
+	add_keybind('a',       key_add,              NULL);
+	add_keybind('v',       key_task_action,      (void *)ACTION_VIEW);
+	add_keybind(13,        key_task_action,      (void *)ACTION_VIEW);
+	add_keybind(KEY_ENTER, key_task_action,      (void *)ACTION_VIEW);
+	add_keybind('s',       key_sort,             NULL);
+	add_keybind('/',       key_search,           NULL);
+	add_keybind('n',       key_search_next,      NULL);
+	add_keybind('f',       key_filter,           NULL);
+	add_keybind('y',       key_sync,             NULL);
+	add_keybind('q',       key_done,             NULL);
+	add_keybind(';',       key_command,          NULL);
+	add_keybind(':',       key_command,          NULL);
 
 	/* determine config path */
 	xdg_config_home = getenv("XDG_CONFIG_HOME");
@@ -805,7 +799,29 @@ void handle_keypress(int c) /* {{{ */
 		if (c == this_bind->key)
 		{
 			logmsg(LOG_DEBUG_VERBOSE, "calling function @%p", this_bind->function);
-			if (this_bind->function != NULL)
+			if (this_bind->function == (void *)key_scroll)
+				key_scroll((int)this_bind->arg);
+			else if (this_bind->function == (void *)key_task_action)
+			{
+				switch ((int)(this_bind->arg))
+				{
+					case ACTION_COMPLETE:
+						key_task_action(ACTION_COMPLETE, "task completed", "task complete failed");
+						break;
+					case ACTION_DELETE:
+						key_task_action(ACTION_DELETE, "task deleted", "task delete fail");
+						break;
+					case ACTION_EDIT:
+						key_task_action(ACTION_EDIT, "task edited", "task edit failed");
+						break;
+					case ACTION_VIEW:
+						key_task_action(ACTION_VIEW, "", "");
+						break;
+					default:
+						break;
+				}
+			}
+			else if (this_bind->function != NULL)
 				(*(this_bind->function))();
 			break;
 		}
@@ -861,28 +877,10 @@ void key_command() /* {{{ */
 	set_curses_mode(NCURSES_MODE_STD);
 } /* }}} */
 
-void key_complete() /* {{{ */
-{
-	/* wrapper function to handle keyboard instruction to complete task */
-	key_task_action(ACTION_COMPLETE, "task completed", "task complete failed");
-} /* }}} */
-
-void key_delete() /* {{{ */
-{
-	/* wrapper function to handle keyboard instruction to delete task */
-	key_task_action(ACTION_DELETE, "task deleted", "task delete fail");
-} /* }}} */
-
 void key_done() /* {{{ */
 {
 	/* wrapper function to handle keyboard instruction to quit */
 	state.done = 1;
-} /* }}} */
-
-void key_edit() /* {{{ */
-{
-	/* wrapper function to handle keyboard instruction to edit task */
-	key_task_action(ACTION_EDIT, "task edited", "task edit failed");
 } /* }}} */
 
 void key_filter() /* {{{ */
@@ -953,30 +951,6 @@ void key_scroll(const int direction) /* {{{ */
 		print_task(oldsel, NULL);
 		print_task(selline, NULL);
 	}
-} /* }}} */
-
-void key_scroll_beginning() /* {{{ */
-{
-	/* wrapper function to handle keyboard instruction to scroll home */
-	key_scroll(-2);
-} /* }}} */
-
-void key_scroll_down() /* {{{ */
-{
-	/* wrapper function to handle keyboard instruction to scroll down */
-	key_scroll(1);
-} /* }}} */
-
-void key_scroll_end() /* {{{ */
-{
-	/* wrapper function to handle keyboard instruction to scroll to end */
-	key_scroll(2);
-} /* }}} */
-
-void key_scroll_up() /* {{{ */
-{
-	/* wrapper function to handle keyboard instruction to scroll up */
-	key_scroll(-1);
 } /* }}} */
 
 void key_search() /* {{{ */
@@ -1116,12 +1090,6 @@ void key_undo() /* {{{ */
 	}
 	else
 		statusbar_message(cfg.statusbar_timeout, "undo execution failed (%d)", ret);
-} /* }}} */
-
-void key_view() /* {{{ */
-{
-	/* wrapper function to handle keyboard instruction to view task */
-	key_task_action(ACTION_VIEW, "", "");
 } /* }}} */
 
 void logmsg(const char minloglvl, const char *format, ...) /* {{{ */
