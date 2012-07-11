@@ -1082,7 +1082,7 @@ void key_task_action(const char action, const char *msg_success, const char *msg
 
 	def_prog_mode();
 	endwin();
-	if (action!=ACTION_VIEW && action!=ACTION_EDIT)
+	if (action!=ACTION_VIEW && action!=ACTION_COMPLETE && action!=ACTION_DELETE)
 		state.reload = 1;
 	ret = task_action(action);
 	refresh();
@@ -2006,6 +2006,19 @@ int task_action(const char action) /* {{{ */
 		puts("press ENTER to return");
 		fflush(0);
 		getchar();
+	}
+
+	/* remove from task list if command was successful */
+	if (ret==0 && (action==ACTION_DELETE || action==ACTION_COMPLETE))
+	{
+		if (cur==head)
+			head = cur->next;
+		else
+			cur->prev->next = cur->next;
+		if (cur->next!=NULL)
+			cur->next->prev = cur->prev;
+		free_task(cur);
+		state.redraw = 1;
 	}
 
 	return ret;
