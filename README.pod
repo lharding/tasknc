@@ -27,6 +27,10 @@ Print the version of tasknc
 
 Debug mode (no ncurses gui)
 
+=item B<-f, --filter>
+
+Set an initial filter string
+
 =item B<-l, --loglevel> I<loglvl>
 
 Set log level to I<loglvl>, which must be a non-negative integer.

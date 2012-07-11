@@ -839,6 +839,7 @@ void help(void) /* {{{ */
 	fprintf(stderr, "  Options:\n"
 			"    -l, --loglevel [value]   set log level\n"
 			"    -d, --debug              debug mode\n"
+			"    -f, --filter             set the initial filter\n"
 			"    -h, --help               print this help message and exit\n"
 			"    -v, --version            print the version and exit\n");
 } /* }}} */
@@ -1324,7 +1325,7 @@ void nc_main() /* {{{ */
 		{
 			fieldlengths.project = max_project_length();
 			fieldlengths.description = size[0]-fieldlengths.project-1-fieldlengths.date;
-			print_title(size[0]);
+			print_title();
 			print_task_list();
 			check_curs_pos();
 			refresh();
@@ -2203,10 +2204,11 @@ int main(int argc, char **argv) /* {{{ */
 		{"debug",    no_argument,       0, 'd'},
 		{"version",  no_argument,       0, 'v'},
 		{"loglevel", required_argument, 0, 'l'},
+		{"filter",   required_argument, 0, 'f'},
 		{0, 0, 0, 0}
 	};
 	int option_index = 0;
-	while ((c = getopt_long(argc, argv, "l:hvd", long_options, &option_index)) != -1)
+	while ((c = getopt_long(argc, argv, "l:hvdf:", long_options, &option_index)) != -1)
 	{
 		switch (c)
 		{
@@ -2221,6 +2223,10 @@ int main(int argc, char **argv) /* {{{ */
 			case 'd':
 				debug = 1;
 				break;
+			case 'f':
+				active_filter = malloc(strlen(optarg)*sizeof(char));
+				strcpy(active_filter, optarg);
+				break;
 			case 'h':
 			case '?':
 				help();
@@ -2233,7 +2239,6 @@ int main(int argc, char **argv) /* {{{ */
 
 	/* read config file */
 	configure();
-
 
 	/* build task list */
 	head = get_tasks(NULL);
@@ -2251,6 +2256,8 @@ int main(int argc, char **argv) /* {{{ */
 		nc_main();
 		nc_end(0);
 	}
+
+	/* debug mode */
 	else
 	{
 		task_count();
