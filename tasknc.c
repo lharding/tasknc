@@ -1524,6 +1524,8 @@ void print_task_list() /* {{{ */
 		counter++;
 		cur = cur->next;
 	}
+	if (counter<size[0]-2)
+		wipe_screen(counter+1-pageoffset, size[0]-1);
 } /* }}} */
 
 void print_title() /* {{{ */
@@ -1986,6 +1988,8 @@ int task_action(const char action) /* {{{ */
 		if (cur->next!=NULL)
 			cur->next->prev = cur->prev;
 		free_task(cur);
+		taskcount--;
+		totaltaskcount--;
 		state.redraw = 1;
 	}
 
