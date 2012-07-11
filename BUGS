@@ -1,4 +1,2 @@
 tasknc: known bugs or other things to improve
 
-    string length on unicode-containing strings
-    highlighting padded strings (pad_string not functioning as intended?)

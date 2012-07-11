@@ -63,6 +63,7 @@
 #define VAR_STR                         2
 #define VAR_INT                         3
 #define NVARS                           (int)(sizeof(vars)/sizeof(var))
+#define NFUNCS                          (int)(sizeof(funcmaps)/sizeof(funcmap))
 
 /* regex options */
 #define REGEX_OPTS REG_ICASE|REG_EXTENDED|REG_NOSUB|REG_NEWLINE
@@ -97,6 +98,13 @@ typedef struct _var
 	void *ptr;
 } var;
 
+typedef struct _funcmap
+{
+	char *name;
+	void (*function)();
+	int argn;
+} funcmap;
+
 typedef struct _bind
 {
 	int key;
@@ -113,6 +121,7 @@ static void check_screen_size();
 static void cleanup();
 static char compare_tasks(const task *, const task *, const char);
 static void configure(void);
+static funcmap *find_function(const char *);
 static void find_next_search_result(task *, task *);
 static var *find_var(const char *);
 static char free_task(task *);
@@ -141,6 +150,7 @@ static char max_project_length();
 static void nc_colors(void);
 static void nc_end(int);
 static void nc_main();
+static int parse_key(const char *);
 static task *parse_task(char *);
 static void print_task(int, task *);
 static void print_task_list();
@@ -149,6 +159,8 @@ static void print_version(void);
 static void reload_task(task *);
 static void reload_tasks();
 static void remove_char(char *, char);
+static int remove_keybinds(const int);
+static void run_command_bind(char *);
 static void run_command_set(char *);
 static void run_command_show(const char *);
 static void set_curses_mode(char);
@@ -206,18 +218,33 @@ FILE *logfp;                            /* handle for log file */
 keybind *keybinds = NULL;               /* linked list of keybinds */
 /* }}} */
 
-/* user-exposed variables {{{ */
+/* user-exposed variables & functions {{{ */
 var vars[] = {
-	{"ncurses_timeout", VAR_INT, &(cfg.nc_timeout)},
-	{"statusbar_timeout", VAR_INT, &(cfg.statusbar_timeout)},
-	{"log_level", VAR_INT, &(cfg.loglvl)},
-	{"task_version", VAR_STR, &(cfg.version)},
-	{"sort_mode", VAR_CHAR, &(cfg.sortmode)},
-	{"search_string", VAR_STR, &searchstring},
-	{"selected_line", VAR_INT, &selline},
-	{"task_count", VAR_INT, &totaltaskcount},
-	{"filter_string", VAR_STR, &active_filter},
-	{"silent_shell", VAR_CHAR, &(cfg.silent_shell)}
+	{"ncurses_timeout",   VAR_INT,  &(cfg.nc_timeout)},
+	{"statusbar_timeout", VAR_INT,  &(cfg.statusbar_timeout)},
+	{"log_level",         VAR_INT,  &(cfg.loglvl)},
+	{"task_version",      VAR_STR,  &(cfg.version)},
+	{"sort_mode",         VAR_CHAR, &(cfg.sortmode)},
+	{"search_string",     VAR_STR,  &searchstring},
+	{"selected_line",     VAR_INT,  &selline},
+	{"task_count",        VAR_INT,  &totaltaskcount},
+	{"filter_string",     VAR_STR,  &active_filter},
+	{"silent_shell",      VAR_CHAR, &(cfg.silent_shell)}
+};
+
+funcmap funcmaps[] = {
+	{"scroll",      (void *)key_scroll,      1},
+	{"task_action", (void *)key_task_action, 1},
+	{"reload",      (void *)key_reload,      0},
+	{"undo",        (void *)key_undo,        0},
+	{"add",         (void *)key_add,         0},
+	{"sort",        (void *)key_sort,        0},
+	{"search",      (void *)key_search,      0},
+	{"search_next", (void *)key_search_next, 0},
+	{"filter",      (void *)key_filter,      0},
+	{"sync",        (void *)key_sync,        0},
+	{"quit",        (void *)key_done,        0},
+	{"command",     (void *)key_command,     0}
 };
 /* }}} */
 
@@ -431,14 +458,14 @@ void configure(void) /* {{{ */
 
 	/* default keybinds */
 	add_keybind(ERR,       NULL,                 NULL);
-	add_keybind('k',       key_scroll,           (void *)-1);
-	add_keybind(KEY_UP,    key_scroll,           (void *)-1);
-	add_keybind('j',       key_scroll,           (void *)1);
-	add_keybind(KEY_DOWN,  key_scroll,           (void *)1);
-	add_keybind(KEY_HOME,  key_scroll,           (void *)-2);
-	add_keybind('g',       key_scroll,           (void *)-2);
-	add_keybind(KEY_END,   key_scroll,           (void *)2);
-	add_keybind('G',       key_scroll,           (void *)2);
+	add_keybind('k',       key_scroll,           (void *)'u');
+	add_keybind(KEY_UP,    key_scroll,           (void *)'u');
+	add_keybind('j',       key_scroll,           (void *)'d');
+	add_keybind(KEY_DOWN,  key_scroll,           (void *)'d');
+	add_keybind(KEY_HOME,  key_scroll,           (void *)'h');
+	add_keybind('g',       key_scroll,           (void *)'h');
+	add_keybind(KEY_END,   key_scroll,           (void *)'e');
+	add_keybind('G',       key_scroll,           (void *)'e');
 	add_keybind('e',       key_task_action,      (void *)ACTION_EDIT);
 	add_keybind('r',       key_reload,           NULL);
 	add_keybind('u',       key_undo,             NULL);
@@ -507,6 +534,20 @@ void configure(void) /* {{{ */
 
 	/* close config file */
 	fclose(config);
+} /* }}} */
+
+funcmap *find_function(const char *name) /* {{{ */
+{
+	/* search through the function maps */
+	int i;
+
+	for (i=0; i<NFUNCS; i++)
+	{
+		if (str_eq(name, funcmaps[i].name))
+			return &(funcmaps[i]);
+	}
+
+	return NULL;
 } /* }}} */
 
 void find_next_search_result(task *head, task *pos) /* {{{ */
@@ -777,6 +818,9 @@ void handle_command(char *cmdstr) /* {{{ */
 			this = this->next;
 		}
 	}
+	/* bind: add a new keybind */
+	else if (str_eq(cmdstr, "bind"))
+		run_command_bind(str_trim(args));
 	else
 	{
 		statusbar_message(cfg.statusbar_timeout, "error: command %s not found", cmdstr);
@@ -914,7 +958,7 @@ void key_scroll(const int direction) /* {{{ */
 
 	switch (direction)
 	{
-		case -1:
+		case 'u':
 			/* scroll one up */
 			if (selline>0)
 			{
@@ -923,7 +967,7 @@ void key_scroll(const int direction) /* {{{ */
 					pageoffset--;
 			}
 			break;
-		case 1:
+		case 'd':
 			/* scroll one down */
 			if (selline<taskcount-1)
 			{
@@ -932,17 +976,18 @@ void key_scroll(const int direction) /* {{{ */
 					pageoffset++;
 			}
 			break;
-		case -2:
+		case 'h':
 			/* go to first entry */
 			pageoffset = 0;
 			selline = 0;
 			break;
-		case 2:
+		case 'e':
 			/* go to last entry */
 			pageoffset = taskcount-size[1]+2;
 			selline = taskcount-1;
 			break;
 		default:
+			statusbar_message(cfg.statusbar_timeout, "invalid scroll direction");
 			break;
 	}
 	if (pageoffset!=oldoffset)
@@ -1335,6 +1380,20 @@ void nc_main() /* {{{ */
 	}
 } /* }}} */
 
+int parse_key(const char *keystr) /* {{{ */
+{
+	/* determine a key value from a string specifier */
+	int key;
+
+	/* try for integer key */
+	if (1==sscanf(keystr, "%d", &key))
+		return key;
+
+	/* take the first character as the key */
+	return (int)(*keystr);
+
+} /* }}} */
+
 task *parse_task(char *line) /* {{{ */
 {
 	task *tsk = malloc_task();
@@ -1617,6 +1676,94 @@ void remove_char(char *str, char remove) /* {{{ */
 			break;
 	}
 
+} /* }}} */
+
+int remove_keybinds(const int key) /* {{{ */
+{
+	/* remove all keybinds to key */
+	int counter = 0;
+	keybind *this, *last = NULL, *next;
+
+	this = keybinds;
+	while (this!=NULL)
+	{
+		next = this->next;
+		if (this->key == (int)key)
+		{
+			if (last!=NULL)
+				last->next = next;
+			else
+				keybinds = next;
+			free(this);
+			counter++;
+		}
+		else
+			last = this;
+		this = next;
+	}
+
+	return counter;
+} /* }}} */
+
+void run_command_bind(char *args) /* {{{ */
+{
+	/* create a new keybind */
+	int key;
+	char *function, *arg, *keystr;
+	void (*func)();
+	funcmap *fmap;
+
+	/* make sure an argument was passed */
+	if (args==NULL)
+	{
+		logmsg(LOG_ERROR, "bind: key must be specified (%s)", args);
+		return;
+	}
+
+	/* split off key */
+	keystr = args;
+	function = strchr(keystr, ' ');
+	if (function==NULL)
+	{
+		logmsg(LOG_ERROR, "bind: function must be specified (%s)", args);
+		return;
+	}
+	(*function) = 0;
+	function++;
+
+	/* parse key */
+	key = parse_key(keystr);
+
+	/* split function from function arg */
+	arg = strchr(function, ' ');
+	if (arg!=NULL)
+	{
+		(*arg) = 0;
+		arg = str_trim(++arg);
+	}
+
+	/* map function to function call */
+	fmap = find_function(function);
+	if (fmap==NULL)
+	{
+		logmsg(LOG_ERROR, "bind: invalid function specified (%s)", args);
+		return;
+	}
+	func = fmap->function;
+
+	/* error out if there is no argument specified when required */
+	if (fmap->argn>0 && arg==NULL)
+	{
+		statusbar_message(cfg.statusbar_timeout, "bind: argument required for function %s", function);
+		return;
+	}
+
+	/* add keybind */
+	if (func==(void *)key_scroll)
+		add_keybind(key, func, (void *)(int)*arg);
+	else
+		add_keybind(key, func, arg);
+	statusbar_message(cfg.statusbar_timeout, "key bound");
 } /* }}} */
 
 void run_command_set(char *args) /* {{{ */
@@ -2081,7 +2228,6 @@ int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
 		if (strncmp("tasknc", str, 6)!=0)
 		{
 			logmsg(LOG_ERROR, "printing to bad position (%d, %d): %s", y, x, str);
-			fflush(logfp);
 		}
 	}
 
