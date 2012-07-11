@@ -1213,12 +1213,8 @@ void nc_colors(void) /* {{{ */
 		start_color();
 		use_default_colors();
 		init_pair(1, COLOR_BLUE,        COLOR_BLACK);   /* title bar */
-		init_pair(2, COLOR_GREEN,       -1);            /* project */
-		init_pair(3, COLOR_CYAN,        -1);            /* description */
-		init_pair(4, COLOR_YELLOW,      -1);            /* date */
-		init_pair(5, COLOR_BLACK,       COLOR_GREEN);   /* selected project */
-		init_pair(6, COLOR_BLACK,       COLOR_CYAN);    /* selected description */
-		init_pair(7, COLOR_BLACK,       COLOR_YELLOW);  /* selected date */
+		init_pair(2, COLOR_WHITE,       -1);            /* default task */
+		init_pair(3, COLOR_CYAN,        -1);            /* selected task */
 		init_pair(8, COLOR_RED,         -1);            /* error message */
 	}
 } /* }}} */
@@ -1484,18 +1480,16 @@ void print_task(int tasknum, task *this) /* {{{ */
 		mvaddch(y, x, ' ');
 
 	/* print project */
-	attrset(COLOR_PAIR(2+3*sel));
+	attrset(COLOR_PAIR(2+sel));
 	if (this->project==NULL)
 		umvaddstr(y, fieldlengths.project-1, " ");
 	else
 		umvaddstr(y, fieldlengths.project-strlen(this->project), this->project);
 
 	/* print description */
-	attrset(COLOR_PAIR(3+3*sel));
 	umvaddstr(y, fieldlengths.project+1, this->description);
 
 	/* print due date or priority if available */
-	attrset(COLOR_PAIR(4+3*sel));
 	if (this->due != 0)
 	{
 		char *tmp;
