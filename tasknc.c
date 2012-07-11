@@ -952,6 +952,7 @@ void key_scroll(const int direction) /* {{{ */
 		print_task(oldsel, NULL);
 		print_task(selline, NULL);
 	}
+	print_title();
 } /* }}} */
 
 void key_search() /* {{{ */
