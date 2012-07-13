@@ -1035,7 +1035,8 @@ void key_scroll(const int direction) /* {{{ */
 			break;
 		case 'e':
 			/* go to last entry */
-			pageoffset = taskcount-size[1]+2;
+			if (taskcount>size[1]-2)
+				pageoffset = taskcount-size[1]+2;
 			selline = taskcount-1;
 			break;
 		default:
