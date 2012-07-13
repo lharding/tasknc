@@ -1093,17 +1093,24 @@ void key_search_next() /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "no active search string");
 } /* }}} */
 
-void key_sort() /* {{{ */
+void key_sort(const char *arg) /* {{{ */
 {
 	/* handle a keyboard direction to sort */
 	char m;
 
-	attrset(COLOR_PAIR(0));
-	statusbar_message(cfg.statusbar_timeout, "enter sort mode: iNdex, Project, Due, pRiority");
-	set_curses_mode(NCURSES_MODE_STD_BLOCKING);
+	/* get sort mode */
+	if (arg==NULL)
+	{
+		statusbar_message(cfg.statusbar_timeout, "enter sort mode: iNdex, Project, Due, pRiority");
+		set_curses_mode(NCURSES_MODE_STD_BLOCKING);
 
-	m = getch();
-	set_curses_mode(NCURSES_MODE_STD);
+		m = getch();
+		set_curses_mode(NCURSES_MODE_STD);
+	}
+	else
+		m = *arg;
+
+	/* do sort */
 	switch (m)
 	{
 		case 'n':
