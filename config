@@ -19,4 +19,65 @@ set sort_mode d
 
 # show shell commands
 # warning: no confirm should be set in your taskrc before setting this
-set silent_shell 0
+set silent_shell 1
+
+# key binds
+# format: bind <key> <action> <arg>
+# key may be specified as a integer or character
+# actions:
+#   scroll
+#     argument is the direction to scroll:
+#       u: up
+#       d: down
+#       h: home
+#       e: end
+#   task_action
+#     argument is the action to perform on the selected task:
+#       edit
+#       delete
+#       complete
+#       info
+#   reload
+#     reload the task list
+#   undo
+#     run 'task undo'
+#   add
+#     create a new task and open it for editing
+#   sort
+#     apply a sort to the task list
+#     with no option, brings up a menu of sorts to select
+#     options:
+#       d: due
+#       n: index
+#       p: project
+#       r: priority
+#   search
+#     search for a string in the content of a task
+#     with no argument, prompts user for search string
+#     with argument, applies search string
+#   search_next
+#     go to next item matching search
+#   filter
+#     apply a filter to the task list
+#     this is passed directly on the command line to task
+#     with no argument, prompts user for filter string and reloads task list
+#     with argument, applies filter string and reloads task list
+#   sync
+#     run 'task merge && task push'
+#   quit
+#     exit tasknc
+#   command
+#     open command line for user input command (a la vim)
+#     commands are in the format of entries in this config
+
+# examples:
+# clear filters
+bind F filter status:pending
+# sorts
+bind N sort n
+bind P sort p
+bind D sort d
+
+# unbind
+# format: unbind <key>
+# see above for key specification
