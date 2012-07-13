@@ -58,6 +58,8 @@ typedef enum {
 /* log levels */
 typedef enum {
 	LOG_DEFAULT = 0,
+	LOG_INFO,
+	LOG_WARN,
 	LOG_ERROR,
 	LOG_DEBUG,
 	LOG_DEBUG_VERBOSE
@@ -153,7 +155,6 @@ static void key_sort();
 static void key_sync();
 static void key_task_action(const task_action_type, const char *, const char *);
 static void key_undo();
-static void logmsg(const log_mode, const char *, ...) __attribute__((format(printf,2,3)));
 static task *malloc_task(void);
 static bool match_string(const char *, const char *);
 static char max_project_length();
@@ -185,6 +186,7 @@ static void task_add(void);
 static void task_count();
 static bool task_match(const task *, const char *);
 int umvaddstr(const int, const int, const char *, ...) __attribute__((format(printf,3,4)));
+static void tnc_fprintf(FILE *, const log_mode, const char *, ...) __attribute__((format(printf,3,4)));
 static char *utc_date(const unsigned int);
 static char *var_value_message(var *);
 static void wipe_screen(const short, const short);
@@ -302,7 +304,7 @@ void add_keybind(int key, void *function, char *arg) /* {{{ */
 	}
 
 	/* write log */
-	logmsg(LOG_DEBUG, "bind #%d: key %c (%d) bound to @%p (args: %d/%s)", n, key, key, function,new->argint, new->argstr);
+	tnc_fprintf(logfp, LOG_DEBUG, "bind #%d: key %c (%d) bound to @%p (args: %d/%s)", n, key, key, function,new->argint, new->argstr);
 } /* }}} */
 
 void check_curs_pos(void) /* {{{ */
@@ -323,7 +325,7 @@ void check_curs_pos(void) /* {{{ */
 		pageoffset = selline - onscreentasks;
 
 	/* log cursor position */
-	logmsg(LOG_DEBUG_VERBOSE, "selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, size[1]-3);
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, size[1]-3);
 } /* }}} */
 
 void check_screen_size() /* {{{ */
@@ -476,7 +478,7 @@ void configure(void) /* {{{ */
 		ret = sscanf(line, "task %[^ ]* ", cfg.version);
 		if (ret>0)
 		{
-			logmsg(LOG_DEBUG, "task version: %s", cfg.version);
+			tnc_fprintf(logfp, LOG_DEBUG, "task version: %s", cfg.version);
 			break;
 		}
 	}
@@ -526,7 +528,7 @@ void configure(void) /* {{{ */
 
 	/* open config file */
 	config = fopen(filepath, "r");
-	logmsg(LOG_DEBUG, "config file: %s", filepath);
+	tnc_fprintf(logfp, LOG_DEBUG, "config file: %s", filepath);
 
 	/* free filepath */
 	free(filepath);
@@ -534,13 +536,13 @@ void configure(void) /* {{{ */
 	/* check for a valid fd */
 	if (config == NULL)
 	{
-		puts("config file could not be opened");
-		logmsg(LOG_ERROR, "config file could not be opened");
+		tnc_fprintf(stdout, LOG_ERROR, "config file could not be opened");
+		tnc_fprintf(logfp, LOG_ERROR, "config file could not be opened");
 		return;
 	}
 
 	/* read config file */
-	logmsg(LOG_DEBUG, "reading config file");
+	tnc_fprintf(logfp, LOG_DEBUG, "reading config file");
 	while (fgets(line, TOTALLENGTH, config))
 	{
 		char *val;
@@ -592,7 +594,7 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
 		{
 			cur = head;
 			selline = 0;
-			logmsg(LOG_DEBUG_VERBOSE, "search wrapped");
+			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "search wrapped");
 		}
 
 		else
@@ -728,7 +730,7 @@ task *get_tasks(char *uuid) /* {{{ */
 		strcat(cmdstr, " ");
 		strcat(cmdstr, uuid);
 	}
-	logmsg(LOG_DEBUG, "reloading tasks (%s)", cmdstr);
+	tnc_fprintf(logfp, LOG_DEBUG, "reloading tasks (%s)", cmdstr);
 	cmd = popen(cmdstr, "r");
 	free(cmdstr);
 
@@ -756,7 +758,7 @@ task *get_tasks(char *uuid) /* {{{ */
 		remove_char(line, '\\');
 
 		/* log line */
-		logmsg(LOG_DEBUG_VERBOSE, line);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, line);
 
 		/* parse line */
 		this = parse_task(line);
@@ -778,10 +780,10 @@ task *get_tasks(char *uuid) /* {{{ */
 			last->next = this;
 		last = this;
 		counter++;
-		logmsg(LOG_DEBUG_VERBOSE, "uuid: %s", this->uuid);
-		logmsg(LOG_DEBUG_VERBOSE, "description: %s", this->description);
-		logmsg(LOG_DEBUG_VERBOSE, "project: %s", this->project);
-		logmsg(LOG_DEBUG_VERBOSE, "tags: %s", this->tags);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "uuid: %s", this->uuid);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "description: %s", this->description);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "project: %s", this->project);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "tags: %s", this->tags);
 
 		/* prepare a new line */
 		free(line);
@@ -804,7 +806,7 @@ void handle_command(char *cmdstr) /* {{{ */
 	char *pos, *args = NULL;
 	cmdstr = str_trim(cmdstr);
 
-	logmsg(LOG_DEBUG, "command received: %s", cmdstr);
+	tnc_fprintf(logfp, LOG_DEBUG, "command received: %s", cmdstr);
 
 	/* determine command */
 	pos = strchr(cmdstr, ' ');
@@ -844,10 +846,10 @@ void handle_command(char *cmdstr) /* {{{ */
 		task *this = head;
 		while (this!=NULL)
 		{
-			logmsg(-1, "uuid: %s", this->uuid);
-			logmsg(-1, "description: %s", this->description);
-			logmsg(-1, "project: %s", this->project);
-			logmsg(-1, "tags: %s", this->tags);
+			tnc_fprintf(logfp, -1, "uuid: %s", this->uuid);
+			tnc_fprintf(logfp, -1, "description: %s", this->description);
+			tnc_fprintf(logfp, -1, "project: %s", this->project);
+			tnc_fprintf(logfp, -1, "tags: %s", this->tags);
 			this = this->next;
 		}
 	}
@@ -860,12 +862,12 @@ void handle_command(char *cmdstr) /* {{{ */
 	else
 	{
 		statusbar_message(cfg.statusbar_timeout, "error: command %s not found", cmdstr);
-		logmsg(LOG_ERROR, "error: command %s not found", cmdstr);
+		tnc_fprintf(logfp, LOG_ERROR, "error: command %s not found", cmdstr);
 	}
 
 	/* debug */
-	logmsg(LOG_DEBUG_VERBOSE, "command: %s", cmdstr);
-	logmsg(LOG_DEBUG_VERBOSE, "command: [args] %s", args);
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: %s", cmdstr);
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: [args] %s", args);
 } /* }}} */
 
 void handle_keypress(int c) /* {{{ */
@@ -890,7 +892,7 @@ void handle_keypress(int c) /* {{{ */
 	{
 		if (c == this_bind->key)
 		{
-			logmsg(LOG_DEBUG_VERBOSE, "calling function @%p", this_bind->function);
+			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p", this_bind->function);
 			if (this_bind->function == (void *)key_scroll)
 				key_scroll(this_bind->argint);
 			else if (this_bind->function == (void *)key_task_action)
@@ -1198,52 +1200,6 @@ void key_undo() /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "undo execution failed (%d)", ret);
 } /* }}} */
 
-void logmsg(const log_mode minloglvl, const char *format, ...) /* {{{ */
-{
-	/* log a message to the logfile */
-	time_t lt;
-	struct tm *t;
-	va_list args;
-	int ret;
-	const int timesize = 32;
-	char timestr[timesize];
-
-	/* determine if msg should be logged */
-	if (minloglvl>cfg.loglvl)
-		return;
-
-	/* get time */
-	lt = time(NULL);
-	t = localtime(&lt);
-	ret = strftime(timestr, timesize, "%F %H:%M:%S", t);
-	if (ret==0)
-		return;
-
-	/* timestamp */
-	fprintf(logfp, "[%s] ", timestr);
-
-	/* log type header */
-	switch(minloglvl)
-	{
-		case LOG_ERROR:
-			fputs("ERROR: ", logfp);
-			break;
-		case LOG_DEBUG:
-		case LOG_DEBUG_VERBOSE:
-			fputs("DEBUG: ", logfp);
-		default:
-			break;
-	}
-
-	/* write log entry */
-	va_start(args, format);
-	vfprintf(logfp, format, args);
-	va_end(args);
-
-	/* trailing newline */
-	fputc('\n', logfp);
-} /* }}} */
-
 task *malloc_task(void) /* {{{ */
 {
 	/* allocate memory for a new task
@@ -1332,20 +1288,20 @@ void nc_end(int sig) /* {{{ */
 	switch (sig)
 	{
 		case SIGINT:
-			puts("aborted");
-			logmsg(LOG_DEBUG, "received SIGINT, exiting");
+			tnc_fprintf(stdout, LOG_DEFAULT, "aborted");
+			tnc_fprintf(logfp, LOG_DEBUG, "received SIGINT, exiting");
 			break;
 		case SIGSEGV:
-			puts("SEGFAULT");
-			logmsg(LOG_DEFAULT, "segmentation fault, exiting");
+			tnc_fprintf(logfp, LOG_WARN, "SEGFAULT");
+			tnc_fprintf(logfp, LOG_WARN, "segmentation fault, exiting");
 			break;
 		case SIGKILL:
-			puts("killed");
-			logmsg(LOG_DEFAULT, "received SIGKILL, exiting");
+			tnc_fprintf(stdout, LOG_WARN, "killed");
+			tnc_fprintf(logfp, LOG_WARN, "received SIGKILL, exiting");
 			break;
 		default:
-			puts("done");
-			logmsg(LOG_DEBUG, "exiting with code %d", sig);
+			tnc_fprintf(stdout, LOG_DEFAULT, "done");
+			tnc_fprintf(logfp, LOG_DEBUG, "exiting with code %d", sig);
 			break;
 	}
 
@@ -1363,7 +1319,7 @@ void nc_main() /* {{{ */
 	fieldlengths.date = DATELENGTH;
 
 	/* initialize ncurses */
-	puts("starting ncurses...");
+	tnc_fprintf(stdout, LOG_DEBUG, "starting ncurses...");
 	signal(SIGINT, nc_end);
 	signal(SIGSEGV, nc_end);
 	if ((stdscr = initscr()) == NULL ) {
@@ -1518,7 +1474,7 @@ task *parse_task(char *line) /* {{{ */
 		}
 
 		/* log content */
-		logmsg(LOG_DEBUG_VERBOSE, "field: %s; content: %s", field, content);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "field: %s; content: %s", field, content);
 
 		/* handle data */
 		if (str_eq(field, "uuid"))
@@ -1700,7 +1656,7 @@ void reload_tasks() /* {{{ */
 	/* reset head with a new list of tasks */
 	task *cur;
 
-	logmsg(LOG_DEBUG, "reloading tasks");
+	tnc_fprintf(logfp, LOG_DEBUG, "reloading tasks");
 
 	free_tasks(head);
 
@@ -1710,7 +1666,7 @@ void reload_tasks() /* {{{ */
 	cur = head;
 	while (cur!=NULL)
 	{
-		logmsg(LOG_DEBUG_VERBOSE, "%d,%s,%s,%d,%d,%d,%d,%s,%c,%s", cur->index, cur->uuid, cur->tags, cur->start, cur->end, cur->entry, cur->due, cur->project, cur->priority, cur->description);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "%d,%s,%s,%d,%d,%d,%d,%s,%c,%s", cur->index, cur->uuid, cur->tags, cur->start, cur->end, cur->entry, cur->due, cur->project, cur->priority, cur->description);
 		cur = cur->next;
 	}
 } /* }}} */
@@ -1775,7 +1731,7 @@ void run_command_bind(char *args) /* {{{ */
 	/* make sure an argument was passed */
 	if (args==NULL)
 	{
-		logmsg(LOG_ERROR, "bind: key must be specified (%s)", args);
+		tnc_fprintf(logfp, LOG_ERROR, "bind: key must be specified (%s)", args);
 		return;
 	}
 
@@ -1784,7 +1740,7 @@ void run_command_bind(char *args) /* {{{ */
 	function = strchr(keystr, ' ');
 	if (function==NULL)
 	{
-		logmsg(LOG_ERROR, "bind: function must be specified (%s)", args);
+		tnc_fprintf(logfp, LOG_ERROR, "bind: function must be specified (%s)", args);
 		return;
 	}
 	(*function) = 0;
@@ -1805,7 +1761,7 @@ void run_command_bind(char *args) /* {{{ */
 	fmap = find_function(function);
 	if (fmap==NULL)
 	{
-		logmsg(LOG_ERROR, "bind: invalid function specified (%s)", args);
+		tnc_fprintf(logfp, LOG_ERROR, "bind: invalid function specified (%s)", args);
 		return;
 	}
 	func = fmap->function;
@@ -1888,7 +1844,7 @@ void run_command_set(char *args) /* {{{ */
 			break;
 	}
 	if (ret<=0)
-		logmsg(LOG_ERROR, "failed to parse value from command: set %s %s", varname, value);
+		tnc_fprintf(logfp, LOG_ERROR, "failed to parse value from command: set %s %s", varname, value);
 
 	/* acquire the value string and print it */
 	message = var_value_message(this_var);
@@ -2033,8 +1989,8 @@ void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 	/* check for active screen */
 	if (stdscr==NULL)
 	{
-		puts(message);
-		logmsg(LOG_DEBUG, "(stdscr==NULL) %s", message);
+		tnc_fprintf(stdout, LOG_INFO, message);
+		tnc_fprintf(logfp, LOG_DEBUG, "(stdscr==NULL) %s", message);
 		free(message);
 		return;
 	}
@@ -2164,13 +2120,13 @@ int task_action(const task_action_type action) /* {{{ */
 	else
 		sprintf(cmd, "task %s %s %s", cur->uuid, actionstr, redir);
 
-	logmsg(LOG_DEBUG, "running: %s", cmd);
+	tnc_fprintf(logfp, LOG_DEBUG, "running: %s", cmd);
 	ret = system(cmd);
 	free(cmd);
 	if (wait)
 	{
 		puts("press ENTER to return");
-		fflush(0);
+		fflush(stdout);
 		getchar();
 	}
 
@@ -2214,7 +2170,7 @@ void task_add(void) /* {{{ */
 	/* add new task */
 	cmd = malloc(128*sizeof(char));
 	sprintf(cmd, "task add new task %s", redir);
-	logmsg(LOG_DEBUG, "running: %s", cmd);
+	tnc_fprintf(logfp, LOG_DEBUG, "running: %s", cmd);
 	cmdout = popen("task add new task", "r");
 	while (fgets(line, sizeof(line)-1, cmdout) != NULL)
 	{
@@ -2262,6 +2218,55 @@ static bool task_match(const task *cur, const char *str) /* {{{ */
 		return 0;
 } /* }}} */
 
+void tnc_fprintf(FILE *fp, const log_mode minloglvl, const char *format, ...) /* {{{ */
+{
+	/* log a message to the logfile */
+	time_t lt;
+	struct tm *t;
+	va_list args;
+	int ret;
+	const int timesize = 32;
+	char timestr[timesize];
+
+	/* determine if msg should be logged */
+	if (minloglvl>cfg.loglvl)
+		return;
+
+	/* get time */
+	lt = time(NULL);
+	t = localtime(&lt);
+	ret = strftime(timestr, timesize, "%F %H:%M:%S", t);
+	if (ret==0)
+		return;
+
+	/* timestamp */
+	if (fp!=stdout)
+		fprintf(fp, "[%s] ", timestr);
+
+	/* log type header */
+	switch(minloglvl)
+	{
+		case LOG_WARN:
+			fputs("WARNING: ", fp);
+		case LOG_ERROR:
+			fputs("ERROR: ", fp);
+			break;
+		case LOG_DEBUG:
+		case LOG_DEBUG_VERBOSE:
+			fputs("DEBUG: ", fp);
+		default:
+			break;
+	}
+
+	/* write log entry */
+	va_start(args, format);
+	vfprintf(fp, format, args);
+	va_end(args);
+
+	/* trailing newline */
+	fputc('\n', fp);
+} /* }}} */
+
 int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
 {
 	/* convert a string to a wchar string and mvaddwstr */
@@ -2284,7 +2289,7 @@ int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
 	/* check for valid allocation */
 	if (wstr==NULL)
 	{
-		logmsg(LOG_ERROR, "critical: umvaddstr failed to malloc");
+		tnc_fprintf(logfp, LOG_ERROR, "critical: umvaddstr failed to malloc");
 		return -1;
 	}
 
@@ -2378,10 +2383,10 @@ int main(int argc, char **argv) /* {{{ */
 
 	/* open log */
 	logfp = fopen(LOGFILE, "a");
-	logmsg(LOG_DEBUG, "%s started", SHORTNAME);
+	tnc_fprintf(logfp, LOG_DEBUG, "%s started", SHORTNAME);
 
 	/* set defaults */
-	cfg.loglvl = LOG_DEFAULT;
+	cfg.loglvl = LOGLVL_DEFAULT;
 	setlocale(LC_ALL, "");
 
 	/* handle arguments */
@@ -2431,15 +2436,15 @@ int main(int argc, char **argv) /* {{{ */
 	head = get_tasks(NULL);
 	if (head==NULL)
 	{
-		puts("it appears that your task list is empty");
-		printf("please add some tasks for %s to manage\n", SHORTNAME);
+		tnc_fprintf(stdout, LOG_WARN, "it appears that your task list is empty");
+		tnc_fprintf(stdout, LOG_WARN, "please add some tasks for %s to manage\n", SHORTNAME);
 		return 1;
 	}
 
 	/* run ncurses */
 	if (!debug)
 	{
-		logmsg(LOG_DEBUG, "running gui");
+		tnc_fprintf(logfp, LOG_DEBUG, "running gui");
 		nc_main();
 		nc_end(0);
 	}
@@ -2482,6 +2487,6 @@ int main(int argc, char **argv) /* {{{ */
 	}
 
 	/* done */
-	logmsg(LOG_DEBUG, "exiting");
+	tnc_fprintf(logfp, LOG_DEBUG, "exiting");
 	return 0;
 } /* }}} */
