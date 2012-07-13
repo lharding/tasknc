@@ -1,0 +1,326 @@
+{
+   wcslen-false-alarm
+   Memcheck:Addr8
+   fun:__wcslen_sse2
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_add_to_try
+   fun:_nc_init_keytry
+   fun:_nc_keypad
+   fun:nc_main
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:malloc
+   fun:_nc_doalloc
+   fun:_nc_tparm_analyze
+   obj:/usr/lib/libncursesw.so.5.9
+   fun:tparm
+   fun:_nc_mvcur_init
+   fun:newterm
+   fun:initscr
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:malloc
+   fun:_nc_home_terminfo
+   obj:*
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:malloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_entry
+   obj:*
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_entry
+   obj:*
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_entry
+   obj:*
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:realloc
+   fun:_nc_doalloc
+   obj:/usr/lib/libncursesw.so.5.9
+   fun:tparm
+   fun:_nc_mvcur_init
+   fun:newterm
+   fun:initscr
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_entry
+   obj:*
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:malloc
+   fun:_nc_doalloc
+   fun:_nc_scroll_optimize
+   fun:doupdate
+   fun:wrefresh
+   obj:/usr/lib/libncursesw.so.5.9
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_hash_map
+   fun:_nc_scroll_optimize
+   fun:doupdate
+   fun:wrefresh
+   obj:/usr/lib/libncursesw.so.5.9
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_hash_map
+   fun:_nc_scroll_optimize
+   fun:doupdate
+   fun:wrefresh
+   obj:/usr/lib/libncursesw.so.5.9
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_setupterm
+   obj:/home/mhiggin5/builds/tasknc/tasknc
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_makenew
+   fun:newwin
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_makenew
+   fun:newwin
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_add_to_try
+   fun:_nc_init_keytry
+   fun:_nc_keypad
+   fun:nc_main
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:start_color
+   fun:nc_colors
+   fun:set_curses_mode
+   fun:nc_main
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_add_to_try
+   fun:_nc_init_keytry
+   fun:_nc_keypad
+   fun:nc_main
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_makenew
+   fun:newwin
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_makenew
+   fun:newwin
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:malloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_entry
+   obj:*
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:realloc
+   fun:_nc_doalloc
+   fun:_nc_read_termtype
+   fun:_nc_read_file_entry
+   fun:_nc_read_entry
+   obj:*
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:malloc
+   fun:_nc_hash_map
+   fun:_nc_scroll_optimize
+   fun:doupdate
+   fun:wrefresh
+   obj:/usr/lib/libncursesw.so.5.9
+   fun:_nc_wgetch
+   fun:wgetch
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:malloc
+   fun:_nc_set_buffer
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:_nc_init_wacs
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   obj:/usr/lib/libncursesw.so.5.9
+   fun:_nc_find_type_entry
+   fun:tigetflag
+   fun:assume_default_colors
+   fun:use_default_colors
+   fun:set_curses_mode
+   fun:nc_main
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:newwin
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:main
+}
+{
+   ncurses-memleak
+   Memcheck:Leak
+   fun:calloc
+   fun:newwin
+   fun:_nc_setupscreen
+   fun:newterm
+   fun:initscr
+   fun:main
+}
