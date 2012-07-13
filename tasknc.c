@@ -171,6 +171,7 @@ static void reload_tasks();
 static void remove_char(char *, char);
 static int remove_keybinds(const int);
 static void run_command_bind(char *);
+static void run_command_unbind(char *);
 static void run_command_set(char *);
 static void run_command_show(const char *);
 static void set_curses_mode(const ncurses_mode);
@@ -853,6 +854,9 @@ void handle_command(char *cmdstr) /* {{{ */
 	/* bind: add a new keybind */
 	else if (str_eq(cmdstr, "bind"))
 		run_command_bind(str_trim(args));
+	/* unbind: remove keybinds */
+	else if (str_eq(cmdstr, "unbind"))
+		run_command_unbind(str_trim(args));
 	else
 	{
 		statusbar_message(cfg.statusbar_timeout, "error: command %s not found", cmdstr);
@@ -1818,6 +1822,15 @@ void run_command_bind(char *args) /* {{{ */
 	strcpy(aarg, arg);
 	add_keybind(key, func, aarg);
 	statusbar_message(cfg.statusbar_timeout, "key bound");
+} /* }}} */
+
+void run_command_unbind(char *keystr) /* {{{ */
+{
+	/* handle a keyboard instruction to unbind a key */
+	const int key = parse_key(keystr);
+
+	remove_keybinds(key);
+	statusbar_message(cfg.statusbar_timeout, "key unbound: %c (%d)", key, key);
 } /* }}} */
 
 void run_command_set(char *args) /* {{{ */
