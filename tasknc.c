@@ -144,7 +144,7 @@ static void help(void);
 static void key_add();
 static void key_command();
 static void key_done();
-static void key_filter();
+static void key_filter(const char *);
 static void key_reload();
 static void key_scroll(const int);
 static void key_search();
@@ -301,7 +301,7 @@ void add_keybind(int key, void *function, char *arg) /* {{{ */
 	}
 
 	/* write log */
-	logmsg(LOG_DEBUG, "bind #%d: key %c (%d) bound to @%p", n, key, key, function);
+	logmsg(LOG_DEBUG, "bind #%d: key %c (%d) bound to @%p (args: %d/%s)", n, key, key, function,new->argint, new->argstr);
 } /* }}} */
 
 void check_curs_pos(void) /* {{{ */
@@ -712,14 +712,21 @@ task *get_tasks(char *uuid) /* {{{ */
 	task *last;
 
 	/* generate & run command */
-	if (active_filter==NULL)
-		active_filter = " ";
-	if (uuid==NULL)
-		uuid = " ";
+	cmdstr = calloc(64, sizeof(char));
 	if (cfg.version[0]<'2')
-		asprintf(&cmdstr, "task export.json status:pending %s %s", active_filter, uuid);
+		strcat(cmdstr, "task export.json status:pending");
 	else
-		asprintf(&cmdstr, "task export status:pending %s %s", active_filter, uuid);
+		strcat(cmdstr, "task export status:pending");
+	if (active_filter!=NULL)
+	{
+		strcat(cmdstr, " ");
+		strcat(cmdstr, active_filter);
+	}
+	if (uuid!=NULL)
+	{
+		strcat(cmdstr, " ");
+		strcat(cmdstr, uuid);
+	}
 	logmsg(LOG_DEBUG, "reloading tasks (%s)", cmdstr);
 	cmd = popen(cmdstr, "r");
 	free(cmdstr);
@@ -885,7 +892,7 @@ void handle_keypress(int c) /* {{{ */
 			else if (this_bind->function == (void *)key_task_action)
 				key_task_action(this_bind->argint, action_success_str[this_bind->argint], action_fail_str[this_bind->argint]);
 			else if (this_bind->function != NULL)
-				(*(this_bind->function))();
+				(*(this_bind->function))(this_bind->argstr);
 			break;
 		}
 		this_bind = this_bind->next;
@@ -947,15 +954,26 @@ void key_done() /* {{{ */
 	state.done = 1;
 } /* }}} */
 
-void key_filter() /* {{{ */
+void key_filter(const char *arg) /* {{{ */
 {
 	/* handle a keyboard direction to add a new filter */
-	statusbar_message(-1, "filter by: ");
-	set_curses_mode(NCURSES_MODE_STRING);
-	active_filter = calloc(2*size[0], sizeof(char));
-	getstr(active_filter);
-	wipe_statusbar();
-	set_curses_mode(NCURSES_MODE_STD);
+	if (arg==NULL)
+	{
+		statusbar_message(-1, "filter by: ");
+		set_curses_mode(NCURSES_MODE_STRING);
+		check_free(active_filter);
+		active_filter = calloc(2*size[0], sizeof(char));
+		getstr(active_filter);
+		wipe_statusbar();
+		set_curses_mode(NCURSES_MODE_STD);
+	}
+	else
+	{
+		const int arglen = (int)strlen(arg);
+		check_free(active_filter);
+		active_filter = calloc(arglen, sizeof(char));
+		strncpy(active_filter, arg, arglen);
+	}
 
 	statusbar_message(cfg.statusbar_timeout, "filter applied");
 	selline = 0;
@@ -1169,6 +1187,7 @@ void logmsg(const log_mode minloglvl, const char *format, ...) /* {{{ */
 	char timestr[timesize];
 
 	/* determine if msg should be logged */
+	if (minloglvl>cfg.loglvl)
 		return;
 
 	/* get time */
