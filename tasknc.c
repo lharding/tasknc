@@ -155,7 +155,7 @@ static void key_task_action(const task_action_type, const char *, const char *);
 static void key_undo();
 static void logmsg(const log_mode, const char *, ...) __attribute__((format(printf,2,3)));
 static task *malloc_task(void);
-static char match_string(const char *, const char *);
+static bool match_string(const char *, const char *);
 static char max_project_length();
 static void nc_colors(void);
 static void nc_end(int);
@@ -182,7 +182,7 @@ static void swap_tasks(task *, task *);
 static int task_action(const task_action_type);
 static void task_add(void);
 static void task_count();
-static char task_match(const task *, const char *);
+static bool task_match(const task *, const char *);
 int umvaddstr(const int, const int, const char *, ...) __attribute__((format(printf,3,4)));
 static char *utc_date(const unsigned int);
 static char *var_value_message(var *);
@@ -598,7 +598,7 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
 			selline++;
 
 		/* check for match */
-		if (task_match(cur, searchstring)==1)
+		if (task_match(cur, searchstring))
 			return;
 
 		/* stop if full loop was made */
@@ -1169,7 +1169,6 @@ void logmsg(const log_mode minloglvl, const char *format, ...) /* {{{ */
 	char timestr[timesize];
 
 	/* determine if msg should be logged */
-	if (minloglvl>cfg.loglvl)
 		return;
 
 	/* get time */
@@ -1229,7 +1228,7 @@ task *malloc_task(void) /* {{{ */
 	return tsk;
 } /* }}} */
 
-char match_string(const char *haystack, const char *needle) /* {{{ */
+bool match_string(const char *haystack, const char *needle) /* {{{ */
 {
 	/* match a string to a regex */
 	regex_t regex;
@@ -2201,7 +2200,7 @@ void task_count() /* {{{ */
 	}
 } /* }}} */
 
-static char task_match(const task *cur, const char *str) /* {{{ */
+static bool task_match(const task *cur, const char *str) /* {{{ */
 {
 	if (match_string(cur->project, str) ||
 			match_string(cur->description, str) ||
