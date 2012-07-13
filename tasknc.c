@@ -142,7 +142,7 @@ static void handle_command(char *);
 static void handle_keypress(int);
 static void help(void);
 static void key_add();
-static void key_command();
+static void key_command(const char *);
 static void key_done();
 static void key_filter(const char *);
 static void key_reload();
@@ -925,27 +925,36 @@ void key_add() /* {{{ */
 	statusbar_message(cfg.statusbar_timeout, "task added");
 } /* }}} */
 
-void key_command() /* {{{ */
+void key_command(const char *arg) /* {{{ */
 {
 	/* accept and attemt to execute a command string */
 	char *cmdstr;
 
-	/* prepare prompt */
-	statusbar_message(-1, ":");
-	set_curses_mode(NCURSES_MODE_STRING);
+	if (arg==NULL)
+	{
+		/* prepare prompt */
+		statusbar_message(-1, ":");
+		set_curses_mode(NCURSES_MODE_STRING);
 
-	/* get input */
-	cmdstr = calloc(size[0], sizeof(char));
-	getstr(cmdstr);
-	wipe_statusbar();
+		/* get input */
+		cmdstr = calloc(size[0], sizeof(char));
+		getstr(cmdstr);
+		wipe_statusbar();
+
+		/* reset */
+		set_curses_mode(NCURSES_MODE_STD);
+	}
+	else
+	{
+		const int arglen = (int)strlen(arg);
+		cmdstr = calloc(arglen, sizeof(char));
+		strncpy(cmdstr, arg, arglen);
+	}
 
 	/* run input command */
 	if (cmdstr[0]!=0)
 		handle_command(cmdstr);
 	free(cmdstr);
-
-	/* reset */
-	set_curses_mode(NCURSES_MODE_STD);
 } /* }}} */
 
 void key_done() /* {{{ */
