@@ -861,6 +861,18 @@ void handle_keypress(int c) /* {{{ */
 {
 	/* handle a key press on the main screen */
 	keybind *this_bind;
+	static const char *action_success_str[] = {
+		[ACTION_COMPLETE] = "task completed",
+		[ACTION_DELETE]   = "task deleted",
+		[ACTION_EDIT]     = "task edited",
+		[ACTION_VIEW]     = ""
+	};
+	static const char *action_fail_str[] = {
+		[ACTION_COMPLETE] = "task complete failed",
+		[ACTION_DELETE]   = "task delete failed",
+		[ACTION_EDIT]     = "task edit failed",
+		[ACTION_VIEW]     = ""
+	};
 
 	this_bind = keybinds;
 	while (this_bind!=NULL)
@@ -871,25 +883,7 @@ void handle_keypress(int c) /* {{{ */
 			if (this_bind->function == (void *)key_scroll)
 				key_scroll(this_bind->argint);
 			else if (this_bind->function == (void *)key_task_action)
-			{
-				switch (this_bind->argint)
-				{
-					case ACTION_COMPLETE:
-						key_task_action(ACTION_COMPLETE, "task completed", "task complete failed");
-						break;
-					case ACTION_DELETE:
-						key_task_action(ACTION_DELETE, "task deleted", "task delete fail");
-						break;
-					case ACTION_EDIT:
-						key_task_action(ACTION_EDIT, "task edited", "task edit failed");
-						break;
-					case ACTION_VIEW:
-						key_task_action(ACTION_VIEW, "", "");
-						break;
-					default:
-						break;
-				}
-			}
+				key_task_action(this_bind->argint, action_success_str[this_bind->argint], action_fail_str[this_bind->argint]);
 			else if (this_bind->function != NULL)
 				(*(this_bind->function))();
 			break;
@@ -2080,32 +2074,19 @@ int task_action(const task_action_type action) /* {{{ */
 {
 	/* spawn a command to perform an action on a task */
 	task *cur;
-	char *cmd, *actionstr, wait, *redir;
+	static const char *str_for_action[] = {
+		[ACTION_EDIT]     = "edit",
+		[ACTION_COMPLETE] = "done",
+		[ACTION_DELETE]   = "del",
+		[ACTION_VIEW]     = "info"
+	};
+	const char *actionstr = str_for_action[(int)action];
+	char *cmd, *redir;
+	const bool wait = action == ACTION_VIEW;
 	int ret;
 
 	/* move to correct task */
 	cur = get_task_by_position(selline);
-
-	/* determine action */
-	actionstr = malloc(5*sizeof(char));
-	wait = 0;
-	switch(action)
-	{
-		case ACTION_EDIT:
-			strncpy(actionstr, "edit", 5);
-			break;
-		case ACTION_COMPLETE:
-			strncpy(actionstr, "done", 5);
-			break;
-		case ACTION_DELETE:
-			strncpy(actionstr, "del", 4);
-			break;
-		case ACTION_VIEW:
-		default:
-			strncpy(actionstr, "info", 5);
-			wait = 1;
-			break;
-	}
 
 	/* determine whether stdio should be used */
 	if (cfg.silent_shell && action!=ACTION_VIEW && action!=ACTION_EDIT)
@@ -2132,7 +2113,6 @@ int task_action(const task_action_type action) /* {{{ */
 	else
 		sprintf(cmd, "task %s %s %s", cur->uuid, actionstr, redir);
 
-	free(actionstr);
 	logmsg(LOG_DEBUG, "running: %s", cmd);
 	ret = system(cmd);
 	free(cmd);
