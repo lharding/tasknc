@@ -147,7 +147,7 @@ static void key_done();
 static void key_filter(const char *);
 static void key_reload();
 static void key_scroll(const int);
-static void key_search();
+static void key_search(const char *);
 static void key_search_next();
 static void key_sort();
 static void key_sync();
@@ -1037,18 +1037,27 @@ void key_scroll(const int direction) /* {{{ */
 	print_title();
 } /* }}} */
 
-void key_search() /* {{{ */
+void key_search(const char *arg) /* {{{ */
 {
 	/* handle a keyboard direction to search */
-	statusbar_message(-1, "search phrase: ");
-	set_curses_mode(NCURSES_MODE_STRING);
-
-	/* store search string  */
 	check_free(searchstring);
-	searchstring = malloc((size[0]-16)*sizeof(char));
-	getstr(searchstring);
-	sb_timeout = time(NULL) + 3;
-	set_curses_mode(NCURSES_MODE_STD);
+	if (arg==NULL)
+	{
+		statusbar_message(-1, "search phrase: ");
+		set_curses_mode(NCURSES_MODE_STRING);
+
+		/* store search string  */
+		searchstring = malloc((size[0]-16)*sizeof(char));
+		getstr(searchstring);
+		sb_timeout = time(NULL) + 3;
+		set_curses_mode(NCURSES_MODE_STD);
+	}
+	else
+	{
+		const int arglen = strlen(arg);
+		searchstring = calloc(arglen, sizeof(char));
+		strncpy(searchstring, arg, arglen);
+	}
 
 	/* go to first result */
 	find_next_search_result(head, get_task_by_position(selline));
@@ -1746,7 +1755,7 @@ void run_command_bind(char *args) /* {{{ */
 {
 	/* create a new keybind */
 	int key;
-	char *function, *arg, *keystr;
+	char *function, *arg, *keystr, *aarg;
 	void (*func)();
 	funcmap *fmap;
 
@@ -1796,7 +1805,9 @@ void run_command_bind(char *args) /* {{{ */
 	}
 
 	/* add keybind */
-	add_keybind(key, func, arg);
+	aarg = calloc((int)strlen(arg), sizeof(char));
+	strcpy(aarg, arg);
+	add_keybind(key, func, aarg);
 	statusbar_message(cfg.statusbar_timeout, "key bound");
 } /* }}} */
 
@@ -2239,7 +2250,9 @@ int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
 
 	/* build str */
 	va_start(args, format);
-	vasprintf(&str, format, args);
+	const int slen = sizeof(wchar_t)*(size[0]-x+1)/sizeof(char);
+	str = calloc(slen, sizeof(char));
+	vsnprintf(str, slen-1, format, args);
 	va_end(args);
 
 	/* allocate wchar_t string */
