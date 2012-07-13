@@ -109,13 +109,15 @@ typedef struct _bind
 {
 	int key;
 	void (*function)();
-	void *arg;
+	int argint;
+	char *argstr;
 	struct _bind *next;
 } keybind;
 /* }}} */
 
 /* function prototypes {{{ */
-static void add_keybind(int, void *, void *);
+static void add_int_keybind(int, void *, int);
+static void add_keybind(int, void *, char *);
 static void check_curs_pos(void);
 static void check_screen_size();
 static void cleanup();
@@ -248,7 +250,17 @@ funcmap funcmaps[] = {
 };
 /* }}} */
 
-void add_keybind(int key, void *function, void *arg) /* {{{ */
+void add_int_keybind(int key, void *function, int argint) /* {{{ */
+{
+	/* convert integer to string, then add keybind */
+	char *argstr;
+
+	asprintf(&argstr, "%d", argint);
+	add_keybind(key, function, argstr);
+	free(argstr);
+} /* }}} */
+
+void add_keybind(int key, void *function, char *arg) /* {{{ */
 {
 	/* add a keybind to the list of binds */
 	keybind *this_bind, *new;
@@ -258,7 +270,14 @@ void add_keybind(int key, void *function, void *arg) /* {{{ */
 	new = calloc(1, sizeof(keybind));
 	new->key = key;
 	new->function = function;
-	new->arg = arg;
+	new->argint = 0;
+	new->argstr = NULL;
+	if (function==key_task_action)
+		new->argint = atoi(arg);
+	else if (function==key_scroll)
+		new->argint = *arg;
+	else
+		new->argstr = arg;
 	new->next = NULL;
 
 	/* append it to the list */
@@ -457,32 +476,32 @@ void configure(void) /* {{{ */
 	pclose(cmd);
 
 	/* default keybinds */
-	add_keybind(ERR,       NULL,                 NULL);
-	add_keybind('k',       key_scroll,           (void *)'u');
-	add_keybind(KEY_UP,    key_scroll,           (void *)'u');
-	add_keybind('j',       key_scroll,           (void *)'d');
-	add_keybind(KEY_DOWN,  key_scroll,           (void *)'d');
-	add_keybind(KEY_HOME,  key_scroll,           (void *)'h');
-	add_keybind('g',       key_scroll,           (void *)'h');
-	add_keybind(KEY_END,   key_scroll,           (void *)'e');
-	add_keybind('G',       key_scroll,           (void *)'e');
-	add_keybind('e',       key_task_action,      (void *)ACTION_EDIT);
-	add_keybind('r',       key_reload,           NULL);
-	add_keybind('u',       key_undo,             NULL);
-	add_keybind('d',       key_task_action,      (void *)ACTION_DELETE);
-	add_keybind('c',       key_task_action,      (void *)ACTION_COMPLETE);
-	add_keybind('a',       key_add,              NULL);
-	add_keybind('v',       key_task_action,      (void *)ACTION_VIEW);
-	add_keybind(13,        key_task_action,      (void *)ACTION_VIEW);
-	add_keybind(KEY_ENTER, key_task_action,      (void *)ACTION_VIEW);
-	add_keybind('s',       key_sort,             NULL);
-	add_keybind('/',       key_search,           NULL);
-	add_keybind('n',       key_search_next,      NULL);
-	add_keybind('f',       key_filter,           NULL);
-	add_keybind('y',       key_sync,             NULL);
-	add_keybind('q',       key_done,             NULL);
-	add_keybind(';',       key_command,          NULL);
-	add_keybind(':',       key_command,          NULL);
+	add_keybind(ERR,           NULL,                 NULL);
+	add_keybind('k',           key_scroll,           "u");
+	add_keybind(KEY_UP,        key_scroll,           "u");
+	add_keybind('j',           key_scroll,           "d");
+	add_keybind(KEY_DOWN,      key_scroll,           "d");
+	add_keybind(KEY_HOME,      key_scroll,           "h");
+	add_keybind('g',           key_scroll,           "h");
+	add_keybind(KEY_END,       key_scroll,           "e");
+	add_keybind('G',           key_scroll,           "e");
+	add_int_keybind('e',       key_task_action,      ACTION_EDIT);
+	add_keybind('r',           key_reload,           NULL);
+	add_keybind('u',           key_undo,             NULL);
+	add_int_keybind('d',       key_task_action,      ACTION_DELETE);
+	add_int_keybind('c',       key_task_action,      ACTION_COMPLETE);
+	add_keybind('a',           key_add,              NULL);
+	add_int_keybind('v',       key_task_action,      ACTION_VIEW);
+	add_int_keybind(13,        key_task_action,      ACTION_VIEW);
+	add_int_keybind(KEY_ENTER, key_task_action,      ACTION_VIEW);
+	add_keybind('s',           key_sort,             NULL);
+	add_keybind('/',           key_search,           NULL);
+	add_keybind('n',           key_search_next,      NULL);
+	add_keybind('f',           key_filter,           NULL);
+	add_keybind('y',           key_sync,             NULL);
+	add_keybind('q',           key_done,             NULL);
+	add_keybind(';',           key_command,          NULL);
+	add_keybind(':',           key_command,          NULL);
 
 	/* determine config path */
 	xdg_config_home = getenv("XDG_CONFIG_HOME");
@@ -844,10 +863,10 @@ void handle_keypress(int c) /* {{{ */
 		{
 			logmsg(LOG_DEBUG_VERBOSE, "calling function @%p", this_bind->function);
 			if (this_bind->function == (void *)key_scroll)
-				key_scroll((int)this_bind->arg);
+				key_scroll(this_bind->argint);
 			else if (this_bind->function == (void *)key_task_action)
 			{
-				switch ((int)(this_bind->arg))
+				switch (this_bind->argint)
 				{
 					case ACTION_COMPLETE:
 						key_task_action(ACTION_COMPLETE, "task completed", "task complete failed");
@@ -1759,10 +1778,7 @@ void run_command_bind(char *args) /* {{{ */
 	}
 
 	/* add keybind */
-	if (func==(void *)key_scroll)
-		add_keybind(key, func, (void *)(int)*arg);
-	else
-		add_keybind(key, func, arg);
+	add_keybind(key, func, arg);
 	statusbar_message(cfg.statusbar_timeout, "key bound");
 } /* }}} */
 
@@ -2222,15 +2238,6 @@ int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
 	vasprintf(&str, format, args);
 	va_end(args);
 
-	/* DEBUG: check for invalid prints to title bar */
-	if (y==0 && x<fieldlengths.project)
-	{
-		if (strncmp("tasknc", str, 6)!=0)
-		{
-			logmsg(LOG_ERROR, "printing to bad position (%d, %d): %s", y, x, str);
-		}
-	}
-
 	/* allocate wchar_t string */
 	len = strlen(str)+1;
 	wstr = calloc(len, sizeof(wchar_t));
@@ -2428,9 +2435,9 @@ int main(int argc, char **argv) /* {{{ */
 			puts(t->description);
 		free(tmp);
 		asprintf(&tmp, "  test string  ");
-		printf("%s (%d)\n", tmp, strlen(tmp));
+		printf("%s (%d)\n", tmp, (int)strlen(tmp));
 		test = str_trim(tmp);
-		printf("%s (%d)\n", test, strlen(test));
+		printf("%s (%d)\n", test, (int)strlen(test));
 		free(tmp);
 		cleanup();
 	}
