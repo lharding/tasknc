@@ -41,27 +41,35 @@
 #define DATELENGTH                      10
 
 /* action definitions */
-#define ACTION_EDIT                     0
-#define ACTION_COMPLETE                 1
-#define ACTION_DELETE                   2
-#define ACTION_VIEW                     3
+typedef enum {
+	ACTION_EDIT = 0,
+	ACTION_COMPLETE,
+	ACTION_DELETE,
+	ACTION_VIEW
+} task_action_type;
 
 /* ncurses settings */
-#define NCURSES_MODE_STD                0
-#define NCURSES_MODE_STD_BLOCKING       1
-#define NCURSES_MODE_STRING             2
+typedef enum {
+	NCURSES_MODE_STD = 0,
+	NCURSES_MODE_STD_BLOCKING,
+	NCURSES_MODE_STRING
+} ncurses_mode;
 
 /* log levels */
-#define LOG_DEFAULT                     0
-#define LOG_ERROR                       1
-#define LOG_DEBUG                       2
-#define LOG_DEBUG_VERBOSE               3
+typedef enum {
+	LOG_DEFAULT = 0,
+	LOG_ERROR,
+	LOG_DEBUG,
+	LOG_DEBUG_VERBOSE
+} log_mode;
 
 /* var struct management */
-#define VAR_UNDEF                       0
-#define VAR_CHAR                        1
-#define VAR_STR                         2
-#define VAR_INT                         3
+typedef enum {
+	VAR_UNDEF = 0,
+	VAR_CHAR,
+	VAR_STR,
+	VAR_INT
+} var_type;
 #define NVARS                           (int)(sizeof(vars)/sizeof(var))
 #define NFUNCS                          (int)(sizeof(funcmaps)/sizeof(funcmap))
 
@@ -94,7 +102,7 @@ typedef struct _task
 typedef struct _var
 {
 	char *name;
-	char type;
+	var_type type;
 	void *ptr;
 } var;
 
@@ -143,9 +151,9 @@ static void key_search();
 static void key_search_next();
 static void key_sort();
 static void key_sync();
-static void key_task_action(const char, const char *, const char *);
+static void key_task_action(const task_action_type, const char *, const char *);
 static void key_undo();
-static void logmsg(const char, const char *, ...) __attribute__((format(printf,2,3)));
+static void logmsg(const log_mode, const char *, ...) __attribute__((format(printf,2,3)));
 static task *malloc_task(void);
 static char match_string(const char *, const char *);
 static char max_project_length();
@@ -165,13 +173,13 @@ static int remove_keybinds(const int);
 static void run_command_bind(char *);
 static void run_command_set(char *);
 static void run_command_show(const char *);
-static void set_curses_mode(char);
+static void set_curses_mode(const ncurses_mode);
 static void sort_tasks(task *, task *);
 static void sort_wrapper(task *);
 static void statusbar_message(const int, const char *, ...) __attribute__((format(printf,2,3)));
 static char *str_trim(char *);
 static void swap_tasks(task *, task *);
-static int task_action(const char);
+static int task_action(const task_action_type);
 static void task_add(void);
 static void task_count();
 static char task_match(const task *, const char *);
@@ -185,7 +193,7 @@ static void wipe_screen(const short, const short);
 struct {
 	int nc_timeout;
 	int statusbar_timeout;
-	int loglvl;
+	log_mode loglvl;
 	char *version;
 	char sortmode;
 	char silent_shell;
@@ -456,8 +464,6 @@ void configure(void) /* {{{ */
 	/* set default values */
 	cfg.nc_timeout = NCURSES_WAIT;                          /* time getch will wait */
 	cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;      /* default time before resetting statusbar */
-	if (cfg.loglvl==-1)
-		cfg.loglvl = LOGLVL_DEFAULT;                        /* determine whether log message should be printed */
 	cfg.sortmode = 'd';                                     /* determine sort algorithm */
 	cfg.silent_shell = 0;                                   /* determine whether shell commands should be visible */
 
@@ -1115,7 +1121,7 @@ void key_sync() /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "task syncronization failed");
 } /* }}} */
 
-void key_task_action(const char action, const char *msg_success, const char *msg_fail) /* {{{ */
+void key_task_action(const task_action_type action, const char *msg_success, const char *msg_fail) /* {{{ */
 {
 	/* handle a keyboard direction to run a task command */
 	int ret;
@@ -1158,7 +1164,7 @@ void key_undo() /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "undo execution failed (%d)", ret);
 } /* }}} */
 
-void logmsg(const char minloglvl, const char *format, ...) /* {{{ */
+void logmsg(const log_mode minloglvl, const char *format, ...) /* {{{ */
 {
 	/* log a message to the logfile */
 	time_t lt;
@@ -1207,7 +1213,7 @@ void logmsg(const char minloglvl, const char *format, ...) /* {{{ */
 task *malloc_task(void) /* {{{ */
 {
 	/* allocate memory for a new task
-	 * and initialize values where ncessary
+	 * and initialize values where necessary
 	 */
 	task *tsk = calloc(1, sizeof(task));
 	if (tsk==NULL)
@@ -1872,10 +1878,10 @@ void run_command_show(const char *arg) /* {{{ */
 	free(message);
 } /* }}} */
 
-void set_curses_mode(char curses_mode) /* {{{ */
+void set_curses_mode(const ncurses_mode mode) /* {{{ */
 {
 	/* set curses settings for various common modes */
-	switch (curses_mode)
+	switch (mode)
 	{
 		case NCURSES_MODE_STD:
 			keypad(stdscr, TRUE);   /* enable keyboard mapping */
@@ -2070,7 +2076,7 @@ void swap_tasks(task *a, task *b) /* {{{ */
 	b->description = strtmp;
 } /* }}} */
 
-int task_action(const char action) /* {{{ */
+int task_action(const task_action_type action) /* {{{ */
 {
 	/* spawn a command to perform an action on a task */
 	task *cur;
@@ -2342,7 +2348,7 @@ int main(int argc, char **argv) /* {{{ */
 	logmsg(LOG_DEBUG, "%s started", SHORTNAME);
 
 	/* set defaults */
-	cfg.loglvl = -1;
+	cfg.loglvl = LOG_DEFAULT;
 	setlocale(LC_ALL, "");
 
 	/* handle arguments */
