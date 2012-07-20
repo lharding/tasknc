@@ -62,6 +62,12 @@ set silent_shell 1
 #     this is passed directly on the command line to task
 #     with no argument, prompts user for filter string and reloads task list
 #     with argument, applies filter string and reloads task list
+#   modify
+#     apply a modification to selected task
+#     this is passed directly on the command line to task
+#     with no argument, prompts user for modify string and reloads task
+#     with argument, applies modification and reloads task
+#     sort is re-run after each modify
 #   sync
 #     run 'task merge && task push'
 #   quit
@@ -77,6 +83,11 @@ bind F filter status:pending
 bind N sort n
 bind P sort p
 bind D sort d
+# modifications
+bind L modify pri:L
+bind M modify pri:M
+bind H modify pri:H
+bind C modify pri:
 
 # unbind
 # format: unbind <key>

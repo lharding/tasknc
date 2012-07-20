@@ -147,6 +147,7 @@ static void key_add();
 static void key_command(const char *);
 static void key_done();
 static void key_filter(const char *);
+static void key_modify(const char *);
 static void key_reload();
 static void key_scroll(const int);
 static void key_search(const char *);
@@ -185,6 +186,7 @@ static int task_action(const task_action_type);
 static void task_add(void);
 static void task_count();
 static bool task_match(const task *, const char *);
+static void task_modify(const char *);
 int umvaddstr(const int, const int, const char *, ...) __attribute__((format(printf,3,4)));
 static void tnc_fprintf(FILE *, const log_mode, const char *, ...) __attribute__((format(printf,3,4)));
 static char *utc_date(const unsigned int);
@@ -211,9 +213,9 @@ struct {
 } fieldlengths;
 
 struct {
-	char redraw;
-	char reload;
-	char done;
+	bool redraw;
+	bool reload;
+	bool done;
 } state;
 /* }}} */
 
@@ -251,6 +253,7 @@ funcmap funcmaps[] = {
 	{"reload",      (void *)key_reload,      0},
 	{"undo",        (void *)key_undo,        0},
 	{"add",         (void *)key_add,         0},
+	{"modify",      (void *)key_modify,      0},
 	{"sort",        (void *)key_sort,        0},
 	{"search",      (void *)key_search,      0},
 	{"search_next", (void *)key_search_next, 0},
@@ -371,6 +374,7 @@ void cleanup() /* {{{ */
 	}
 
 	/* close open files */
+	fflush(logfp);
 	fclose(logfp);
 } /* }}} */
 
@@ -712,7 +716,7 @@ task *get_tasks(char *uuid) /* {{{ */
 	char *line, *tmp, *cmdstr;
 	int linelen = TOTALLENGTH;
 	unsigned short counter = 0;
-	task *last;
+	task *last, *new_head;
 
 	/* generate & run command */
 	cmdstr = calloc(64, sizeof(char));
@@ -736,7 +740,7 @@ task *get_tasks(char *uuid) /* {{{ */
 
 	/* parse output */
 	last = NULL;
-	head = NULL;
+	new_head = NULL;
 	line = calloc(linelen, sizeof(char));
 	while (fgets(line, linelen-1, cmd) != NULL)
 	{
@@ -775,7 +779,7 @@ task *get_tasks(char *uuid) /* {{{ */
 		this->prev = last;
 
 		if (counter==0)
-			head = this;
+			new_head = this;
 		if (counter>0)
 			last->next = this;
 		last = this;
@@ -794,10 +798,10 @@ task *get_tasks(char *uuid) /* {{{ */
 
 
 	/* sort tasks */
-	if (head!=NULL)
-		sort_wrapper(head);
+	if (new_head!=NULL)
+		sort_wrapper(new_head);
 
-	return head;
+	return new_head;
 } /* }}} */
 
 void handle_command(char *cmdstr) /* {{{ */
@@ -993,6 +997,35 @@ void key_filter(const char *arg) /* {{{ */
 	statusbar_message(cfg.statusbar_timeout, "filter applied");
 	selline = 0;
 	state.reload = 1;
+} /* }}} */
+
+void key_modify(const char *arg) /* {{{ */
+{
+	/* handle a keyboard direction to add a new filter */
+	char *argstr;
+
+	if (arg==NULL)
+	{
+		statusbar_message(-1, "modify: ");
+		set_curses_mode(NCURSES_MODE_STRING);
+		argstr = calloc(2*size[0], sizeof(char));
+		getstr(argstr);
+		wipe_statusbar();
+		set_curses_mode(NCURSES_MODE_STD);
+	}
+	else
+	{
+		const int arglen = (int)strlen(arg);
+		argstr = calloc(arglen, sizeof(char));
+		strncpy(argstr, arg, arglen);
+	}
+
+	task_modify(argstr);
+	free(argstr);
+
+	statusbar_message(cfg.statusbar_timeout, "task modified");
+	state.redraw = 1;
+	sort_wrapper(head);
 } /* }}} */
 
 void key_reload() /* {{{ */
@@ -1329,6 +1362,7 @@ void nc_main() /* {{{ */
 	/* initialize ncurses */
 	tnc_fprintf(stdout, LOG_DEBUG, "starting ncurses...");
 	signal(SIGINT, nc_end);
+	signal(SIGKILL, nc_end);
 	signal(SIGSEGV, nc_end);
 	if ((stdscr = initscr()) == NULL ) {
 	    fprintf(stderr, "Error initialising ncurses.\n");
@@ -1552,6 +1586,13 @@ void print_task(int tasknum, task *this) /* {{{ */
 	if (this==NULL)
 		this = get_task_by_position(tasknum);
 
+	/* check if this is NULL */
+	if (this==NULL)
+	{
+		tnc_fprintf(logfp, LOG_ERROR, "task %d is null", tasknum);
+		return;
+	}
+
 	/* determine if line is selected */
 	if (tasknum==selline)
 		sel = 1;
@@ -1643,17 +1684,31 @@ void reload_task(task *this) /* {{{ */
 	/* get new task */
 	new = get_tasks(this->uuid);
 
+	/* check for NULL new task */
+	if (new == NULL)
+	{
+		tnc_fprintf(logfp, LOG_ERROR, "reload_task(%s): get_tasks returned NULL", this->uuid);
+		return;
+	}
+
 	/* transfer pointers */
 	new->prev = this->prev;
 	new->next = this->next;
 	if (this->prev!=NULL)
 		this->prev->next = new;
+	else
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): no previous task", this->uuid);
 	if (this->next!=NULL)
 		this->next->prev = new;
+	else
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): no next task", this->uuid);
 
 	/* move to head if necessary */
 	if (this==head)
+	{
 		head = new;
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): setting task as head", this->uuid);
+	}
 
 	/* free old task */
 	free_task(this);
@@ -1781,9 +1836,16 @@ void run_command_bind(char *args) /* {{{ */
 		return;
 	}
 
+	/* copy argument if necessary */
+	if (arg!=NULL)
+	{
+		aarg = calloc((int)strlen(arg), sizeof(char));
+		strcpy(aarg, arg);
+	}
+	else
+		aarg = NULL;
+
 	/* add keybind */
-	aarg = calloc((int)strlen(arg), sizeof(char));
-	strcpy(aarg, arg);
 	add_keybind(key, func, aarg);
 	statusbar_message(cfg.statusbar_timeout, "key bound");
 } /* }}} */
@@ -2216,6 +2278,34 @@ void task_count() /* {{{ */
 	}
 } /* }}} */
 
+void task_modify(const char *argstr) /* {{{ */
+{
+	/* run a modify command on the selected task */
+	task *cur;
+	char *cmd;
+	FILE *run;
+	int arglen;
+
+	if (argstr!=NULL)
+		arglen = strlen(argstr);
+	else
+		arglen = 0;
+
+	cur = get_task_by_position(selline);
+	cmd = calloc(64+arglen, sizeof(char));
+
+	sprintf(cmd, "task %s modify ", cur->uuid);
+	if (arglen>0)
+		strcat(cmd, argstr);
+
+	run = popen(cmd, "r");
+	pclose(run);
+
+	reload_task(cur);
+
+	free(cmd);
+} /* }}} */
+
 static bool task_match(const task *cur, const char *str) /* {{{ */
 {
 	if (match_string(cur->project, str) ||
@@ -2256,6 +2346,7 @@ void tnc_fprintf(FILE *fp, const log_mode minloglvl, const char *format, ...) /*
 	{
 		case LOG_WARN:
 			fputs("WARNING: ", fp);
+			break;
 		case LOG_ERROR:
 			fputs("ERROR: ", fp);
 			break;
