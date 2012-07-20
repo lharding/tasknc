@@ -127,6 +127,7 @@ static void check_screen_size();
 static void cleanup();
 static char compare_tasks(const task *, const task *, const char);
 static void configure(void);
+static const char *eval_string(const int, const char *, const task *, char *, int);
 static funcmap *find_function(const char *);
 static void find_next_search_result(task *, task *);
 static var *find_var(const char *);
@@ -567,6 +568,52 @@ void configure(void) /* {{{ */
 
 	/* close config file */
 	fclose(config);
+} /* }}} */
+
+const char *eval_string(const int maxlen, const char *fmt, const task *this, char *str, int position) /* {{{ */
+{
+	/* evaluate a string with format variables */
+	int i;
+
+	/* check if string is done */
+	if (*fmt == 0)
+		return str;
+
+	/* allocate string if necessary */
+	if (str==NULL)
+		str = calloc(maxlen+1, sizeof(char));
+
+	/* check if this is a variable */
+	if (*fmt != '$')
+	{
+		str[position] = *fmt;
+		return eval_string(maxlen, ++fmt, this, str, ++position);
+	}
+
+	/* try for a variable relative to the current task */
+	if (this!=NULL)
+	{
+		if (str_starts_with(fmt+1, "uuid"))
+		{
+		}
+	}
+
+	/* try for an exposed variable */
+	for (i=0; i<NVARS; i++)
+	{
+		if (str_starts_with(fmt+1, vars[i].name))
+		{
+			char *msg = var_value_message(&(vars[i]));
+			strcpy(str+position, msg);
+			const int msglen = strlen(msg);
+			free(msg);
+			return eval_string(maxlen, fmt+strlen(vars[i].name)+1, this, str, position+msglen);
+		}
+	}
+
+	/* print uninterpreted */
+	str[position] = *fmt;
+	return eval_string(maxlen, ++fmt, this, str, ++position);
 } /* }}} */
 
 funcmap *find_function(const char *name) /* {{{ */
@@ -2594,7 +2641,8 @@ int main(int argc, char **argv) /* {{{ */
 		free(tmp);
 
 		/* evaluating a format string */
-		const char *titlefmt = "$progname $version";
+		const char *titlefmt = "$program_name;();$program_version; $filter_string//$task_count\\/$badvar";
+		printf("%s\n", eval_string(100, titlefmt, NULL, NULL, 0));
 
 		cleanup();
 	}
