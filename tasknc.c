@@ -719,7 +719,7 @@ task *get_tasks(char *uuid) /* {{{ */
 	task *last, *new_head;
 
 	/* generate & run command */
-	cmdstr = calloc(64, sizeof(char));
+	cmdstr = calloc(128, sizeof(char));
 	if (cfg.version[0]<'2')
 		strcat(cmdstr, "task export.json status:pending");
 	else
@@ -1016,7 +1016,7 @@ void key_modify(const char *arg) /* {{{ */
 	else
 	{
 		const int arglen = (int)strlen(arg);
-		argstr = calloc(arglen, sizeof(char));
+		argstr = calloc(arglen+1, sizeof(char));
 		strncpy(argstr, arg, arglen);
 	}
 
@@ -1688,26 +1688,35 @@ void reload_task(task *this) /* {{{ */
 	if (new == NULL)
 	{
 		tnc_fprintf(logfp, LOG_ERROR, "reload_task(%s): get_tasks returned NULL", this->uuid);
-		return;
+		if (this->prev!=NULL)
+			this->prev->next = this->next;
+		else
+			head = this->next;
+		if (this->next!=NULL)
+			this->next->prev = this->prev;
+		taskcount--;
+		totaltaskcount--;
 	}
-
-	/* transfer pointers */
-	new->prev = this->prev;
-	new->next = this->next;
-	if (this->prev!=NULL)
-		this->prev->next = new;
 	else
-		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): no previous task", this->uuid);
-	if (this->next!=NULL)
-		this->next->prev = new;
-	else
-		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): no next task", this->uuid);
-
-	/* move to head if necessary */
-	if (this==head)
 	{
-		head = new;
-		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): setting task as head", this->uuid);
+		/* transfer pointers */
+		new->prev = this->prev;
+		new->next = this->next;
+		if (this->prev!=NULL)
+			this->prev->next = new;
+		else
+			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): no previous task", this->uuid);
+		if (this->next!=NULL)
+			this->next->prev = new;
+		else
+			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): no next task", this->uuid);
+
+		/* move to head if necessary */
+		if (this==head)
+		{
+			head = new;
+			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): setting task as head", this->uuid);
+		}
 	}
 
 	/* free old task */

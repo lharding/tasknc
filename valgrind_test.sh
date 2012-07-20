@@ -9,4 +9,4 @@ if [ -e $errorfile ]; then
 fi
 
 valgrind $valgrind_options --log-file="$errorfile" $run
-vim "$errorfile"
+vim "$errorfile" "+set ft="
