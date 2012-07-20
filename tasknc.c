@@ -30,12 +30,6 @@
 #define str_eq(x, y)                    (strcmp((x), (y))==0)
 #define check_free(x)                   if (x!=NULL) free(x);
 
-/* program information */
-#define NAME                            "taskwarrior ncurses shell"
-#define SHORTNAME                       "tasknc"
-#define VERSION                         "0.6"
-#define AUTHOR                          "mjheagle"
-
 /* field lengths */
 #define UUIDLENGTH                      38
 #define DATELENGTH                      10
@@ -220,6 +214,10 @@ struct {
 /* }}} */
 
 /* global variables {{{ */
+const char *progname = "tasknc";
+const char *progversion = "v0.6";
+const char *progauthor = "mjheagle";
+
 short pageoffset = 0;                   /* number of tasks page is offset */
 time_t sb_timeout = 0;                  /* when statusbar should be cleared */
 char *searchstring = NULL;              /* currently active search string */
@@ -244,7 +242,10 @@ var vars[] = {
 	{"selected_line",     VAR_INT,  &selline},
 	{"task_count",        VAR_INT,  &totaltaskcount},
 	{"filter_string",     VAR_STR,  &active_filter},
-	{"silent_shell",      VAR_CHAR, &(cfg.silent_shell)}
+	{"silent_shell",      VAR_CHAR, &(cfg.silent_shell)},
+	{"program_name",      VAR_STR,  &progname},
+	{"program_author",    VAR_STR,  &progauthor},
+	{"program_version",   VAR_STR,  &progversion},
 };
 
 funcmap funcmaps[] = {
@@ -825,7 +826,7 @@ void handle_command(char *cmdstr) /* {{{ */
 	/* handle command & arguments */
 	/* version: print version string */
 	if (str_eq(cmdstr, "version"))
-		statusbar_message(cfg.statusbar_timeout, "%s v%s by %s\n", NAME, VERSION, AUTHOR);
+		statusbar_message(cfg.statusbar_timeout, "%s %s by %s\n", progname, progversion, progauthor);
 	/* quit/exit: exit tasknc */
 	else if (str_eq(cmdstr, "quit") || str_eq(cmdstr, "exit"))
 		state.done = 1;
@@ -915,7 +916,7 @@ void help(void) /* {{{ */
 {
 	/* print a list of options and program info */
 	print_version();
-	fprintf(stderr, "\nUsage: %s [options]\n\n", NAME);
+	fprintf(stderr, "\nUsage: %s [options]\n\n", progname);
 	fprintf(stderr, "  Options:\n"
 			"    -l, --loglevel [value]   set log level\n"
 			"    -d, --debug              debug mode\n"
@@ -1377,7 +1378,7 @@ void nc_main() /* {{{ */
 	getmaxyx(stdscr, oldsize[1], oldsize[0]);
 	fieldlengths.description = oldsize[0]-fieldlengths.project-1-fieldlengths.date;
 	task_count();
-	print_title(oldsize[0]);
+	print_title();
 	attrset(COLOR_PAIR(0));
 	print_task_list();
 	refresh();
@@ -1660,7 +1661,7 @@ void print_title() /* {{{ */
 
 	/* print program info */
 	tmp0 = calloc(size[0], sizeof(char));
-	snprintf(tmp0, size[0], "%s v%s  (%d/%d)", SHORTNAME, VERSION, selline+1, totaltaskcount);
+	snprintf(tmp0, size[0], "%s %s  (%d/%d)", progname, progversion, selline+1, totaltaskcount);
 	umvaddstr(0, 0, tmp0);
 	free(tmp0);
 
@@ -1673,7 +1674,7 @@ void print_title() /* {{{ */
 void print_version(void) /* {{{ */
 {
 	/* print info about the currently running program */
-	printf("%s v%s by %s\n", NAME, VERSION, AUTHOR);
+	printf("%s %s by %s\n", progname, progversion, progauthor);
 } /* }}} */
 
 void reload_task(task *this) /* {{{ */
@@ -2491,7 +2492,7 @@ int main(int argc, char **argv) /* {{{ */
 
 	/* open log */
 	logfp = fopen(LOGFILE, "a");
-	tnc_fprintf(logfp, LOG_DEBUG, "%s started", SHORTNAME);
+	tnc_fprintf(logfp, LOG_DEBUG, "%s started", progname);
 
 	/* set defaults */
 	cfg.loglvl = LOGLVL_DEFAULT;
@@ -2545,7 +2546,7 @@ int main(int argc, char **argv) /* {{{ */
 	if (head==NULL)
 	{
 		tnc_fprintf(stdout, LOG_WARN, "it appears that your task list is empty");
-		tnc_fprintf(stdout, LOG_WARN, "please add some tasks for %s to manage\n", SHORTNAME);
+		tnc_fprintf(stdout, LOG_WARN, "please add some tasks for %s to manage\n", progname);
 		return 1;
 	}
 
@@ -2591,6 +2592,10 @@ int main(int argc, char **argv) /* {{{ */
 		test = str_trim(tmp);
 		printf("%s (%d)\n", test, (int)strlen(test));
 		free(tmp);
+
+		/* evaluating a format string */
+		const char *titlefmt = "$progname $version";
+
 		cleanup();
 	}
 
