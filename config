@@ -21,6 +21,29 @@ set sort_mode d
 # warning: no confirm should be set in your taskrc before setting this
 set silent_shell 1
 
+# title format
+# format: set title_format <fmt>
+# variables are specified by $<varname>
+# variables:
+#   ncurses_timeout
+#   statusbar_timeout
+#   log_level
+#   task_version
+#   sort_mode
+#   search_string
+#   selected_line
+#   task_count
+#   filter_string
+#   silent_shell
+#   program_name
+#   program_author
+#   program_version
+#   title_format
+# special variables:
+#   date
+#   > (right align)
+# default format: $program_name ($selected_line/$task_count) $> $date
+
 # key binds
 # format: bind <key> <action> <arg>
 # key may be specified as a integer or character
