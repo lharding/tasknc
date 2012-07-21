@@ -183,9 +183,10 @@ static void task_count();
 static bool task_match(const task *, const char *);
 static void task_modify(const char *);
 int umvaddstr(const int, const int, const char *, ...) __attribute__((format(printf,3,4)));
+int umvaddstr_align(const int, char *);
 static void tnc_fprintf(FILE *, const log_mode, const char *, ...) __attribute__((format(printf,3,4)));
 static char *utc_date(const unsigned int);
-static char *var_value_message(var *);
+static char *var_value_message(var *, bool);
 static void wipe_screen(const short, const short);
 /* }}} */
 
@@ -206,6 +207,11 @@ struct {
 	short description;
 	short date;
 } fieldlengths;
+
+struct {
+	char *title;
+	char *task;
+} formats;
 
 struct {
 	bool redraw;
@@ -247,6 +253,7 @@ var vars[] = {
 	{"program_name",      VAR_STR,  &progname},
 	{"program_author",    VAR_STR,  &progauthor},
 	{"program_version",   VAR_STR,  &progversion},
+	{"title_format",      VAR_STR,  &(formats.title)}
 };
 
 funcmap funcmaps[] = {
@@ -470,11 +477,15 @@ void configure(void) /* {{{ */
 	char line[TOTALLENGTH], *filepath, *xdg_config_home, *home;
 	int ret;
 
-	/* set default values */
+	/* set default settings */
 	cfg.nc_timeout = NCURSES_WAIT;                          /* time getch will wait */
 	cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;      /* default time before resetting statusbar */
 	cfg.sortmode = 'd';                                     /* determine sort algorithm */
 	cfg.silent_shell = 0;                                   /* determine whether shell commands should be visible */
+
+	/* set default formats */
+	formats.title = calloc(64, sizeof(char));
+	strcpy(formats.title, "$program_name ($selected_line/$task_count) $> $date");
 
 	/* get task version */
 	cmd = popen("task version rc._forcecolor=no", "r");
@@ -590,12 +601,19 @@ const char *eval_string(const int maxlen, const char *fmt, const task *this, cha
 		return eval_string(maxlen, ++fmt, this, str, ++position);
 	}
 
+	/* try for a special format string */
+	if (str_starts_with(fmt+1, "date"))
+	{
+		char *msg = utc_date(0);
+		strcpy(str+position, msg);
+		const int msglen = strlen(msg);
+		free(msg);
+		return eval_string(maxlen, fmt+5, this, str, position+msglen);
+	}
+
 	/* try for a variable relative to the current task */
 	if (this!=NULL)
 	{
-		if (str_starts_with(fmt+1, "uuid"))
-		{
-		}
 	}
 
 	/* try for an exposed variable */
@@ -603,7 +621,7 @@ const char *eval_string(const int maxlen, const char *fmt, const task *this, cha
 	{
 		if (str_starts_with(fmt+1, vars[i].name))
 		{
-			char *msg = var_value_message(&(vars[i]));
+			char *msg = var_value_message(&(vars[i]), 0);
 			strcpy(str+position, msg);
 			const int msglen = strlen(msg);
 			free(msg);
@@ -1706,15 +1724,9 @@ void print_title() /* {{{ */
 	for (x=0; x<size[0]; x++)
 		mvaddch(0, x, ' ');
 
-	/* print program info */
-	tmp0 = calloc(size[0], sizeof(char));
-	snprintf(tmp0, size[0], "%s %s  (%d/%d)", progname, progversion, selline+1, totaltaskcount);
-	umvaddstr(0, 0, tmp0);
-	free(tmp0);
-
-	/* print the current date */
-	tmp0 = utc_date(0);
-	umvaddstr(0, size[0]-strlen(tmp0), tmp0);
+	/* evaluate title string */
+	tmp0 = (char *)eval_string(2*size[0], formats.title, NULL, NULL, 0);
+	umvaddstr_align(0, tmp0);
 	free(tmp0);
 } /* }}} */
 
@@ -1974,7 +1986,7 @@ void run_command_set(char *args) /* {{{ */
 		tnc_fprintf(logfp, LOG_ERROR, "failed to parse value from command: set %s %s", varname, value);
 
 	/* acquire the value string and print it */
-	message = var_value_message(this_var);
+	message = var_value_message(this_var, 1);
 	statusbar_message(cfg.statusbar_timeout, message);
 	free(message);
 } /* }}} */
@@ -2001,7 +2013,7 @@ void run_command_show(const char *arg) /* {{{ */
 	}
 
 	/* acquire the value string and print it */
-	message = var_value_message(this_var);
+	message = var_value_message(this_var, 1);
 	statusbar_message(cfg.statusbar_timeout, message);
 	free(message);
 } /* }}} */
@@ -2463,6 +2475,33 @@ int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
 	return r;
 } /* }}} */
 
+int umvaddstr_align(const int y, char *str) /* {{{ */
+{
+	/* evaluate an aligned string */
+	char *right, *pos;
+	int ret, tmp;
+
+	/* find break */
+	pos = strstr(str, "$>");
+
+	/* end left string */
+	(*pos) = 0;
+
+	/* start right string */
+	right = (pos+2);
+
+	/* print strings */
+	tmp = umvaddstr(y, 0, str);
+	ret = umvaddstr(y, size[0]-strlen(right), right);
+	if (tmp>ret)
+		ret = tmp;
+
+	/* fix string */
+	(*pos) = '$';
+
+	return ret;
+} /* }}} */
+
 char *utc_date(const unsigned int timeint) /* {{{ */
 {
 	/* convert a utc time uint to a string */
@@ -2496,26 +2535,39 @@ char *utc_date(const unsigned int timeint) /* {{{ */
 	return timestr;
 } /* }}} */
 
-char *var_value_message(var *v) /* {{{ */
+char *var_value_message(var *v, bool printname) /* {{{ */
 {
 	/* format a message containing the name and value of a variable */
 	char *message;
+	char *value;
 
 	switch(v->type)
 	{
 		case VAR_INT:
-			asprintf(&message, "%s: %d", v->name, *(int *)(v->ptr));
+			if (str_eq(v->name, "selected_line"))
+				asprintf(&value, "%d", selline+1);
+			else
+				asprintf(&value, "%d", *(int *)(v->ptr));
 			break;
 		case VAR_CHAR:
-			asprintf(&message, "%s: %c", v->name, *(char *)(v->ptr));
+			asprintf(&value, "%c", *(char *)(v->ptr));
 			break;
 		case VAR_STR:
-			asprintf(&message, "%s: %s", v->name, *(char **)(v->ptr));
+			asprintf(&value, "%s", *(char **)(v->ptr));
 			break;
 		default:
-			asprintf(&message, "variable type unhandled");
+			asprintf(&value, "variable type unhandled");
 			break;
 	}
+
+	if (printname == 0)
+		return value;
+
+	message = malloc(strlen(v->name) + strlen(value) + 3);
+	strcpy(message, v->name);
+	strcat(message, ": ");
+	strcat(message, value);
+	free(value);
 
 	return message;
 } /* }}} */
@@ -2612,17 +2664,17 @@ int main(int argc, char **argv) /* {{{ */
 		printf("task count: %d\n", totaltaskcount);
 		char *test;
 		asprintf(&test, "set task_version 2.1");
-		char *tmp = var_value_message(find_var("task_version"));
+		char *tmp = var_value_message(find_var("task_version"), 1);
 		puts(tmp);
 		free(tmp);
 		handle_command(test);
-		tmp = var_value_message(find_var("task_version"));
+		tmp = var_value_message(find_var("task_version"), 1);
 		puts(tmp);
 		free(tmp);
 		free(test);
 		asprintf(&tmp, "set search_string tasknc");
 		handle_command(tmp);
-		test = var_value_message(find_var("search_string"));
+		test = var_value_message(find_var("search_string"), 1);
 		puts(test);
 		free(test);
 		printf("selline: %d\n", selline);
