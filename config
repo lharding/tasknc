@@ -44,6 +44,15 @@ set silent_shell 1
 #   > (right align)
 # default format: $program_name ($selected_line/$task_count) $> $date
 
+# task format
+# format: set task_format <fmt>
+# see task_format for information
+# additional variables:
+#   description
+#   project
+#   due
+# default format: $project $description $> $due
+
 # key binds
 # format: bind <key> <action> <arg>
 # key may be specified as a integer or character

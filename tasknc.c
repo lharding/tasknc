@@ -253,7 +253,8 @@ var vars[] = {
 	{"program_name",      VAR_STR,  &progname},
 	{"program_author",    VAR_STR,  &progauthor},
 	{"program_version",   VAR_STR,  &progversion},
-	{"title_format",      VAR_STR,  &(formats.title)}
+	{"title_format",      VAR_STR,  &(formats.title)},
+	{"task_format",       VAR_STR,  &(formats.task)},
 };
 
 funcmap funcmaps[] = {
@@ -485,7 +486,9 @@ void configure(void) /* {{{ */
 
 	/* set default formats */
 	formats.title = calloc(64, sizeof(char));
-	strcpy(formats.title, "$program_name ($selected_line/$task_count) $> $date");
+	strcpy(formats.title, " $program_name ($selected_line/$task_count) $> $date ");
+	formats.task = calloc(64, sizeof(char));
+	strcpy(formats.task, " $project $description $> $due ");
 
 	/* get task version */
 	cmd = popen("task version rc._forcecolor=no", "r");
@@ -585,6 +588,7 @@ const char *eval_string(const int maxlen, const char *fmt, const task *this, cha
 {
 	/* evaluate a string with format variables */
 	int i;
+	char *tmp;
 
 	/* check if string is done */
 	if (*fmt == 0)
@@ -614,6 +618,47 @@ const char *eval_string(const int maxlen, const char *fmt, const task *this, cha
 	/* try for a variable relative to the current task */
 	if (this!=NULL)
 	{
+		int fieldlen = 0;
+		int fieldwidth = 0;
+		int varlen = 0;
+		if (str_starts_with(fmt+1, "due"))
+		{
+			/* fieldwidth = fieldlengths.date; */
+			if (this->due)
+			{
+				tmp = utc_date(this->due);
+				strcpy(str+position, tmp);
+				fieldlen = strlen(tmp);
+				free(tmp);
+			}
+			else if (this->priority)
+			{
+				*(str+position) = this->priority;
+				fieldlen = 1;
+			}
+			else
+				fieldlen = 0;
+			varlen = strlen("due");
+			fieldwidth = fieldlen;
+		}
+		else if (str_starts_with(fmt+1, "description"))
+		{
+			strcpy(str+position, this->description);
+			fieldwidth = fieldlengths.description;
+			fieldlen = strlen(this->description);
+			varlen = strlen("description");
+		}
+		else if (str_starts_with(fmt+1, "project"))
+		{
+			strcpy(str+position, this->project);
+			fieldwidth = fieldlengths.project;
+			fieldlen = strlen(this->project);
+			varlen = strlen("project");
+		}
+		for (i=fieldlen; i<fieldwidth; i++)
+			*(str+position+i) = ' ';
+		if (varlen>0)
+			return eval_string(maxlen, fmt+varlen+1, this, str, position+fieldwidth);
 	}
 
 	/* try for an exposed variable */
@@ -1370,7 +1415,7 @@ char max_project_length() /* {{{ */
 		cur = cur->next;
 	}
 
-	return len+1;
+	return len;
 } /* }}} */
 
 void nc_colors(void) /* {{{ */
@@ -1640,7 +1685,8 @@ task *parse_task(char *line) /* {{{ */
 void print_task(int tasknum, task *this) /* {{{ */
 {
 	/* print a task specified by number */
-	char sel = 0;
+	bool sel = 0;
+	char *tmp;
 	int x, y;
 
 	/* determine position to print */
@@ -1668,30 +1714,11 @@ void print_task(int tasknum, task *this) /* {{{ */
 	for (x=0; x<size[0]; x++)
 		mvaddch(y, x, ' ');
 
-	/* print project */
+	/* evaluate line */
 	attrset(COLOR_PAIR(2+sel));
-	if (this->project==NULL)
-		umvaddstr(y, fieldlengths.project-1, " ");
-	else
-		umvaddstr(y, fieldlengths.project-strlen(this->project), this->project);
-
-	/* print description */
-	umvaddstr(y, fieldlengths.project+1, this->description);
-
-	/* print due date or priority if available */
-	if (this->due != 0)
-	{
-		char *tmp;
-		tmp = utc_date(this->due);
-		umvaddstr(y, size[0]-strlen(tmp), tmp);
-		free(tmp);
-	}
-	else if (this->priority)
-	{
-		mvaddch(y, size[0]-1, this->priority);
-	}
-	else
-		mvaddch(y, size[0]-1, ' ');
+	tmp = (char *)eval_string(2*size[0], formats.task, this, NULL, 0);
+	umvaddstr_align(y, tmp);
+	free(tmp);
 } /* }}} */
 
 void print_task_list() /* {{{ */
