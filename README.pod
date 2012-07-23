@@ -1,6 +1,6 @@
 =head1 NAME
 
-tasknc - a ncurses wrapper around taskwarrior
+tasknc - a ncurses wrapper around Taskwarrior
     by mjheagle
 
 =head1 SYNOPSIS
@@ -9,7 +9,7 @@ Usage: I<tasknc> [option] [value]
 
 =head1 DESCRIPTION
 
-tasknc is a simple wrapper, written in C, around the taskwarrior task manager.  
+tasknc is a simple wrapper, written in C, around the Taskwarrior task manager.  
 
 =head1 INVOCATION OPTIONS
 
@@ -37,7 +37,7 @@ Set log level to I<loglvl>, which must be a non-negative integer.
 
 =back
 
-=head1 KEY BINDS
+=head1 DEFAULT KEY BINDS
 
 =over 4
 
@@ -111,7 +111,7 @@ open command prompt
 
 =back
 
-=head1 CONFIG FILE
+=head1 CONFIGURATION
 
 tasknc honors a config file located at 
 
@@ -121,8 +121,268 @@ or, if $XDG_CONFIG_HOME doesnt exist,
 
     $HOME/.config/tasknc/config
 
-A documented example config can be found at /usr/share/tasknc/config.
+An example config can be found at /usr/share/tasknc/config.
+
+The configuration file contains a series of commands, which follow the format of the commands listed below.
+
+=head1 COMMANDS
+
+Commands are either supplied at the command prompt or listed in the configuration file.  They are used to configure tasknc to behave as you desire.
+
+=over 4
+
+=item B<bind> I<key> I<function> I<args> assign I<function> to run every time a I<key> is pressed.  Defining I<key>s is described in the KEYS section.  I<function>s are listed below in the FUNCTIONS section.
+
+=item
+
+=item B<dump> will write active task info to the log file.  This is mostly for debugging.
+
+=item
+
+=item B<quit> will exit tasknc.
+
+=item
+
+=item B<reload> will force tasknc to re-import the task list.
+
+=item
+
+=item B<set> I<variable> I<value> will attempt to set I<variable> to a parsed I<value>.  A list of available I<variable>s are listed in the VARIABLES section.
+
+=item
+
+=item B<show> I<variable> will print the formatted contents of I<variable> to either stdout or the prompt area of the ncurses window.
+
+=item
+
+=item B<unbind> will remove all keybindings from a specific key.
+
+=item
+
+=item B<version> will print the version info about tasknc to the prompt area of the ncurses window.
+
+=back
+
+=head1 VARIABLES
+
+=over 4
+
+=item B<filter_string> is the string which is currently filtering the displayed task list.
+
+=item
+
+=item B<log_level> is an integer variable which defines which log messages should be printed.  All messages at or below the log level are printed and written to file.
+
+=item
+
+Log levels:
+
+=over 4
+
+=item I<0> Default messages
+
+=item I<1> Informative messages
+
+=item I<2> Warning messages
+
+=item I<3> Error messages
+
+=item I<4> Debug messages
+
+=item I<5> Verbose debug messages
+
+=item
+
+=back
+
+=item B<ncurses_timeout> is an integer variable which is the number of milliseconds after which ncurses options should time out.
+
+=item
+
+=item B<program_name> is the string which defines the name of the program (tasknc).
+
+=item
+
+=item B<program_author> is the string which defines the author of tasknc.
+
+=item
+
+=item B<program_version> is the string which defines the version of tasknc.
+
+=item
+
+=item B<statusbar_timeout> is an integer variable which is the number of seconds after which the message in the statusbar times out.
+
+=item
+
+=item B<search_string> is the string that is currently being searched for.
+
+=item
+
+=item B<selected_line> is the integer number of the task which is currently selected.
+
+=item
+
+=item B<silent_shell> is a boolean integer which defines whether task command output should be printed.
+
+=item
+
+=item B<sort_mode> is a character which defines the sort mode.
+
+Sort modes:
+
+=over 4
+
+=item I<d> due date
+
+=item I<n> index
+
+=item I<p> project name
+
+=item I<r> priority
+
+=item
+
+=back
+
+=item B<task_count> is the integer number of tasks which are displayed.
+
+=item
+
+=item B<task_format> is the string which defines the format of a displayed task.  See FORMATS for more information.
+
+=item
+
+=item B<task_version> is a string variable which contains the version of Taskwarrior which is being wrapped.
+
+=item
+
+=item B<title_format> is the string which defines the format of the title bar.  See FORMATS for more information.
+
+=item
+
+=back
+
+=head1 FORMATS
+
+Formats describe how a line is printed.  Variables are denoted by a preceding $.  The variables listed in the VARIABLES section are all available.  The following additional variables are also available:
+
+=over 4
+
+=item B<date> displays the current date.
+
+=item
+
+=item B<E<gt>> marks the beginning of the right-aligned portion of the formatted section.
+
+=back
+
+For task formats, the following variables are available:
+
+=over 4
+
+=item B<description>
+
+=item
+
+=item B<due>
+
+=item
+
+=item B<project>
+
+=item
+
+=back
+
+=head1 FUNCTIONS
+
+=over 4
+
+=item B<scroll> I<arg> moves the cursor in arg direction. Available directions:
+
+=over 4
+
+=item I<u> up
+
+=item I<d> down
+
+=item I<h> home
+
+=item I<e> end
+
+=item
+
+=back
+
+=item B<task_action> I<arg> performs an action on the selected task.  Available actions:
+
+=over 4
+
+=item I<edit>
+
+=item I<delete>
+
+=item I<complete>
+
+=item I<info>
+
+=item
+
+=back
+
+=item B<reload> reloads the task list.
+
+=item
+
+=item B<undo> runs 'task undo'.
+
+=item
+
+=item B<add> creates a new task and opens it for editing.
+
+=item
+
+=item B<sort> I<optarg> applies a sort defined by character I<optarg> or prompts user for sort mode wwith no arg.
+
+=item
+
+=item B<search> I<optarg> searches task list for string I<optarg> or prompts user for a search string with no arg.
+
+=item
+
+=item B<search_next> goes to the next item in the task list that matches the search string.
+
+=item
+
+=item B<filter> applies filter string I<optarg> or prompts user for a filter string with no arg.
+
+=item
+
+=item B<modify> I<optarg> runs task modify on the selected task with modifications specified in I<optarg> or gathered from a user prompt with no arg.
+
+=item
+
+=item B<sync> runs 'task merge && task push'.
+
+=item
+
+=item B<quit> exits tasknc.
+
+=item
+
+=item B<command> I<optarg> runs the command I<optarg> or prompts the user for a command with no arg.
+
+=back
+
+=head1 KEYS
+
+Keys may be specified as an integer or character.
 
 =head1 AUTHOR
 
 mjheagle E<lt>mjheagle8@gmail.comE<gt>
+
+=head1 SEE ALSO
+
+B<task(1)>
