@@ -9,8 +9,8 @@
 #include "tasknc.h"
 
 /* wiping functions */
-#define wipe_tasklist()                 wipe_screen(1, size[1]-2)
-#define wipe_statusbar()                wipe_screen(size[1]-1, size[1]-1)
+#define wipe_tasklist()                 wipe_screen(1, rows-2)
+#define wipe_statusbar()                wipe_screen(rows-1, rows-1)
 
 #define NVARS                           (int)(sizeof(vars)/sizeof(var))
 #define NFUNCS                          (int)(sizeof(funcmaps)/sizeof(funcmap))

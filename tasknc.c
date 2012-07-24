@@ -53,7 +53,7 @@ short pageoffset = 0;                   /* number of tasks page is offset */
 time_t sb_timeout = 0;                  /* when statusbar should be cleared */
 char *searchstring = NULL;              /* currently active search string */
 short selline = 0;                      /* selected line number */
-int size[2];                            /* size of the ncurses window */
+int rows, cols;                         /* size of the ncurses window */
 int taskcount;                          /* number of tasks */
 int totaltaskcount;                     /* number of tasks with no filters applied */
 char *active_filter = NULL;             /* a string containing the active filter string */
@@ -147,7 +147,7 @@ void add_keybind(int key, void *function, char *arg) /* {{{ */
 void check_curs_pos(void) /* {{{ */
 {
 	/* check if the cursor is in a valid position */
-	const short onscreentasks = size[1]-3;
+	const short onscreentasks = rows-3;
 
 	/* check for a valid selected line number */
 	if (selline<0)
@@ -162,7 +162,7 @@ void check_curs_pos(void) /* {{{ */
 		pageoffset = selline - onscreentasks;
 
 	/* log cursor position */
-	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, size[1]-3);
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, rows-3);
 } /* }}} */
 
 void check_screen_size() /* {{{ */
@@ -186,8 +186,8 @@ void check_screen_size() /* {{{ */
 			usleep(100000);
 		}
 		count++;
-		getmaxyx(stdscr, size[1], size[0]);
-	} while (size[0]<DATELENGTH+20+fieldlengths.project || size[1]<5);
+		getmaxyx(stdscr, rows, cols);
+	} while (cols<DATELENGTH+20+fieldlengths.project || rows<5);
 } /* }}} */
 
 void cleanup() /* {{{ */
@@ -624,7 +624,7 @@ void key_command(const char *arg) /* {{{ */
 		set_curses_mode(NCURSES_MODE_STRING);
 
 		/* get input */
-		cmdstr = calloc(size[0], sizeof(char));
+		cmdstr = calloc(cols, sizeof(char));
 		getstr(cmdstr);
 		wipe_statusbar();
 
@@ -658,7 +658,7 @@ void key_filter(const char *arg) /* {{{ */
 		statusbar_message(-1, "filter by: ");
 		set_curses_mode(NCURSES_MODE_STRING);
 		check_free(active_filter);
-		active_filter = calloc(2*size[0], sizeof(char));
+		active_filter = calloc(2*cols, sizeof(char));
 		getstr(active_filter);
 		wipe_statusbar();
 		set_curses_mode(NCURSES_MODE_STD);
@@ -685,7 +685,7 @@ void key_modify(const char *arg) /* {{{ */
 	{
 		statusbar_message(-1, "modify: ");
 		set_curses_mode(NCURSES_MODE_STRING);
-		argstr = calloc(2*size[0], sizeof(char));
+		argstr = calloc(2*cols, sizeof(char));
 		getstr(argstr);
 		wipe_statusbar();
 		set_curses_mode(NCURSES_MODE_STD);
@@ -734,7 +734,7 @@ void key_scroll(const int direction) /* {{{ */
 			if (selline<taskcount-1)
 			{
 				selline++;
-				if (selline>=pageoffset+size[1]-2)
+				if (selline>=pageoffset+rows-2)
 					pageoffset++;
 			}
 			break;
@@ -745,8 +745,8 @@ void key_scroll(const int direction) /* {{{ */
 			break;
 		case 'e':
 			/* go to last entry */
-			if (taskcount>size[1]-2)
-				pageoffset = taskcount-size[1]+2;
+			if (taskcount>rows-2)
+				pageoffset = taskcount-rows+2;
 			selline = taskcount-1;
 			break;
 		default:
@@ -773,7 +773,7 @@ void key_search(const char *arg) /* {{{ */
 		set_curses_mode(NCURSES_MODE_STRING);
 
 		/* store search string  */
-		searchstring = malloc((size[0]-16)*sizeof(char));
+		searchstring = malloc((cols-16)*sizeof(char));
 		getstr(searchstring);
 		sb_timeout = time(NULL) + 3;
 		set_curses_mode(NCURSES_MODE_STD);
@@ -1007,7 +1007,7 @@ void nc_main() /* {{{ */
 {
 	/* ncurses main function */
 	WINDOW *stdscr;
-	int c, tmp, oldsize[2];
+	int c, oldrows, oldcols;
 	fieldlengths.project = max_project_length();
 	fieldlengths.date = DATELENGTH;
 
@@ -1026,8 +1026,8 @@ void nc_main() /* {{{ */
 
 	/* print main screen */
 	check_screen_size();
-	getmaxyx(stdscr, oldsize[1], oldsize[0]);
-	fieldlengths.description = oldsize[0]-fieldlengths.project-1-fieldlengths.date;
+	getmaxyx(stdscr, oldrows, oldcols);
+	fieldlengths.description = oldcols-fieldlengths.project-1-fieldlengths.date;
 	task_count();
 	print_title();
 	attrset(COLOR_PAIR(0));
@@ -1043,19 +1043,19 @@ void nc_main() /* {{{ */
 		state.reload = 0;
 
 		/* get the screen size */
-		getmaxyx(stdscr, size[1], size[0]);
+		getmaxyx(stdscr, rows, cols);
 
 		/* check for a screen thats too small */
 		check_screen_size();
 
 		/* check for size changes */
-		if (size[0]!=oldsize[0] || size[1]!=oldsize[1])
+		if (cols!=oldcols || rows!=oldrows)
 		{
 			state.redraw = 1;
 			wipe_statusbar();
 		}
-		for (tmp=0; tmp<2; tmp++)
-			oldsize[tmp] = size[tmp];
+		oldcols = cols;
+		oldrows = rows;
 
 		/* get a character */
 		c = getch();
@@ -1075,7 +1075,7 @@ void nc_main() /* {{{ */
 		if (state.redraw==1)
 		{
 			fieldlengths.project = max_project_length();
-			fieldlengths.description = size[0]-fieldlengths.project-1-fieldlengths.date;
+			fieldlengths.description = cols-fieldlengths.project-1-fieldlengths.date;
 			print_title();
 			print_task_list();
 			check_curs_pos();
@@ -1112,7 +1112,7 @@ void print_task(int tasknum, task *this) /* {{{ */
 
 	/* determine position to print */
 	y = tasknum-pageoffset+1;
-	if (y<=0 || y>=size[1]-1)
+	if (y<=0 || y>=rows-1)
 		return;
 
 	/* find task pointer if necessary */
@@ -1132,12 +1132,12 @@ void print_task(int tasknum, task *this) /* {{{ */
 
 	/* wipe line */
 	attrset(COLOR_PAIR(0));
-	for (x=0; x<size[0]; x++)
+	for (x=0; x<cols; x++)
 		mvaddch(y, x, ' ');
 
 	/* evaluate line */
 	attrset(COLOR_PAIR(2+sel));
-	tmp = (char *)eval_string(2*size[0], formats.task, this, NULL, 0);
+	tmp = (char *)eval_string(2*cols, formats.task, this, NULL, 0);
 	umvaddstr_align(y, tmp);
 	free(tmp);
 } /* }}} */
@@ -1157,8 +1157,8 @@ void print_task_list() /* {{{ */
 		counter++;
 		cur = cur->next;
 	}
-	if (counter<size[0]-2)
-		wipe_screen(counter+1-pageoffset, size[0]-1);
+	if (counter<cols-2)
+		wipe_screen(counter+1-pageoffset, cols-1);
 } /* }}} */
 
 void print_title() /* {{{ */
@@ -1169,11 +1169,11 @@ void print_title() /* {{{ */
 
 	/* wipe bar and print bg color */
 	attrset(COLOR_PAIR(1));
-	for (x=0; x<size[0]; x++)
+	for (x=0; x<cols; x++)
 		mvaddch(0, x, ' ');
 
 	/* evaluate title string */
-	tmp0 = (char *)eval_string(2*size[0], formats.title, NULL, NULL, 0);
+	tmp0 = (char *)eval_string(2*cols, formats.title, NULL, NULL, 0);
 	umvaddstr_align(0, tmp0);
 	free(tmp0);
 } /* }}} */
@@ -1434,7 +1434,7 @@ void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 	wipe_statusbar();
 
 	/* print message */
-	umvaddstr(size[1]-1, 0, message);
+	umvaddstr(rows-1, 0, message);
 	free(message);
 
 	/* set timeout */
@@ -1645,7 +1645,7 @@ int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
 
 	/* build str */
 	va_start(args, format);
-	const int slen = sizeof(wchar_t)*(size[0]-x+1)/sizeof(char);
+	const int slen = sizeof(wchar_t)*(cols-x+1)/sizeof(char);
 	str = calloc(slen, sizeof(char));
 	vsnprintf(str, slen-1, format, args);
 	va_end(args);
@@ -1664,8 +1664,8 @@ int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
 	/* perform conversion and write to screen */
 	mbstowcs(wstr, str, len);
 	len = wcslen(wstr);
-	if (len>size[0]-x)
-		len = size[0]-x;
+	if (len>cols-x)
+		len = cols-x;
 	r = mvaddnwstr(y, x, wstr, len);
 
 	/* free memory allocated */
@@ -1692,7 +1692,7 @@ int umvaddstr_align(const int y, char *str) /* {{{ */
 
 	/* print strings */
 	tmp = umvaddstr(y, 0, str);
-	ret = umvaddstr(y, size[0]-strlen(right), right);
+	ret = umvaddstr(y, cols-strlen(right), right);
 	if (tmp>ret)
 		ret = tmp;
 
@@ -1780,7 +1780,7 @@ void wipe_screen(const short startl, const short stopl) /* {{{ */
 	attrset(COLOR_PAIR(0));
 
 	for (y=startl; y<=stopl; y++)
-		for (x=0; x<size[0]; x++)
+		for (x=0; x<cols; x++)
 			mvaddch(y, x, ' ');
 } /* }}} */
 
