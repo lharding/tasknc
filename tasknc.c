@@ -861,10 +861,7 @@ void help(void) /* {{{ */
 void key_add() /* {{{ */
 {
 	/* handle a keyboard direction to add new task */
-	def_prog_mode();
-	endwin();
 	task_add();
-	refresh();
 	state.reload = 1;
 	statusbar_message(cfg.statusbar_timeout, "task added");
 } /* }}} */
@@ -2171,15 +2168,17 @@ void task_add(void) /* {{{ */
 	free(cmd);
 
 	/* edit task */
-	def_shell_mode();
+	def_prog_mode();
 	cmd = malloc(128*sizeof(char));
 	if (cfg.version[0]<'2')
 		sprintf(cmd, "task edit %d", tasknum);
 	else
 		sprintf(cmd, "task %d edit", tasknum);
+	endwin();
 	system(cmd);
 	free(cmd);
-	reset_shell_mode();
+	reset_prog_mode();
+	refresh();
 } /* }}} */
 
 void task_count() /* {{{ */
