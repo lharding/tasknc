@@ -8,7 +8,6 @@
 #define _TASKNC_CONFIG_H
 
 /* user defined lengths */
-#define MAXTASKS                1024
 #define TOTALLENGTH             1024
 #define TAGSLENGTH              128
 #define PROJECTLENGTH           64
