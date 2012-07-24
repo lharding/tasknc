@@ -985,12 +985,12 @@ void nc_end(int sig) /* {{{ */
 			tnc_fprintf(logfp, LOG_DEBUG, "received SIGINT, exiting");
 			break;
 		case SIGSEGV:
-			tnc_fprintf(logfp, LOG_WARN, "SEGFAULT");
-			tnc_fprintf(logfp, LOG_WARN, "segmentation fault, exiting");
+			tnc_fprintf(logfp, LOG_ERROR, "SEGFAULT");
+			tnc_fprintf(logfp, LOG_ERROR, "segmentation fault, exiting");
 			break;
 		case SIGKILL:
-			tnc_fprintf(stdout, LOG_WARN, "killed");
-			tnc_fprintf(logfp, LOG_WARN, "received SIGKILL, exiting");
+			tnc_fprintf(stdout, LOG_ERROR, "killed");
+			tnc_fprintf(logfp, LOG_ERROR, "received SIGKILL, exiting");
 			break;
 		default:
 			tnc_fprintf(stdout, LOG_DEFAULT, "done");

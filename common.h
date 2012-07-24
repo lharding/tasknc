@@ -72,9 +72,9 @@ typedef struct _bind
 /* log levels */
 typedef enum {
 	LOG_DEFAULT = 0,
-	LOG_INFO,
-	LOG_WARN,
 	LOG_ERROR,
+	LOG_WARN,
+	LOG_INFO,
 	LOG_DEBUG,
 	LOG_DEBUG_VERBOSE
 } log_mode;
