@@ -23,47 +23,6 @@
 #include "tasknc.h"
 #include "log.h"
 
-/* data struct definitions {{{ */
-typedef struct _task
-{
-	unsigned short index;
-	char *uuid;
-	char *tags;
-	unsigned int start;
-	unsigned int end;
-	unsigned int entry;
-	unsigned int due;
-	char *project;
-	char priority;
-	char *description;
-	struct _task *prev;
-	struct _task *next;
-} task;
-
-typedef struct _var
-{
-	char *name;
-	var_type type;
-	void *ptr;
-} var;
-
-typedef struct _funcmap
-{
-	char *name;
-	void (*function)();
-	int argn;
-} funcmap;
-
-typedef struct _bind
-{
-	int key;
-	void (*function)();
-	int argint;
-	char *argstr;
-	struct _bind *next;
-} keybind;
-/* }}} */
-
 /* function prototypes {{{ */
 static void add_int_keybind(int, void *, int);
 static void add_keybind(int, void *, char *);

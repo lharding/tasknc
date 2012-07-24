@@ -19,28 +19,6 @@
 #define UUIDLENGTH                      38
 #define DATELENGTH                      10
 
-/* action definitions */
-typedef enum {
-	ACTION_EDIT = 0,
-	ACTION_COMPLETE,
-	ACTION_DELETE,
-	ACTION_VIEW
-} task_action_type;
-
-/* ncurses settings */
-typedef enum {
-	NCURSES_MODE_STD = 0,
-	NCURSES_MODE_STD_BLOCKING,
-	NCURSES_MODE_STRING
-} ncurses_mode;
-
-/* var struct management */
-typedef enum {
-	VAR_UNDEF = 0,
-	VAR_CHAR,
-	VAR_STR,
-	VAR_INT
-} var_type;
 #define NVARS                           (int)(sizeof(vars)/sizeof(var))
 #define NFUNCS                          (int)(sizeof(funcmaps)/sizeof(funcmap))
 
