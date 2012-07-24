@@ -181,7 +181,7 @@ void check_screen_size() /* {{{ */
 			}
 			attrset(COLOR_PAIR(8));
 			mvaddstr(0, 0, "screen dimensions too small");
-			refresh();
+			wrefresh(stdscr);
 			attrset(COLOR_PAIR(0));
 			usleep(100000);
 		}
@@ -625,7 +625,7 @@ void key_command(const char *arg) /* {{{ */
 
 		/* get input */
 		cmdstr = calloc(cols, sizeof(char));
-		getstr(cmdstr);
+		wgetstr(stdscr, cmdstr);
 		wipe_statusbar();
 
 		/* reset */
@@ -659,7 +659,7 @@ void key_filter(const char *arg) /* {{{ */
 		set_curses_mode(NCURSES_MODE_STRING);
 		check_free(active_filter);
 		active_filter = calloc(2*cols, sizeof(char));
-		getstr(active_filter);
+		wgetstr(stdscr, active_filter);
 		wipe_statusbar();
 		set_curses_mode(NCURSES_MODE_STD);
 	}
@@ -686,7 +686,7 @@ void key_modify(const char *arg) /* {{{ */
 		statusbar_message(-1, "modify: ");
 		set_curses_mode(NCURSES_MODE_STRING);
 		argstr = calloc(2*cols, sizeof(char));
-		getstr(argstr);
+		wgetstr(stdscr, argstr);
 		wipe_statusbar();
 		set_curses_mode(NCURSES_MODE_STD);
 	}
@@ -774,7 +774,7 @@ void key_search(const char *arg) /* {{{ */
 
 		/* store search string  */
 		searchstring = malloc((cols-16)*sizeof(char));
-		getstr(searchstring);
+		wgetstr(stdscr, searchstring);
 		sb_timeout = time(NULL) + 3;
 		set_curses_mode(NCURSES_MODE_STD);
 	}
@@ -815,7 +815,7 @@ void key_sort(const char *arg) /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "enter sort mode: iNdex, Project, Due, pRiority");
 		set_curses_mode(NCURSES_MODE_STD_BLOCKING);
 
-		m = getch();
+		m = wgetch(stdscr);
 		set_curses_mode(NCURSES_MODE_STD);
 	}
 	else
@@ -865,7 +865,7 @@ void key_sync() /* {{{ */
 		if (ret==0)
 			ret = system("task push");
 	}
-	refresh();
+	wrefresh(stdscr);
 	if (ret==0)
 	{
 		statusbar_message(cfg.statusbar_timeout, "tasks synchronized");
@@ -885,7 +885,7 @@ void key_task_action(const task_action_type action, const char *msg_success, con
 	if (action!=ACTION_VIEW && action!=ACTION_COMPLETE && action!=ACTION_DELETE)
 		state.reload = 1;
 	ret = task_action(action);
-	refresh();
+	wrefresh(stdscr);
 	if (ret==0)
 		statusbar_message(cfg.statusbar_timeout, msg_success);
 	else
@@ -908,7 +908,7 @@ void key_undo() /* {{{ */
 		endwin();
 		ret = system("task undo");
 	}
-	refresh();
+	wrefresh(stdscr);
 	if (ret==0)
 	{
 		statusbar_message(cfg.statusbar_timeout, "undo executed");
@@ -1032,7 +1032,7 @@ void nc_main() /* {{{ */
 	print_title();
 	attrset(COLOR_PAIR(0));
 	print_task_list();
-	refresh();
+	wrefresh(stdscr);
 
 	/* main loop */
 	while (1)
@@ -1058,7 +1058,7 @@ void nc_main() /* {{{ */
 		oldrows = rows;
 
 		/* get a character */
-		c = getch();
+		c = wgetch(stdscr);
 
 		/* handle the character */
 		handle_keypress(c);
@@ -1079,7 +1079,7 @@ void nc_main() /* {{{ */
 			print_title();
 			print_task_list();
 			check_curs_pos();
-			refresh();
+			wrefresh(stdscr);
 		}
 		if (sb_timeout>0 && sb_timeout<time(NULL))
 		{
@@ -1138,7 +1138,7 @@ void print_task(int tasknum, task *this) /* {{{ */
 	/* evaluate line */
 	attrset(COLOR_PAIR(2+sel));
 	tmp = (char *)eval_string(2*cols, formats.task, this, NULL, 0);
-	umvaddstr_align(y, tmp);
+	umvaddstr_align(stdscr, y, tmp);
 	free(tmp);
 } /* }}} */
 
@@ -1174,7 +1174,7 @@ void print_title() /* {{{ */
 
 	/* evaluate title string */
 	tmp0 = (char *)eval_string(2*cols, formats.title, NULL, NULL, 0);
-	umvaddstr_align(0, tmp0);
+	umvaddstr_align(stdscr, 0, tmp0);
 	free(tmp0);
 } /* }}} */
 
@@ -1434,14 +1434,14 @@ void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 	wipe_statusbar();
 
 	/* print message */
-	umvaddstr(rows-1, 0, message);
+	umvaddstr(stdscr, rows-1, 0, message);
 	free(message);
 
 	/* set timeout */
 	if (dtmout>=0)
 		sb_timeout = time(NULL) + dtmout;
 
-	refresh();
+	wrefresh(stdscr);
 } /* }}} */
 
 char *str_trim(char *str) /* {{{ */
@@ -1579,7 +1579,7 @@ void task_add(void) /* {{{ */
 	system(cmd);
 	free(cmd);
 	reset_prog_mode();
-	refresh();
+	wrefresh(stdscr);
 } /* }}} */
 
 void task_count() /* {{{ */
@@ -1635,7 +1635,7 @@ static bool task_match(const task *cur, const char *str) /* {{{ */
 		return 0;
 } /* }}} */
 
-int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
+int umvaddstr(WINDOW *win, const int y, const int x, const char *format, ...) /* {{{ */
 {
 	/* convert a string to a wchar string and mvaddwstr */
 	int len, r;
@@ -1666,7 +1666,7 @@ int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
 	len = wcslen(wstr);
 	if (len>cols-x)
 		len = cols-x;
-	r = mvaddnwstr(y, x, wstr, len);
+	r = mvwaddnwstr(win, y, x, wstr, len);
 
 	/* free memory allocated */
 	free(wstr);
@@ -1675,7 +1675,7 @@ int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */
 	return r;
 } /* }}} */
 
-int umvaddstr_align(const int y, char *str) /* {{{ */
+int umvaddstr_align(WINDOW *win, const int y, char *str) /* {{{ */
 {
 	/* evaluate an aligned string */
 	char *right, *pos;
@@ -1691,8 +1691,8 @@ int umvaddstr_align(const int y, char *str) /* {{{ */
 	right = (pos+2);
 
 	/* print strings */
-	tmp = umvaddstr(y, 0, str);
-	ret = umvaddstr(y, cols-strlen(right), right);
+	tmp = umvaddstr(win, y, 0, str);
+	ret = umvaddstr(win, y, cols-strlen(right), right);
 	if (tmp>ret)
 		ret = tmp;
 
