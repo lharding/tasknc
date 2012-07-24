@@ -1,14 +1,18 @@
 #
 # makefile for tasknc
 #
+OUT 		= tasknc
 
 #variables
 CC      	= gcc
-CFLAGS 		= -Wall -g -Wextra
+CFLAGS 		= -Wall -g -Wextra -lncursesw
 VERSION 	= $(shell git describe)
 
 PREFIX 	   ?= /usr/local
 MANPREFIX  ?= ${PREFIX}/share/man
+
+SRC = $(wildcard *.c)
+OBJ = $(SRC:.c=.o)
 
 #detect os and handle
 uname_O := $(shell sh -c 'uname -o 2>/dev/null || echo not')
@@ -16,7 +20,7 @@ ifeq ($(uname_O),Cygwin)
 		CFLAGS += -I /usr/include/ncurses
 endif
 
-all: tasknc doc
+all: $(OUT) doc
 
 doc: tasknc.1
 tasknc.1: README.pod
@@ -33,11 +37,14 @@ uninstall:
 		@echo removing man page from ${DESTDIR}${PREFIX}/man1/tasknc.1
 		rm -f ${DESTDIR}/${PREFIX}/man1/tasknc.1
 
-tasknc: tasknc.c config.h
-		$(CC) $(CFLAGS) tasknc.c -o tasknc -lncursesw
+.c.o:
+	$(CC) -c $(CFLAGS) $<
 
-tags: tasknc.c config.h
-		ctags tasknc.c config.h
+$(OUT): $(OBJ)
+	$(CC) $(CFLAGS) -o $@ $(OBJ)
+
+tags: $(SRC)
+		ctags *.c *.h
 
 clean:
-		rm tasknc tasknc.1
+		rm tasknc tasknc.1 *.o

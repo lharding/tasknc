@@ -2,3 +2,4 @@ tasknc
 valgrind_errors
 tags
 tasknc.1
+*.o
