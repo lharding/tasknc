@@ -6,24 +6,14 @@
 #ifndef _TASKNC_H
 #define _TASKNC_H
 
+#include "tasknc.h"
+
 /* wiping functions */
 #define wipe_tasklist()                 wipe_screen(1, size[1]-2)
 #define wipe_statusbar()                wipe_screen(size[1]-1, size[1]-1)
 
-/* string comparison */
-#define str_starts_with(x, y)           (strncmp((x),(y),strlen(y)) == 0) 
-#define str_eq(x, y)                    (strcmp((x), (y))==0)
-#define check_free(x)                   if (x!=NULL) free(x);
-
-/* field lengths */
-#define UUIDLENGTH                      38
-#define DATELENGTH                      10
-
 #define NVARS                           (int)(sizeof(vars)/sizeof(var))
 #define NFUNCS                          (int)(sizeof(funcmaps)/sizeof(funcmap))
-
-/* regex options */
-#define REGEX_OPTS REG_ICASE|REG_EXTENDED|REG_NOSUB|REG_NEWLINE
 
 /* default settings */
 #define STATUSBAR_TIMEOUT_DEFAULT       3
@@ -37,16 +27,11 @@ static void add_keybind(int, void *, char *);
 static void check_curs_pos(void);
 static void check_screen_size();
 static void cleanup();
-static char compare_tasks(const task *, const task *, const char);
 static void configure(void);
 static const char *eval_string(const int, const char *, const task *, char *, int);
 static funcmap *find_function(const char *);
 static void find_next_search_result(task *, task *);
 static var *find_var(const char *);
-static char free_task(task *);
-static void free_tasks(task *);
-static unsigned short get_task_id(char *);
-static task *get_tasks(char *);
 static void handle_command(char *);
 static void handle_keypress(int);
 static void help(void);
@@ -63,32 +48,24 @@ static void key_sort();
 static void key_sync();
 static void key_task_action(const task_action_type, const char *, const char *);
 static void key_undo();
-static task *malloc_task(void);
 static bool match_string(const char *, const char *);
 static char max_project_length();
 static void nc_colors(void);
 static void nc_end(int);
 static void nc_main();
 static int parse_key(const char *);
-static task *parse_task(char *);
 static void print_task(int, task *);
 static void print_task_list();
 static void print_title();
 static void print_version(void);
-static void reload_task(task *);
-static void reload_tasks();
-static void remove_char(char *, char);
 static int remove_keybinds(const int);
 static void run_command_bind(char *);
 static void run_command_unbind(char *);
 static void run_command_set(char *);
 static void run_command_show(const char *);
 static void set_curses_mode(const ncurses_mode);
-static void sort_tasks(task *, task *);
-static void sort_wrapper(task *);
 static void statusbar_message(const int, const char *, ...) __attribute__((format(printf,2,3)));
 static char *str_trim(char *);
-static void swap_tasks(task *, task *);
 static int task_action(const task_action_type);
 static void task_add(void);
 static void task_count();

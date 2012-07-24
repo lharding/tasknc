@@ -89,4 +89,12 @@ typedef struct _config {
 	char silent_shell;
 } config;
 
+/* string comparison */
+#define str_starts_with(x, y)           (strncmp((x),(y),strlen(y)) == 0) 
+#define str_eq(x, y)                    (strcmp((x), (y))==0)
+#define check_free(x)                   if (x!=NULL) free(x);
+
+/* regex options */
+#define REGEX_OPTS REG_ICASE|REG_EXTENDED|REG_NOSUB|REG_NEWLINE
+
 #endif
