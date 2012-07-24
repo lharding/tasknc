@@ -18,8 +18,10 @@
 #include <time.h>
 #include <unistd.h>
 #include <wchar.h>
+#include "common.h"
 #include "config.h"
 #include "tasknc.h"
+#include "log.h"
 
 /* data struct definitions {{{ */
 typedef struct _task
@@ -127,21 +129,9 @@ static bool task_match(const task *, const char *);
 static void task_modify(const char *);
 int umvaddstr(const int, const int, const char *, ...) __attribute__((format(printf,3,4)));
 int umvaddstr_align(const int, char *);
-static void tnc_fprintf(FILE *, const log_mode, const char *, ...) __attribute__((format(printf,3,4)));
 static char *utc_date(const unsigned int);
 static char *var_value_message(var *, bool);
 static void wipe_screen(const short, const short);
-/* }}} */
-
-/* runtime config {{{ */
-struct {
-	int nc_timeout;
-	int statusbar_timeout;
-	log_mode loglvl;
-	char *version;
-	char sortmode;
-	char silent_shell;
-} cfg;
 /* }}} */
 
 /* run state structs {{{ */
@@ -168,6 +158,7 @@ const char *progname = "tasknc";
 const char *progversion = "v0.6";
 const char *progauthor = "mjheagle";
 
+config cfg;                             /* runtime config struct */
 short pageoffset = 0;                   /* number of tasks page is offset */
 time_t sb_timeout = 0;                  /* when statusbar should be cleared */
 char *searchstring = NULL;              /* currently active search string */
@@ -2353,56 +2344,6 @@ static bool task_match(const task *cur, const char *str) /* {{{ */
 		return 1;
 	else
 		return 0;
-} /* }}} */
-
-void tnc_fprintf(FILE *fp, const log_mode minloglvl, const char *format, ...) /* {{{ */
-{
-	/* log a message to the logfile */
-	time_t lt;
-	struct tm *t;
-	va_list args;
-	int ret;
-	const int timesize = 32;
-	char timestr[timesize];
-
-	/* determine if msg should be logged */
-	if (minloglvl>cfg.loglvl)
-		return;
-
-	/* get time */
-	lt = time(NULL);
-	t = localtime(&lt);
-	ret = strftime(timestr, timesize, "%F %H:%M:%S", t);
-	if (ret==0)
-		return;
-
-	/* timestamp */
-	if (fp!=stdout)
-		fprintf(fp, "[%s] ", timestr);
-
-	/* log type header */
-	switch(minloglvl)
-	{
-		case LOG_WARN:
-			fputs("WARNING: ", fp);
-			break;
-		case LOG_ERROR:
-			fputs("ERROR: ", fp);
-			break;
-		case LOG_DEBUG:
-		case LOG_DEBUG_VERBOSE:
-			fputs("DEBUG: ", fp);
-		default:
-			break;
-	}
-
-	/* write log entry */
-	va_start(args, format);
-	vfprintf(fp, format, args);
-	va_end(args);
-
-	/* trailing newline */
-	fputc('\n', fp);
 } /* }}} */
 
 int umvaddstr(const int y, const int x, const char *format, ...) /* {{{ */

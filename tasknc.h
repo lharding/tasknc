@@ -34,16 +34,6 @@ typedef enum {
 	NCURSES_MODE_STRING
 } ncurses_mode;
 
-/* log levels */
-typedef enum {
-	LOG_DEFAULT = 0,
-	LOG_INFO,
-	LOG_WARN,
-	LOG_ERROR,
-	LOG_DEBUG,
-	LOG_DEBUG_VERBOSE
-} log_mode;
-
 /* var struct management */
 typedef enum {
 	VAR_UNDEF = 0,
@@ -60,6 +50,6 @@ typedef enum {
 /* default settings */
 #define STATUSBAR_TIMEOUT_DEFAULT       3
 #define NCURSES_WAIT                    500
-#define LOGLVL_DEFAULT                  0
+#define LOGLVL_DEFAULT                  3
 
 #endif
