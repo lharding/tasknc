@@ -7,7 +7,7 @@
 #define _TASKNC_H
 
 /* wiping functions */
-#define wipe_tasklist()                 wipe_screen(stdscr, 0, rows-2)
+#define wipe_tasklist()                 wipe_screen(tasklist, 0, rows-2)
 #define wipe_statusbar()                wipe_screen(statusbar, 0, 0)
 
 #define NVARS                           (int)(sizeof(vars)/sizeof(var))

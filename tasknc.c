@@ -628,7 +628,7 @@ void key_command(const char *arg) /* {{{ */
 
 		/* get input */
 		cmdstr = calloc(cols, sizeof(char));
-		wgetstr(stdscr, cmdstr);
+		wgetstr(statusbar, cmdstr);
 		wipe_statusbar();
 
 		/* reset */
@@ -662,7 +662,7 @@ void key_filter(const char *arg) /* {{{ */
 		set_curses_mode(NCURSES_MODE_STRING);
 		check_free(active_filter);
 		active_filter = calloc(2*cols, sizeof(char));
-		wgetstr(stdscr, active_filter);
+		wgetstr(statusbar, active_filter);
 		wipe_statusbar();
 		set_curses_mode(NCURSES_MODE_STD);
 	}
@@ -689,7 +689,7 @@ void key_modify(const char *arg) /* {{{ */
 		statusbar_message(-1, "modify: ");
 		set_curses_mode(NCURSES_MODE_STRING);
 		argstr = calloc(2*cols, sizeof(char));
-		wgetstr(stdscr, argstr);
+		wgetstr(statusbar, argstr);
 		wipe_statusbar();
 		set_curses_mode(NCURSES_MODE_STD);
 	}
@@ -777,7 +777,7 @@ void key_search(const char *arg) /* {{{ */
 
 		/* store search string  */
 		searchstring = malloc((cols-16)*sizeof(char));
-		wgetstr(stdscr, searchstring);
+		wgetstr(statusbar, searchstring);
 		sb_timeout = time(NULL) + 3;
 		set_curses_mode(NCURSES_MODE_STD);
 	}
@@ -868,7 +868,9 @@ void key_sync() /* {{{ */
 		if (ret==0)
 			ret = system("task push");
 	}
-	wrefresh(stdscr);
+	wrefresh(tasklist);
+	wrefresh(statusbar);
+	wrefresh(header);
 	if (ret==0)
 	{
 		statusbar_message(cfg.statusbar_timeout, "tasks synchronized");
@@ -888,7 +890,9 @@ void key_task_action(const task_action_type action, const char *msg_success, con
 	if (action!=ACTION_VIEW && action!=ACTION_COMPLETE && action!=ACTION_DELETE)
 		state.reload = 1;
 	ret = task_action(action);
-	wrefresh(stdscr);
+	wnoutrefresh(header);
+	wnoutrefresh(tasklist);
+	wnoutrefresh(statusbar);
 	if (ret==0)
 		statusbar_message(cfg.statusbar_timeout, msg_success);
 	else
@@ -911,7 +915,9 @@ void key_undo() /* {{{ */
 		endwin();
 		ret = system("task undo");
 	}
-	wrefresh(stdscr);
+	wnoutrefresh(header);
+	wnoutrefresh(tasklist);
+	wnoutrefresh(statusbar);
 	if (ret==0)
 	{
 		statusbar_message(cfg.statusbar_timeout, "undo executed");
@@ -1046,7 +1052,8 @@ void nc_main() /* {{{ */
 	task_count();
 	print_title();
 	print_task_list();
-	wrefresh(stdscr);
+	wrefresh(tasklist);
+	wrefresh(header);
 
 	/* main loop */
 	while (1)
@@ -1073,11 +1080,12 @@ void nc_main() /* {{{ */
 
 		/* DEBUG - make sure window order is correct */
 		touchwin(header);
-		wrefresh(header);
+		wnoutrefresh(header);
 		touchwin(tasklist);
-		wrefresh(tasklist);
+		wnoutrefresh(tasklist);
 		touchwin(statusbar);
-		wrefresh(statusbar);
+		wnoutrefresh(statusbar);
+		doupdate();
 
 		/* get a character */
 		c = wgetch(stdscr);
@@ -1101,7 +1109,10 @@ void nc_main() /* {{{ */
 			print_title();
 			print_task_list();
 			check_curs_pos();
-			wrefresh(stdscr);
+			wnoutrefresh(tasklist);
+			wnoutrefresh(header);
+			wnoutrefresh(statusbar);
+			doupdate();
 		}
 		if (sb_timeout>0 && sb_timeout<time(NULL))
 		{
@@ -1155,7 +1166,7 @@ void print_task(int tasknum, task *this) /* {{{ */
 	/* wipe line */
 	wattrset(tasklist, COLOR_PAIR(0));
 	for (x=0; x<cols; x++)
-		mvaddch(y, x, ' ');
+		mvwaddch(tasklist, y, x, ' ');
 
 	/* evaluate line */
 	wmove(tasklist, 0, 0);
@@ -1194,7 +1205,7 @@ void print_title() /* {{{ */
 	wmove(header, 0, 0);
 	wattrset(header, COLOR_PAIR(1));
 	for (x=0; x<cols; x++)
-		mvaddch(0, x, ' ');
+		mvwaddch(header, 0, x, ' ');
 
 	/* evaluate title string */
 	tmp0 = (char *)eval_string(2*cols, formats.title, NULL, NULL, 0);
@@ -1604,7 +1615,9 @@ void task_add(void) /* {{{ */
 	system(cmd);
 	free(cmd);
 	reset_prog_mode();
-	wrefresh(stdscr);
+	wrefresh(tasklist);
+	wrefresh(header);
+	wrefresh(statusbar);
 } /* }}} */
 
 void task_count() /* {{{ */
