@@ -5,7 +5,11 @@
  */
 
 #include <stdarg.h>
+#include <stdio.h>
+#include <time.h>
+#include "common.h"
 #include "log.h"
+
 
 void tnc_fprintf(FILE *fp, const log_mode minloglvl, const char *format, ...) /* {{{ */
 {

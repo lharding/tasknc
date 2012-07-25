@@ -7,12 +7,7 @@
 #ifndef _TASKS_H
 #define _TASKS_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
 #include "common.h"
-#include "config.h"
 
 char free_task(task *);
 void free_tasks(task *);

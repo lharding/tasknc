@@ -6,8 +6,6 @@
 #ifndef _TASKNC_H
 #define _TASKNC_H
 
-#include "tasknc.h"
-
 /* wiping functions */
 #define wipe_tasklist()                 wipe_screen(1, rows-2)
 #define wipe_statusbar()                wipe_screen(rows-1, rows-1)

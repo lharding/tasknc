@@ -5,10 +5,15 @@
  */
 
 #define _XOPEN_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
-#include "tasks.h"
+#include <time.h>
+#include "common.h"
 #include "config.h"
 #include "log.h"
+#include "tasks.h"
 
 /* local function declarations {{{ */
 static char compare_tasks(const task *, const task *, const char);
