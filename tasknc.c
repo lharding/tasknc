@@ -183,10 +183,10 @@ void check_screen_size() /* {{{ */
 				wipe_statusbar();
 				wipe_tasklist();
 			}
-			attrset(COLOR_PAIR(8));
+			wattrset(stdscr, COLOR_PAIR(8));
 			mvaddstr(0, 0, "screen dimensions too small");
 			wrefresh(stdscr);
-			attrset(COLOR_PAIR(0));
+			wattrset(stdscr, COLOR_PAIR(0));
 			usleep(100000);
 		}
 		count++;
@@ -1045,7 +1045,6 @@ void nc_main() /* {{{ */
 	fieldlengths.description = oldcols-fieldlengths.project-1-fieldlengths.date;
 	task_count();
 	print_title();
-	attrset(COLOR_PAIR(0));
 	print_task_list();
 	wrefresh(stdscr);
 
@@ -1135,7 +1134,7 @@ void print_task(int tasknum, task *this) /* {{{ */
 
 	/* determine position to print */
 	y = tasknum-pageoffset;
-	if (y<=0 || y>=rows-1)
+	if (y<0 || y>=rows-1)
 		return;
 
 	/* find task pointer if necessary */
@@ -1154,15 +1153,15 @@ void print_task(int tasknum, task *this) /* {{{ */
 		sel = 1;
 
 	/* wipe line */
-	attrset(COLOR_PAIR(0));
+	wattrset(tasklist, COLOR_PAIR(0));
 	for (x=0; x<cols; x++)
 		mvaddch(y, x, ' ');
 
 	/* evaluate line */
 	wmove(tasklist, 0, 0);
-	attrset(COLOR_PAIR(2+sel));
+	wattrset(tasklist, COLOR_PAIR(2+sel));
 	tmp = (char *)eval_string(2*cols, formats.task, this, NULL, 0);
-	umvaddstr_align(stdscr, y, tmp);
+	umvaddstr_align(tasklist, y, tmp);
 	free(tmp);
 } /* }}} */
 
@@ -1182,7 +1181,7 @@ void print_task_list() /* {{{ */
 		cur = cur->next;
 	}
 	if (counter<cols-2)
-		wipe_screen(stdscr, counter-pageoffset, rows-2);
+		wipe_screen(tasklist, counter-pageoffset, rows-2);
 } /* }}} */
 
 void print_title() /* {{{ */
@@ -1193,7 +1192,7 @@ void print_title() /* {{{ */
 
 	/* wipe bar and print bg color */
 	wmove(header, 0, 0);
-	attrset(COLOR_PAIR(1));
+	wattrset(header, COLOR_PAIR(1));
 	for (x=0; x<cols; x++)
 		mvaddch(0, x, ' ');
 
@@ -1803,7 +1802,7 @@ void wipe_screen(WINDOW *win, const short startl, const short stopl) /* {{{ */
 	/* clear specified lines of the screen */
 	int y, x;
 
-	attrset(COLOR_PAIR(0));
+	wattrset(win, COLOR_PAIR(0));
 
 	for (y=startl; y<=stopl; y++)
 		for (x=0; x<cols; x++)
