@@ -38,6 +38,7 @@ struct {
 
 struct {
 	bool redraw;
+	bool resize;
 	bool reload;
 	bool done;
 } state;
@@ -231,9 +232,9 @@ void configure(void) /* {{{ */
 
 	/* set default formats */
 	formats.title = calloc(64, sizeof(char));
-	strcpy(formats.title, " $program_name ($selected_line/$task_count) $> $date ");
+	strcpy(formats.title, " $program_name ($selected_line/$task_count) $> $date");
 	formats.task = calloc(64, sizeof(char));
-	strcpy(formats.task, " $project $description $> $due ");
+	strcpy(formats.task, " $project $description $> $due");
 
 	/* get task version */
 	cmd = popen("task version rc._forcecolor=no", "r");
@@ -402,6 +403,7 @@ const char *eval_string(const int maxlen, const char *fmt, const task *this, cha
 		}
 		for (i=fieldlen; i<fieldwidth; i++)
 			*(str+position+i) = ' ';
+		*(str+position+fieldwidth) = 0;
 		if (varlen>0)
 			return eval_string(maxlen, fmt+varlen+1, this, str, position+fieldwidth);
 	}
@@ -1072,6 +1074,7 @@ void nc_main() /* {{{ */
 		/* check for size changes */
 		if (cols!=oldcols || rows!=oldrows)
 		{
+			state.resize = 1;
 			state.redraw = 1;
 			wipe_statusbar();
 		}
@@ -1101,6 +1104,15 @@ void nc_main() /* {{{ */
 			reload_tasks();
 			task_count();
 			state.redraw = 1;
+		}
+		if (state.resize==1)
+		{
+			wresize(header, 1, cols);
+			wresize(tasklist, rows-2, cols);
+			wresize(statusbar, 1, cols);
+			mvwin(header, 0, 0);
+			mvwin(tasklist, 1, 0);
+			mvwin(statusbar, rows-1, 0);
 		}
 		if (state.redraw==1)
 		{

@@ -17,6 +17,6 @@
 
 /* static field lengths */
 #define UUIDLENGTH                      38
-#define DATELENGTH                      10
+#define DATELENGTH                      7
 
 #endif
