@@ -7,8 +7,8 @@
 #define _TASKNC_H
 
 /* wiping functions */
-#define wipe_tasklist()                 wipe_screen(1, rows-2)
-#define wipe_statusbar()                wipe_screen(rows-1, rows-1)
+#define wipe_tasklist()                 wipe_screen(stdscr, 0, rows-2)
+#define wipe_statusbar()                wipe_screen(statusbar, 0, 0)
 
 #define NVARS                           (int)(sizeof(vars)/sizeof(var))
 #define NFUNCS                          (int)(sizeof(funcmaps)/sizeof(funcmap))
@@ -73,6 +73,6 @@ int umvaddstr(WINDOW *, const int, const int, const char *, ...) __attribute__((
 int umvaddstr_align(WINDOW *, const int, char *);
 static char *utc_date(const unsigned int);
 static char *var_value_message(var *, bool);
-static void wipe_screen(const short, const short);
+static void wipe_screen(WINDOW *, const short, const short);
 
 #endif

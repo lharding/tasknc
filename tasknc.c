@@ -553,7 +553,6 @@ void handle_command(char *cmdstr) /* {{{ */
 		tnc_fprintf(logfp, LOG_ERROR, "error: command %s not found", cmdstr);
 	}
 
-	/* debug */
 	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: %s", cmdstr);
 	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: [args] %s", args);
 } /* }}} */
@@ -1029,9 +1028,13 @@ void nc_main() /* {{{ */
 	}
 
 	/* create windows */
+	getmaxyx(stdscr, rows, cols);
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "rows: %d, columns: %d", rows, cols);
 	header = newwin(1, cols, 0, 0);
 	tasklist = newwin(rows-2, cols, 1, 0);
 	statusbar = newwin(1, cols, rows-1, 0);
+	if (statusbar==NULL)
+		tnc_fprintf(logfp, LOG_ERROR, "statusbar creation failed (rows:%d, cols:%d)", rows, cols);
 
 	/* set curses settings */
 	set_curses_mode(NCURSES_MODE_STD);
@@ -1074,6 +1077,8 @@ void nc_main() /* {{{ */
 		wrefresh(header);
 		touchwin(tasklist);
 		wrefresh(tasklist);
+		touchwin(statusbar);
+		wrefresh(statusbar);
 
 		/* get a character */
 		c = wgetch(stdscr);
@@ -1177,7 +1182,7 @@ void print_task_list() /* {{{ */
 		cur = cur->next;
 	}
 	if (counter<cols-2)
-		wipe_screen(counter+1-pageoffset, cols-1);
+		wipe_screen(stdscr, counter-pageoffset, rows-2);
 } /* }}} */
 
 void print_title() /* {{{ */
@@ -1454,14 +1459,15 @@ void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 	wipe_statusbar();
 
 	/* print message */
-	umvaddstr(stdscr, rows-1, 0, message);
+	umvaddstr(statusbar, 0, 0, message);
 	free(message);
 
 	/* set timeout */
 	if (dtmout>=0)
 		sb_timeout = time(NULL) + dtmout;
 
-	wrefresh(stdscr);
+	touchwin(statusbar);
+	wrefresh(statusbar);
 } /* }}} */
 
 char *str_trim(char *str) /* {{{ */
@@ -1792,7 +1798,7 @@ char *var_value_message(var *v, bool printname) /* {{{ */
 	return message;
 } /* }}} */
 
-void wipe_screen(const short startl, const short stopl) /* {{{ */
+void wipe_screen(WINDOW *win, const short startl, const short stopl) /* {{{ */
 {
 	/* clear specified lines of the screen */
 	int y, x;
@@ -1801,7 +1807,7 @@ void wipe_screen(const short startl, const short stopl) /* {{{ */
 
 	for (y=startl; y<=stopl; y++)
 		for (x=0; x<cols; x++)
-			mvaddch(y, x, ' ');
+			mvwaddch(win, y, x, ' ');
 } /* }}} */
 
 int main(int argc, char **argv) /* {{{ */
