@@ -24,6 +24,7 @@
 #include "tasknc.h"
 #include "tasks.h"
 #include "log.h"
+#include "keys.h"
 
 /* run state structs {{{ */
 struct {
@@ -61,11 +62,11 @@ int totaltaskcount;                     /* number of tasks with no filters appli
 char *active_filter = NULL;             /* a string containing the active filter string */
 task *head = NULL;                      /* the current top of the list */
 FILE *logfp;                            /* handle for log file */
-keybind *keybinds = NULL;               /* linked list of keybinds */
+extern keybind *keybinds;               /* key bind array */
 
-WINDOW *header;
-WINDOW *tasklist;
-WINDOW *statusbar;
+WINDOW *header = NULL;
+WINDOW *tasklist = NULL;
+WINDOW *statusbar = NULL;
 /* }}} */
 
 /* user-exposed variables & functions {{{ */
@@ -103,52 +104,6 @@ funcmap funcmaps[] = {
 	{"command",     (void *)key_command,     0}
 };
 /* }}} */
-
-void add_int_keybind(int key, void *function, int argint) /* {{{ */
-{
-	/* convert integer to string, then add keybind */
-	char *argstr;
-
-	asprintf(&argstr, "%d", argint);
-	add_keybind(key, function, argstr);
-	free(argstr);
-} /* }}} */
-
-void add_keybind(int key, void *function, char *arg) /* {{{ */
-{
-	/* add a keybind to the list of binds */
-	keybind *this_bind, *new;
-	int n = 0;
-
-	/* create new bind */
-	new = calloc(1, sizeof(keybind));
-	new->key = key;
-	new->function = function;
-	new->argint = 0;
-	new->argstr = NULL;
-	if (function==key_task_action)
-		new->argint = atoi(arg);
-	else if (function==key_scroll)
-		new->argint = *arg;
-	else
-		new->argstr = arg;
-	new->next = NULL;
-
-	/* append it to the list */
-	if (keybinds==NULL)
-		keybinds = new;
-	else
-	{
-		this_bind = keybinds;
-		for (n=0; this_bind->next!=NULL; n++)
-			this_bind = this_bind->next;
-		this_bind->next = new;
-		n++;
-	}
-
-	/* write log */
-	tnc_fprintf(logfp, LOG_DEBUG, "bind #%d: key %c (%d) bound to @%p (args: %d/%s)", n, key, key, function,new->argint, new->argstr);
-} /* }}} */
 
 void check_curs_pos(void) /* {{{ */
 {
@@ -1131,20 +1086,6 @@ void nc_main() /* {{{ */
 	}
 } /* }}} */
 
-int parse_key(const char *keystr) /* {{{ */
-{
-	/* determine a key value from a string specifier */
-	int key;
-
-	/* try for integer key */
-	if (1==sscanf(keystr, "%d", &key))
-		return key;
-
-	/* take the first character as the key */
-	return (int)(*keystr);
-
-} /* }}} */
-
 void print_task(int tasknum, task *this) /* {{{ */
 {
 	/* print a task specified by number */
@@ -1230,33 +1171,6 @@ void print_version(void) /* {{{ */
 {
 	/* print info about the currently running program */
 	printf("%s %s by %s\n", progname, progversion, progauthor);
-} /* }}} */
-
-int remove_keybinds(const int key) /* {{{ */
-{
-	/* remove all keybinds to key */
-	int counter = 0;
-	keybind *this, *last = NULL, *next;
-
-	this = keybinds;
-	while (this!=NULL)
-	{
-		next = this->next;
-		if (this->key == (int)key)
-		{
-			if (last!=NULL)
-				last->next = next;
-			else
-				keybinds = next;
-			free(this);
-			counter++;
-		}
-		else
-			last = this;
-		this = next;
-	}
-
-	return counter;
 } /* }}} */
 
 void run_command_bind(char *args) /* {{{ */
