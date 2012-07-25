@@ -5,8 +5,8 @@
  * vim: noet ts=4 sw=4 sts=4
  */
 
-#ifndef _TASKNC_H
-#define _TASKNC_H
+#ifndef _TASKncurses_H
+#define _TASKncurses_H
 
 /* wiping functions */
 #define wipe_tasklist()                 wipe_screen(tasklist, 0, rows-2)
@@ -33,26 +33,23 @@ var *find_var(const char *);
 void handle_command(char *);
 void handle_keypress(int);
 void help(void);
-void key_add();
 void key_command(const char *);
-void key_done();
-void key_filter(const char *);
-void key_modify(const char *);
-void key_reload();
-void key_scroll(const int);
-void key_search(const char *);
-void key_search_next();
-void key_sort();
-void key_sync();
-void key_task_action(const task_action_type, const char *, const char *);
-void key_undo();
+void key_tasklist_action(const task_action_type, const char *, const char *);
+void key_tasklist_add();
+void key_tasklist_done();
+void key_tasklist_filter(const char *);
+void key_tasklist_modify(const char *);
+void key_tasklist_reload();
+void key_tasklist_scroll(const int);
+void key_tasklist_search(const char *);
+void key_tasklist_search_next();
+void key_tasklist_sort();
+void key_tasklist_sync();
+void key_tasklist_undo();
 char max_project_length();
-void nc_colors(void);
-void nc_end(int);
-void nc_main();
-void print_task(int, task *);
-void print_task_list();
-void print_title();
+void ncurses_colors(void);
+void ncurses_end(int);
+void print_header();
 void print_version(void);
 void run_command_bind(char *);
 void run_command_unbind(char *);
@@ -61,10 +58,11 @@ void run_command_show(const char *);
 void set_curses_mode(const ncurses_mode);
 void statusbar_message(const int, const char *, ...) __attribute__((format(printf,2,3)));
 char *str_trim(char *);
-int task_action(const task_action_type);
-void task_add(void);
-void task_count();
-void task_modify(const char *);
+void tasklist_print_task(int, task *);
+void tasklist_print_task_list();
+int tasklist_task_action(const task_action_type);
+void tasklist_task_add(void);
+void tasklist_window();
 int umvaddstr(WINDOW *, const int, const int, const char *, ...) __attribute__((format(printf,4,5)));
 int umvaddstr_align(WINDOW *, const int, char *);
 char *utc_date(const unsigned int);

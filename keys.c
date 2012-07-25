@@ -41,9 +41,9 @@ void add_keybind(int key, void *function, char *arg) /* {{{ */
 	new->function = function;
 	new->argint = 0;
 	new->argstr = NULL;
-	if (function==key_task_action)
+	if (function==key_tasklist_action)
 		new->argint = atoi(arg);
-	else if (function==key_scroll)
+	else if (function==key_tasklist_scroll)
 		new->argint = *arg;
 	else
 		new->argstr = arg;

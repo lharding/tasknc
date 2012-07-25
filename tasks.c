@@ -624,6 +624,21 @@ void swap_tasks(task *a, task *b) /* {{{ */
 	b->description = strtmp;
 } /* }}} */
 
+void task_count() /* {{{ */
+{
+	taskcount = 0;
+	totaltaskcount = 0;
+	task *cur;
+
+	cur = head;
+	while (cur!=NULL)
+	{
+		taskcount++;
+		totaltaskcount++;
+		cur = cur->next;
+	}
+} /* }}} */
+
 bool task_match(const task *cur, const char *str) /* {{{ */
 {
 	if (match_string(cur->project, str) ||
@@ -632,4 +647,32 @@ bool task_match(const task *cur, const char *str) /* {{{ */
 		return 1;
 	else
 		return 0;
+} /* }}} */
+
+void task_modify(const char *argstr) /* {{{ */
+{
+	/* run a modify command on the selected task */
+	task *cur;
+	char *cmd;
+	FILE *run;
+	int arglen;
+
+	if (argstr!=NULL)
+		arglen = strlen(argstr);
+	else
+		arglen = 0;
+
+	cur = get_task_by_position(selline);
+	cmd = calloc(64+arglen, sizeof(char));
+
+	sprintf(cmd, "task %s modify ", cur->uuid);
+	if (arglen>0)
+		strcat(cmd, argstr);
+
+	run = popen(cmd, "r");
+	pclose(run);
+
+	reload_task(cur);
+
+	free(cmd);
 } /* }}} */

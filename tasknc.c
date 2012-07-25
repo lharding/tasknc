@@ -54,7 +54,7 @@ config cfg;                             /* runtime config struct */
 short pageoffset = 0;                   /* number of tasks page is offset */
 time_t sb_timeout = 0;                  /* when statusbar should be cleared */
 char *searchstring = NULL;              /* currently active search string */
-short selline = 0;                      /* selected line number */
+int selline = 0;                        /* selected line number */
 int rows, cols;                         /* size of the ncurses window */
 int taskcount;                          /* number of tasks */
 int totaltaskcount;                     /* number of tasks with no filters applied */
@@ -70,7 +70,7 @@ WINDOW *statusbar = NULL;
 
 /* user-exposed variables & functions {{{ */
 var vars[] = {
-	{"ncurses_timeout",   VAR_INT,  &(cfg.nc_timeout)},
+	{"nc_timeout",   VAR_INT,  &(cfg.nc_timeout)},
 	{"statusbar_timeout", VAR_INT,  &(cfg.statusbar_timeout)},
 	{"log_level",         VAR_INT,  &(cfg.loglvl)},
 	{"task_version",      VAR_STR,  &(cfg.version)},
@@ -88,19 +88,19 @@ var vars[] = {
 };
 
 funcmap funcmaps[] = {
-	{"scroll",      (void *)key_scroll,      1},
-	{"task_action", (void *)key_task_action, 1},
-	{"reload",      (void *)key_reload,      0},
-	{"undo",        (void *)key_undo,        0},
-	{"add",         (void *)key_add,         0},
-	{"modify",      (void *)key_modify,      0},
-	{"sort",        (void *)key_sort,        0},
-	{"search",      (void *)key_search,      0},
-	{"search_next", (void *)key_search_next, 0},
-	{"filter",      (void *)key_filter,      0},
-	{"sync",        (void *)key_sync,        0},
-	{"quit",        (void *)key_done,        0},
-	{"command",     (void *)key_command,     0}
+	{"scroll",      (void *)key_tasklist_scroll,      1},
+	{"task_action", (void *)key_tasklist_action,      1},
+	{"reload",      (void *)key_tasklist_reload,      0},
+	{"undo",        (void *)key_tasklist_undo,        0},
+	{"add",         (void *)key_tasklist_add,         0},
+	{"modify",      (void *)key_tasklist_modify,      0},
+	{"sort",        (void *)key_tasklist_sort,        0},
+	{"search",      (void *)key_tasklist_search,      0},
+	{"search_next", (void *)key_tasklist_search_next, 0},
+	{"filter",      (void *)key_tasklist_filter,      0},
+	{"sync",        (void *)key_tasklist_sync,        0},
+	{"quit",        (void *)key_tasklist_done,        0},
+	{"command",     (void *)key_command,              0}
 };
 /* }}} */
 
@@ -207,32 +207,32 @@ void configure(void) /* {{{ */
 	pclose(cmd);
 
 	/* default keybinds */
-	add_keybind(ERR,           NULL,                 NULL);
-	add_keybind('k',           key_scroll,           "u");
-	add_keybind(KEY_UP,        key_scroll,           "u");
-	add_keybind('j',           key_scroll,           "d");
-	add_keybind(KEY_DOWN,      key_scroll,           "d");
-	add_keybind(KEY_HOME,      key_scroll,           "h");
-	add_keybind('g',           key_scroll,           "h");
-	add_keybind(KEY_END,       key_scroll,           "e");
-	add_keybind('G',           key_scroll,           "e");
-	add_int_keybind('e',       key_task_action,      ACTION_EDIT);
-	add_keybind('r',           key_reload,           NULL);
-	add_keybind('u',           key_undo,             NULL);
-	add_int_keybind('d',       key_task_action,      ACTION_DELETE);
-	add_int_keybind('c',       key_task_action,      ACTION_COMPLETE);
-	add_keybind('a',           key_add,              NULL);
-	add_int_keybind('v',       key_task_action,      ACTION_VIEW);
-	add_int_keybind(13,        key_task_action,      ACTION_VIEW);
-	add_int_keybind(KEY_ENTER, key_task_action,      ACTION_VIEW);
-	add_keybind('s',           key_sort,             NULL);
-	add_keybind('/',           key_search,           NULL);
-	add_keybind('n',           key_search_next,      NULL);
-	add_keybind('f',           key_filter,           NULL);
-	add_keybind('y',           key_sync,             NULL);
-	add_keybind('q',           key_done,             NULL);
-	add_keybind(';',           key_command,          NULL);
-	add_keybind(':',           key_command,          NULL);
+	add_keybind(ERR,           NULL,                     NULL);
+	add_keybind('k',           key_tasklist_scroll,      "u");
+	add_keybind(KEY_UP,        key_tasklist_scroll,      "u");
+	add_keybind('j',           key_tasklist_scroll,      "d");
+	add_keybind(KEY_DOWN,      key_tasklist_scroll,      "d");
+	add_keybind(KEY_HOME,      key_tasklist_scroll,      "h");
+	add_keybind('g',           key_tasklist_scroll,      "h");
+	add_keybind(KEY_END,       key_tasklist_scroll,      "e");
+	add_keybind('G',           key_tasklist_scroll,      "e");
+	add_int_keybind('e',       key_tasklist_action,      ACTION_EDIT);
+	add_keybind('r',           key_tasklist_reload,      NULL);
+	add_keybind('u',           key_tasklist_undo,        NULL);
+	add_int_keybind('d',       key_tasklist_action,      ACTION_DELETE);
+	add_int_keybind('c',       key_tasklist_action,      ACTION_COMPLETE);
+	add_keybind('a',           key_tasklist_add,         NULL);
+	add_int_keybind('v',       key_tasklist_action,      ACTION_VIEW);
+	add_int_keybind(13,        key_tasklist_action,      ACTION_VIEW);
+	add_int_keybind(KEY_ENTER, key_tasklist_action,      ACTION_VIEW);
+	add_keybind('s',           key_tasklist_sort,        NULL);
+	add_keybind('/',           key_tasklist_search,      NULL);
+	add_keybind('n',           key_tasklist_search_next, NULL);
+	add_keybind('f',           key_tasklist_filter,      NULL);
+	add_keybind('y',           key_tasklist_sync,        NULL);
+	add_keybind('q',           key_tasklist_done,        NULL);
+	add_keybind(';',           key_command,              NULL);
+	add_keybind(':',           key_command,              NULL);
 
 	/* determine config path */
 	xdg_config_home = getenv("XDG_CONFIG_HOME");
@@ -538,10 +538,10 @@ void handle_keypress(int c) /* {{{ */
 		if (c == this_bind->key)
 		{
 			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p", this_bind->function);
-			if (this_bind->function == (void *)key_scroll)
-				key_scroll(this_bind->argint);
-			else if (this_bind->function == (void *)key_task_action)
-				key_task_action(this_bind->argint, action_success_str[this_bind->argint], action_fail_str[this_bind->argint]);
+			if (this_bind->function == (void *)key_tasklist_scroll)
+				key_tasklist_scroll(this_bind->argint);
+			else if (this_bind->function == (void *)key_tasklist_action)
+				key_tasklist_action(this_bind->argint, action_success_str[this_bind->argint], action_fail_str[this_bind->argint]);
 			else if (this_bind->function != NULL)
 				(*(this_bind->function))(this_bind->argstr);
 			break;
@@ -565,10 +565,10 @@ void help(void) /* {{{ */
 			"    -v, --version            print the version and exit\n");
 } /* }}} */
 
-void key_add() /* {{{ */
+void key_tasklist_add() /* {{{ */
 {
 	/* handle a keyboard direction to add new task */
-	task_add();
+	tasklist_task_add();
 	state.reload = 1;
 	statusbar_message(cfg.statusbar_timeout, "task added");
 } /* }}} */
@@ -605,13 +605,13 @@ void key_command(const char *arg) /* {{{ */
 	free(cmdstr);
 } /* }}} */
 
-void key_done() /* {{{ */
+void key_tasklist_done() /* {{{ */
 {
 	/* wrapper function to handle keyboard instruction to quit */
 	state.done = 1;
 } /* }}} */
 
-void key_filter(const char *arg) /* {{{ */
+void key_tasklist_filter(const char *arg) /* {{{ */
 {
 	/* handle a keyboard direction to add a new filter */
 	if (arg==NULL)
@@ -637,7 +637,7 @@ void key_filter(const char *arg) /* {{{ */
 	state.reload = 1;
 } /* }}} */
 
-void key_modify(const char *arg) /* {{{ */
+void key_tasklist_modify(const char *arg) /* {{{ */
 {
 	/* handle a keyboard direction to add a new filter */
 	char *argstr;
@@ -666,14 +666,14 @@ void key_modify(const char *arg) /* {{{ */
 	sort_wrapper(head);
 } /* }}} */
 
-void key_reload() /* {{{ */
+void key_tasklist_reload() /* {{{ */
 {
 	/* wrapper function to handle keyboard instruction to reload task list */
 	state.reload = 1;
 	statusbar_message(cfg.statusbar_timeout, "task list reloaded");
 } /* }}} */
 
-void key_scroll(const int direction) /* {{{ */
+void key_tasklist_scroll(const int direction) /* {{{ */
 {
 	/* handle a keyboard direction to scroll */
 	const char oldsel = selline;
@@ -718,13 +718,13 @@ void key_scroll(const int direction) /* {{{ */
 		state.redraw = 1;
 	else
 	{
-		print_task(oldsel, NULL);
-		print_task(selline, NULL);
+		tasklist_print_task(oldsel, NULL);
+		tasklist_print_task(selline, NULL);
 	}
-	print_title();
+	print_header();
 } /* }}} */
 
-void key_search(const char *arg) /* {{{ */
+void key_tasklist_search(const char *arg) /* {{{ */
 {
 	/* handle a keyboard direction to search */
 	check_free(searchstring);
@@ -752,7 +752,7 @@ void key_search(const char *arg) /* {{{ */
 	state.redraw = 1;
 } /* }}} */
 
-void key_search_next() /* {{{ */
+void key_tasklist_search_next() /* {{{ */
 {
 	/* handle a keyboard direction to move to next search result */
 	if (searchstring!=NULL)
@@ -765,7 +765,7 @@ void key_search_next() /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "no active search string");
 } /* }}} */
 
-void key_sort(const char *arg) /* {{{ */
+void key_tasklist_sort(const char *arg) /* {{{ */
 {
 	/* handle a keyboard direction to sort */
 	char m;
@@ -806,7 +806,7 @@ void key_sort(const char *arg) /* {{{ */
 	state.redraw = 1;
 } /* }}} */
 
-void key_sync() /* {{{ */
+void key_tasklist_sync() /* {{{ */
 {
 	/* handle a keyboard direction to sync */
 	int ret;
@@ -838,7 +838,7 @@ void key_sync() /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "task syncronization failed");
 } /* }}} */
 
-void key_task_action(const task_action_type action, const char *msg_success, const char *msg_fail) /* {{{ */
+void key_tasklist_action(const task_action_type action, const char *msg_success, const char *msg_fail) /* {{{ */
 {
 	/* handle a keyboard direction to run a task command */
 	int ret;
@@ -847,7 +847,7 @@ void key_task_action(const task_action_type action, const char *msg_success, con
 	endwin();
 	if (action!=ACTION_VIEW && action!=ACTION_COMPLETE && action!=ACTION_DELETE)
 		state.reload = 1;
-	ret = task_action(action);
+	ret = tasklist_task_action(action);
 	wnoutrefresh(header);
 	wnoutrefresh(tasklist);
 	wnoutrefresh(statusbar);
@@ -857,7 +857,7 @@ void key_task_action(const task_action_type action, const char *msg_success, con
 		statusbar_message(cfg.statusbar_timeout, msg_fail);
 } /* }}} */
 
-void key_undo() /* {{{ */
+void key_tasklist_undo() /* {{{ */
 {
 	/* handle a keyboard direction to run an undo */
 	int ret;
@@ -905,7 +905,7 @@ char max_project_length() /* {{{ */
 	return len;
 } /* }}} */
 
-void nc_colors(void) /* {{{ */
+void ncurses_colors(void) /* {{{ */
 {
 	if (has_colors())
 	{
@@ -918,7 +918,7 @@ void nc_colors(void) /* {{{ */
 	}
 } /* }}} */
 
-void nc_end(int sig) /* {{{ */
+void ncurses_end(int sig) /* {{{ */
 {
 	/* terminate ncurses */
 	delwin(header);
@@ -952,7 +952,7 @@ void nc_end(int sig) /* {{{ */
 	exit(0);
 } /* }}} */
 
-void nc_main() /* {{{ */
+void tasklist_window() /* {{{ */
 {
 	/* ncurses main function */
 	WINDOW *stdscr;
@@ -962,9 +962,9 @@ void nc_main() /* {{{ */
 
 	/* initialize ncurses */
 	tnc_fprintf(stdout, LOG_DEBUG, "starting ncurses...");
-	signal(SIGINT, nc_end);
-	signal(SIGKILL, nc_end);
-	signal(SIGSEGV, nc_end);
+	signal(SIGINT, ncurses_end);
+	signal(SIGKILL, ncurses_end);
+	signal(SIGSEGV, ncurses_end);
 	if ((stdscr = initscr()) == NULL ) {
 	    fprintf(stderr, "Error initialising ncurses.\n");
 	    exit(EXIT_FAILURE);
@@ -989,8 +989,8 @@ void nc_main() /* {{{ */
 	oldcols = COLS;
 	fieldlengths.description = oldcols-fieldlengths.project-1-fieldlengths.date;
 	task_count();
-	print_title();
-	print_task_list();
+	print_header();
+	tasklist_print_task_list();
 
 	/* main loop */
 	while (1)
@@ -1048,8 +1048,8 @@ void nc_main() /* {{{ */
 		{
 			fieldlengths.project = max_project_length();
 			fieldlengths.description = cols-fieldlengths.project-1-fieldlengths.date;
-			print_title();
-			print_task_list();
+			print_header();
+			tasklist_print_task_list();
 			check_curs_pos();
 			wnoutrefresh(tasklist);
 			wnoutrefresh(header);
@@ -1064,7 +1064,7 @@ void nc_main() /* {{{ */
 	}
 } /* }}} */
 
-void print_task(int tasknum, task *this) /* {{{ */
+void tasklist_print_task(int tasknum, task *this) /* {{{ */
 {
 	/* print a task specified by number */
 	bool sel = 0;
@@ -1106,7 +1106,7 @@ void print_task(int tasknum, task *this) /* {{{ */
 	wnoutrefresh(tasklist);
 } /* }}} */
 
-void print_task_list() /* {{{ */
+void tasklist_print_task_list() /* {{{ */
 {
 	/* print every task in the task list */
 	task *cur;
@@ -1115,7 +1115,7 @@ void print_task_list() /* {{{ */
 	cur = head;
 	while (cur!=NULL)
 	{
-		print_task(counter, cur);
+		tasklist_print_task(counter, cur);
 
 		/* move to next item */
 		counter++;
@@ -1125,7 +1125,7 @@ void print_task_list() /* {{{ */
 		wipe_screen(tasklist, counter-pageoffset, rows-2);
 } /* }}} */
 
-void print_title() /* {{{ */
+void print_header() /* {{{ */
 {
 	/* print the window title bar */
 	char *tmp0;
@@ -1327,7 +1327,7 @@ void set_curses_mode(const ncurses_mode mode) /* {{{ */
 			nonl();                 /* tell curses not to do NL->CR/NL on output */
 			cbreak();               /* take input chars one at a time, no wait for \n */
 			noecho();               /* dont echo input */
-			nc_colors();            /* initialize colors */
+			ncurses_colors();            /* initialize colors */
 			curs_set(0);            /* set cursor invisible */
 			wtimeout(statusbar, cfg.nc_timeout);/* timeout getch */
 			break;
@@ -1336,7 +1336,7 @@ void set_curses_mode(const ncurses_mode mode) /* {{{ */
 			nonl();                 /* tell curses not to do NL->CR/NL on output */
 			cbreak();               /* take input chars one at a time, no wait for \n */
 			noecho();               /* dont echo input */
-			nc_colors();            /* initialize colors */
+			ncurses_colors();            /* initialize colors */
 			curs_set(0);            /* set cursor invisible */
 			wtimeout(statusbar, -1);/* no timeout on getch */
 			break;
@@ -1404,7 +1404,7 @@ char *str_trim(char *str) /* {{{ */
 	return str;
 } /* }}} */
 
-int task_action(const task_action_type action) /* {{{ */
+int tasklist_task_action(const task_action_type action) /* {{{ */
 {
 	/* spawn a command to perform an action on a task */
 	task *cur;
@@ -1475,7 +1475,7 @@ int task_action(const task_action_type action) /* {{{ */
 	return ret;
 } /* }}} */
 
-void task_add(void) /* {{{ */
+void tasklist_task_add(void) /* {{{ */
 {
 	/* create a new task by adding a generic task
 	 * then letting the user edit it
@@ -1522,49 +1522,6 @@ void task_add(void) /* {{{ */
 	wnoutrefresh(tasklist);
 	wnoutrefresh(header);
 	wnoutrefresh(statusbar);
-} /* }}} */
-
-void task_count() /* {{{ */
-{
-	taskcount = 0;
-	totaltaskcount = 0;
-	task *cur;
-
-	cur = head;
-	while (cur!=NULL)
-	{
-		taskcount++;
-		totaltaskcount++;
-		cur = cur->next;
-	}
-} /* }}} */
-
-void task_modify(const char *argstr) /* {{{ */
-{
-	/* run a modify command on the selected task */
-	task *cur;
-	char *cmd;
-	FILE *run;
-	int arglen;
-
-	if (argstr!=NULL)
-		arglen = strlen(argstr);
-	else
-		arglen = 0;
-
-	cur = get_task_by_position(selline);
-	cmd = calloc(64+arglen, sizeof(char));
-
-	sprintf(cmd, "task %s modify ", cur->uuid);
-	if (arglen>0)
-		strcat(cmd, argstr);
-
-	run = popen(cmd, "r");
-	pclose(run);
-
-	reload_task(cur);
-
-	free(cmd);
 } /* }}} */
 
 int umvaddstr(WINDOW *win, const int y, const int x, const char *format, ...) /* {{{ */
@@ -1785,8 +1742,8 @@ int main(int argc, char **argv) /* {{{ */
 	if (!debug)
 	{
 		tnc_fprintf(logfp, LOG_DEBUG, "running gui");
-		nc_main();
-		nc_end(0);
+		tasklist_window();
+		ncurses_end(0);
 	}
 
 	/* debug mode */
