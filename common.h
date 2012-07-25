@@ -2,6 +2,8 @@
  * common.h
  * for tasknc
  * by mjheagle
+ *
+ * vim: noet ts=4 sw=4 sts=4
  */
 
 #ifndef _COMMON_H

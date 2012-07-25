@@ -1,5 +1,5 @@
 /*
- * keys.c
+ * keys.c - handle keyboard input
  * for tasknc
  * by mjheagle
  *

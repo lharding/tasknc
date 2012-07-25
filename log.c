@@ -1,7 +1,9 @@
 /*
- * log.c
+ * log.c - logging & stdout
  * for tasknc
  * by mjheagle
+ *
+ * vim: noet ts=4 sw=4 sts=4
  */
 
 #include <stdarg.h>

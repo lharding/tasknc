@@ -1,7 +1,9 @@
 /*
- * tasks - handle taskwarrior io and task structs
+ * tasks - handle Taskwarrior io and task structs
  * for tasknc
  * by mjheagle
+ *
+ * vim: noet ts=4 sw=4 sts=4
  */
 
 #define _XOPEN_SOURCE

@@ -1,7 +1,9 @@
 /*
  * tasknc config
  * by mjheagle
-*/
+ *
+ * vim: noet ts=4 sw=4 sts=4
+ */
 
 /* only import once */
 #ifndef _TASKNC_CONFIG_H
