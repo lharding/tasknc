@@ -10,6 +10,7 @@
 #include <curses.h>
 #include <getopt.h>
 #include <locale.h>
+#include <panel.h>
 #include <regex.h>
 #include <signal.h>
 #include <stdio.h>
@@ -191,7 +192,8 @@ void check_screen_size() /* {{{ */
 			usleep(100000);
 		}
 		count++;
-		getmaxyx(stdscr, rows, cols);
+		rows = LINES;
+		cols = COLS;
 	} while (cols<DATELENGTH+20+fieldlengths.project || rows<5);
 } /* }}} */
 
@@ -820,7 +822,7 @@ void key_sort(const char *arg) /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "enter sort mode: iNdex, Project, Due, pRiority");
 		set_curses_mode(NCURSES_MODE_STD_BLOCKING);
 
-		m = wgetch(stdscr);
+		m = wgetch(statusbar);
 		set_curses_mode(NCURSES_MODE_STD);
 	}
 	else
@@ -870,9 +872,9 @@ void key_sync() /* {{{ */
 		if (ret==0)
 			ret = system("task push");
 	}
-	wrefresh(tasklist);
-	wrefresh(statusbar);
-	wrefresh(header);
+	wnoutrefresh(tasklist);
+	wnoutrefresh(statusbar);
+	wnoutrefresh(header);
 	if (ret==0)
 	{
 		statusbar_message(cfg.statusbar_timeout, "tasks synchronized");
@@ -1036,7 +1038,8 @@ void nc_main() /* {{{ */
 	}
 
 	/* create windows */
-	getmaxyx(stdscr, rows, cols);
+	rows = LINES;
+	cols = COLS;
 	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "rows: %d, columns: %d", rows, cols);
 	header = newwin(1, cols, 0, 0);
 	tasklist = newwin(rows-2, cols, 1, 0);
@@ -1049,13 +1052,12 @@ void nc_main() /* {{{ */
 
 	/* print main screen */
 	check_screen_size();
-	getmaxyx(stdscr, oldrows, oldcols);
+	oldrows = LINES;
+	oldcols = COLS;
 	fieldlengths.description = oldcols-fieldlengths.project-1-fieldlengths.date;
 	task_count();
 	print_title();
 	print_task_list();
-	wrefresh(tasklist);
-	wrefresh(header);
 
 	/* main loop */
 	while (1)
@@ -1066,7 +1068,8 @@ void nc_main() /* {{{ */
 		state.reload = 0;
 
 		/* get the screen size */
-		getmaxyx(stdscr, rows, cols);
+		rows = LINES;
+		cols = COLS;
 
 		/* check for a screen thats too small */
 		check_screen_size();
@@ -1081,17 +1084,11 @@ void nc_main() /* {{{ */
 		oldcols = cols;
 		oldrows = rows;
 
-		/* DEBUG - make sure window order is correct */
-		touchwin(header);
-		wnoutrefresh(header);
-		touchwin(tasklist);
-		wnoutrefresh(tasklist);
-		touchwin(statusbar);
-		wnoutrefresh(statusbar);
+		/* apply staged window updates */
 		doupdate();
 
 		/* get a character */
-		c = wgetch(stdscr);
+		c = wgetch(statusbar);
 
 		/* handle the character */
 		handle_keypress(c);
@@ -1186,6 +1183,8 @@ void print_task(int tasknum, task *this) /* {{{ */
 	tmp = (char *)eval_string(2*cols, formats.task, this, NULL, 0);
 	umvaddstr_align(tasklist, y, tmp);
 	free(tmp);
+
+	wnoutrefresh(tasklist);
 } /* }}} */
 
 void print_task_list() /* {{{ */
@@ -1223,6 +1222,8 @@ void print_title() /* {{{ */
 	tmp0 = (char *)eval_string(2*cols, formats.title, NULL, NULL, 0);
 	umvaddstr_align(header, 0, tmp0);
 	free(tmp0);
+
+	wnoutrefresh(header);
 } /* }}} */
 
 void print_version(void) /* {{{ */
@@ -1430,28 +1431,28 @@ void set_curses_mode(const ncurses_mode mode) /* {{{ */
 	switch (mode)
 	{
 		case NCURSES_MODE_STD:
-			keypad(stdscr, TRUE);   /* enable keyboard mapping */
+			keypad(statusbar, TRUE);/* enable keyboard mapping */
 			nonl();                 /* tell curses not to do NL->CR/NL on output */
 			cbreak();               /* take input chars one at a time, no wait for \n */
 			noecho();               /* dont echo input */
 			nc_colors();            /* initialize colors */
 			curs_set(0);            /* set cursor invisible */
-			timeout(cfg.nc_timeout);/* timeout getch */
+			wtimeout(statusbar, cfg.nc_timeout);/* timeout getch */
 			break;
 		case NCURSES_MODE_STD_BLOCKING:
-			keypad(stdscr, TRUE);   /* enable keyboard mapping */
+			keypad(statusbar, TRUE);/* enable keyboard mapping */
 			nonl();                 /* tell curses not to do NL->CR/NL on output */
 			cbreak();               /* take input chars one at a time, no wait for \n */
 			noecho();               /* dont echo input */
 			nc_colors();            /* initialize colors */
 			curs_set(0);            /* set cursor invisible */
-			timeout(-1);            /* no timeout on getch */
+			wtimeout(statusbar, -1);/* no timeout on getch */
 			break;
 		case NCURSES_MODE_STRING:
 			curs_set(2);            /* set cursor visible */
 			nocbreak();             /* wait for \n */
 			echo();                 /* echo input */
-			timeout(-1);            /* no timeout on getch */
+			wtimeout(statusbar, -1);/* no timeout on getch */
 			break;
 		default:
 			break;
@@ -1488,8 +1489,7 @@ void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 	if (dtmout>=0)
 		sb_timeout = time(NULL) + dtmout;
 
-	touchwin(statusbar);
-	wrefresh(statusbar);
+	wnoutrefresh(statusbar);
 } /* }}} */
 
 char *str_trim(char *str) /* {{{ */
@@ -1627,9 +1627,9 @@ void task_add(void) /* {{{ */
 	system(cmd);
 	free(cmd);
 	reset_prog_mode();
-	wrefresh(tasklist);
-	wrefresh(header);
-	wrefresh(statusbar);
+	wnoutrefresh(tasklist);
+	wnoutrefresh(header);
+	wnoutrefresh(statusbar);
 } /* }}} */
 
 void task_count() /* {{{ */
