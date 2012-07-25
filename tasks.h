@@ -7,6 +7,7 @@
 #ifndef _TASKS_H
 #define _TASKS_H
 
+#include <stdbool.h>
 #include "common.h"
 
 char free_task(task *);
@@ -19,6 +20,7 @@ task *parse_task(char *);
 void reload_task(task *);
 void reload_tasks();
 void sort_wrapper(task *);
+bool task_match(const task *, const char *);
 
 extern FILE *logfp;
 extern task *head;

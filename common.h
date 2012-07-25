@@ -7,6 +7,8 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+#include <stdbool.h>
+
 /* action definitions */
 typedef enum {
 	ACTION_EDIT = 0,
@@ -96,5 +98,8 @@ typedef struct _config {
 
 /* regex options */
 #define REGEX_OPTS REG_ICASE|REG_EXTENDED|REG_NOSUB|REG_NEWLINE
+
+/* functions */
+bool match_string(const char *, const char *);
 
 #endif

@@ -11,7 +11,6 @@
 #include <getopt.h>
 #include <locale.h>
 #include <panel.h>
-#include <regex.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -886,27 +885,6 @@ void key_undo() /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "undo execution failed (%d)", ret);
 } /* }}} */
 
-bool match_string(const char *haystack, const char *needle) /* {{{ */
-{
-	/* match a string to a regex */
-	regex_t regex;
-	char ret;
-
-	/* check for NULL haystack or needle */
-	if (haystack==NULL || needle==NULL)
-		return 0;
-
-	/* compile and run regex */
-	if (regcomp(&regex, needle, REGEX_OPTS) != 0)
-		return 0;
-	if (regexec(&regex, haystack, 0, 0, 0) != REG_NOMATCH)
-		ret = 1;
-	else
-		ret = 0;
-	regfree(&regex);
-	return ret;
-} /* }}} */
-
 char max_project_length() /* {{{ */
 {
 	char len = 0;
@@ -1587,16 +1565,6 @@ void task_modify(const char *argstr) /* {{{ */
 	reload_task(cur);
 
 	free(cmd);
-} /* }}} */
-
-static bool task_match(const task *cur, const char *str) /* {{{ */
-{
-	if (match_string(cur->project, str) ||
-			match_string(cur->description, str) ||
-			match_string(cur->tags, str))
-		return 1;
-	else
-		return 0;
 } /* }}} */
 
 int umvaddstr(WINDOW *win, const int y, const int x, const char *format, ...) /* {{{ */

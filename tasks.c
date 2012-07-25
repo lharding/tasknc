@@ -621,3 +621,13 @@ void swap_tasks(task *a, task *b) /* {{{ */
 	a->description = b->description;
 	b->description = strtmp;
 } /* }}} */
+
+bool task_match(const task *cur, const char *str) /* {{{ */
+{
+	if (match_string(cur->project, str) ||
+			match_string(cur->description, str) ||
+			match_string(cur->tags, str))
+		return 1;
+	else
+		return 0;
+} /* }}} */
