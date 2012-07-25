@@ -7,14 +7,13 @@
  */
 
 #define _GNU_SOURCE
+#include <ncurses.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "common.h"
 #include "keys.h"
 #include "log.h"
-
-/* todo: change this */
-#include <ncurses.h>
+#include "tasklist.h"
 #include "tasknc.h"
 
 keybind *keybinds = NULL;

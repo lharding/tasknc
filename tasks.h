@@ -30,7 +30,6 @@ extern FILE *logfp;
 extern task *head;
 extern int selline;
 extern int taskcount;
-extern int totaltaskcount;
 extern char *active_filter;
 
 #endif

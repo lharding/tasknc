@@ -40,7 +40,6 @@ extern FILE *logfp;
 extern int cols;
 extern int rows;
 extern int selline;
-extern int totaltaskcount;
 extern int taskcount;
 extern short pageoffset;
 extern task *head;

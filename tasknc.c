@@ -38,7 +38,6 @@ char *searchstring = NULL;              /* currently active search string */
 int selline = 0;                        /* selected line number */
 int rows, cols;                         /* size of the ncurses window */
 int taskcount;                          /* number of tasks */
-int totaltaskcount;                     /* number of tasks with no filters applied */
 char *active_filter = NULL;             /* a string containing the active filter string */
 task *head = NULL;                      /* the current top of the list */
 FILE *logfp;                            /* handle for log file */
@@ -65,7 +64,7 @@ var vars[] = {
 	{"sort_mode",         VAR_CHAR, &(cfg.sortmode)},
 	{"search_string",     VAR_STR,  &searchstring},
 	{"selected_line",     VAR_INT,  &selline},
-	{"task_count",        VAR_INT,  &totaltaskcount},
+	{"task_count",        VAR_INT,  &taskcount},
 	{"filter_string",     VAR_STR,  &active_filter},
 	{"silent_shell",      VAR_CHAR, &(cfg.silent_shell)},
 	{"program_name",      VAR_STR,  &progname},
@@ -1179,7 +1178,7 @@ int main(int argc, char **argv) /* {{{ */
 	else
 	{
 		task_count();
-		printf("task count: %d\n", totaltaskcount);
+		printf("task count: %d\n", taskcount);
 		char *test;
 		asprintf(&test, "set task_version 2.1");
 		char *tmp = var_value_message(find_var("task_version"), 1);

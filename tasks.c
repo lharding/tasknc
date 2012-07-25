@@ -443,7 +443,6 @@ void reload_task(task *this) /* {{{ */
 		if (this->next!=NULL)
 			this->next->prev = this->prev;
 		taskcount--;
-		totaltaskcount--;
 	}
 	else
 	{
@@ -627,14 +626,12 @@ void swap_tasks(task *a, task *b) /* {{{ */
 void task_count() /* {{{ */
 {
 	taskcount = 0;
-	totaltaskcount = 0;
 	task *cur;
 
 	cur = head;
 	while (cur!=NULL)
 	{
 		taskcount++;
-		totaltaskcount++;
 		cur = cur->next;
 	}
 } /* }}} */

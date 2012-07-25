@@ -529,7 +529,6 @@ int tasklist_task_action(const task_action_type action) /* {{{ */
 			cur->next->prev = cur->prev;
 		free_task(cur);
 		taskcount--;
-		totaltaskcount--;
 		redraw = 1;
 	}
 
