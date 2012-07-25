@@ -4,8 +4,8 @@
 OUT 		= tasknc
 
 #variables
-CC      	= gcc
-CFLAGS 		= -Wall -g -Wextra -lncursesw
+CC      	= cc
+CFLAGS 		= -Wall -g -Wextra -lncursesw -std=c99
 VERSION 	= $(shell git describe)
 
 PREFIX 	   ?= /usr/local
