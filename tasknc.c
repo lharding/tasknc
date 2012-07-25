@@ -21,29 +21,10 @@
 #include "common.h"
 #include "config.h"
 #include "tasknc.h"
+#include "tasklist.h"
 #include "tasks.h"
 #include "log.h"
 #include "keys.h"
-
-/* run state structs {{{ */
-struct {
-	short project;
-	short description;
-	short date;
-} fieldlengths;
-
-struct {
-	char *title;
-	char *task;
-} formats;
-
-struct {
-	bool redraw;
-	bool resize;
-	bool reload;
-	bool done;
-} state;
-/* }}} */
 
 /* global variables {{{ */
 const char *progname = "tasknc";
@@ -63,6 +44,13 @@ task *head = NULL;                      /* the current top of the list */
 FILE *logfp;                            /* handle for log file */
 extern keybind *keybinds;               /* key bind array */
 
+/* runtime status */
+bool redraw;
+bool resize;
+bool reload;
+bool done;
+
+/* windows */
 WINDOW *header = NULL;
 WINDOW *tasklist = NULL;
 WINDOW *statusbar = NULL;
@@ -83,8 +71,8 @@ var vars[] = {
 	{"program_name",      VAR_STR,  &progname},
 	{"program_author",    VAR_STR,  &progauthor},
 	{"program_version",   VAR_STR,  &progversion},
-	{"title_format",      VAR_STR,  &(formats.title)},
-	{"task_format",       VAR_STR,  &(formats.task)},
+	{"title_format",      VAR_STR,  &(cfg.formats.title)},
+	{"task_format",       VAR_STR,  &(cfg.formats.task)},
 };
 
 funcmap funcmaps[] = {
@@ -99,7 +87,7 @@ funcmap funcmaps[] = {
 	{"search_next", (void *)key_tasklist_search_next, 0},
 	{"filter",      (void *)key_tasklist_filter,      0},
 	{"sync",        (void *)key_tasklist_sync,        0},
-	{"quit",        (void *)key_tasklist_done,        0},
+	{"quit",        (void *)key_done,                 0},
 	{"command",     (void *)key_command,              0}
 };
 /* }}} */
@@ -148,7 +136,7 @@ void check_screen_size() /* {{{ */
 		count++;
 		rows = LINES;
 		cols = COLS;
-	} while (cols<DATELENGTH+20+fieldlengths.project || rows<5);
+	} while (cols<DATELENGTH+20+cfg.fieldlengths.project || rows<5);
 } /* }}} */
 
 void cleanup() /* {{{ */
@@ -187,10 +175,10 @@ void configure(void) /* {{{ */
 	cfg.silent_shell = 0;                                   /* determine whether shell commands should be visible */
 
 	/* set default formats */
-	formats.title = calloc(64, sizeof(char));
-	strcpy(formats.title, " $program_name ($selected_line/$task_count) $> $date");
-	formats.task = calloc(64, sizeof(char));
-	strcpy(formats.task, " $project $description $> $due");
+	cfg.formats.title = calloc(64, sizeof(char));
+	strcpy(cfg.formats.title, " $program_name ($selected_line/$task_count) $> $date");
+	cfg.formats.task = calloc(64, sizeof(char));
+	strcpy(cfg.formats.task, " $project $description $> $due");
 
 	/* get task version */
 	cmd = popen("task version rc._forcecolor=no", "r");
@@ -230,7 +218,7 @@ void configure(void) /* {{{ */
 	add_keybind('n',           key_tasklist_search_next, NULL);
 	add_keybind('f',           key_tasklist_filter,      NULL);
 	add_keybind('y',           key_tasklist_sync,        NULL);
-	add_keybind('q',           key_tasklist_done,        NULL);
+	add_keybind('q',           key_done,                 NULL);
 	add_keybind(';',           key_command,              NULL);
 	add_keybind(':',           key_command,              NULL);
 
@@ -346,14 +334,14 @@ const char *eval_string(const int maxlen, const char *fmt, const task *this, cha
 		else if (str_starts_with(fmt+1, "description"))
 		{
 			strcpy(str+position, this->description);
-			fieldwidth = fieldlengths.description;
+			fieldwidth = cfg.fieldlengths.description;
 			fieldlen = strlen(this->description);
 			varlen = strlen("description");
 		}
 		else if (str_starts_with(fmt+1, "project"))
 		{
 			strcpy(str+position, this->project);
-			fieldwidth = fieldlengths.project;
+			fieldwidth = cfg.fieldlengths.project;
 			fieldlen = strlen(this->project);
 			varlen = strlen("project");
 		}
@@ -470,16 +458,16 @@ void handle_command(char *cmdstr) /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "%s %s by %s\n", progname, progversion, progauthor);
 	/* quit/exit: exit tasknc */
 	else if (str_eq(cmdstr, "quit") || str_eq(cmdstr, "exit"))
-		state.done = 1;
+		done = 1;
 	/* reload: force reload of task list */
 	else if (str_eq(cmdstr, "reload"))
 	{
-		state.reload = 1;
+		reload = 1;
 		statusbar_message(cfg.statusbar_timeout, "task list reloaded");
 	}
 	/* redraw: force redraw of screen */
 	else if (str_eq(cmdstr, "redraw"))
-		state.redraw = 1;
+		redraw = 1;
 	/* show: print a variable's value */
 	else if (str_eq(cmdstr, "show"))
 		run_command_show(str_trim(args));
@@ -565,14 +553,6 @@ void help(void) /* {{{ */
 			"    -v, --version            print the version and exit\n");
 } /* }}} */
 
-void key_tasklist_add() /* {{{ */
-{
-	/* handle a keyboard direction to add new task */
-	tasklist_task_add();
-	state.reload = 1;
-	statusbar_message(cfg.statusbar_timeout, "task added");
-} /* }}} */
-
 void key_command(const char *arg) /* {{{ */
 {
 	/* accept and attemt to execute a command string */
@@ -605,288 +585,15 @@ void key_command(const char *arg) /* {{{ */
 	free(cmdstr);
 } /* }}} */
 
-void key_tasklist_done() /* {{{ */
+void key_done() /* {{{ */
 {
-	/* wrapper function to handle keyboard instruction to quit */
-	state.done = 1;
-} /* }}} */
-
-void key_tasklist_filter(const char *arg) /* {{{ */
-{
-	/* handle a keyboard direction to add a new filter */
-	if (arg==NULL)
-	{
-		statusbar_message(-1, "filter by: ");
-		set_curses_mode(NCURSES_MODE_STRING);
-		check_free(active_filter);
-		active_filter = calloc(2*cols, sizeof(char));
-		wgetstr(statusbar, active_filter);
-		wipe_statusbar();
-		set_curses_mode(NCURSES_MODE_STD);
-	}
-	else
-	{
-		const int arglen = (int)strlen(arg);
-		check_free(active_filter);
-		active_filter = calloc(arglen, sizeof(char));
-		strncpy(active_filter, arg, arglen);
-	}
-
-	statusbar_message(cfg.statusbar_timeout, "filter applied");
-	selline = 0;
-	state.reload = 1;
-} /* }}} */
-
-void key_tasklist_modify(const char *arg) /* {{{ */
-{
-	/* handle a keyboard direction to add a new filter */
-	char *argstr;
-
-	if (arg==NULL)
-	{
-		statusbar_message(-1, "modify: ");
-		set_curses_mode(NCURSES_MODE_STRING);
-		argstr = calloc(2*cols, sizeof(char));
-		wgetstr(statusbar, argstr);
-		wipe_statusbar();
-		set_curses_mode(NCURSES_MODE_STD);
-	}
-	else
-	{
-		const int arglen = (int)strlen(arg);
-		argstr = calloc(arglen+1, sizeof(char));
-		strncpy(argstr, arg, arglen);
-	}
-
-	task_modify(argstr);
-	free(argstr);
-
-	statusbar_message(cfg.statusbar_timeout, "task modified");
-	state.redraw = 1;
-	sort_wrapper(head);
-} /* }}} */
-
-void key_tasklist_reload() /* {{{ */
-{
-	/* wrapper function to handle keyboard instruction to reload task list */
-	state.reload = 1;
-	statusbar_message(cfg.statusbar_timeout, "task list reloaded");
-} /* }}} */
-
-void key_tasklist_scroll(const int direction) /* {{{ */
-{
-	/* handle a keyboard direction to scroll */
-	const char oldsel = selline;
-	const char oldoffset = pageoffset;
-
-	switch (direction)
-	{
-		case 'u':
-			/* scroll one up */
-			if (selline>0)
-			{
-				selline--;
-				if (selline<pageoffset)
-					pageoffset--;
-			}
-			break;
-		case 'd':
-			/* scroll one down */
-			if (selline<taskcount-1)
-			{
-				selline++;
-				if (selline>=pageoffset+rows-2)
-					pageoffset++;
-			}
-			break;
-		case 'h':
-			/* go to first entry */
-			pageoffset = 0;
-			selline = 0;
-			break;
-		case 'e':
-			/* go to last entry */
-			if (taskcount>rows-2)
-				pageoffset = taskcount-rows+2;
-			selline = taskcount-1;
-			break;
-		default:
-			statusbar_message(cfg.statusbar_timeout, "invalid scroll direction");
-			break;
-	}
-	if (pageoffset!=oldoffset)
-		state.redraw = 1;
-	else
-	{
-		tasklist_print_task(oldsel, NULL);
-		tasklist_print_task(selline, NULL);
-	}
-	print_header();
-} /* }}} */
-
-void key_tasklist_search(const char *arg) /* {{{ */
-{
-	/* handle a keyboard direction to search */
-	check_free(searchstring);
-	if (arg==NULL)
-	{
-		statusbar_message(-1, "search phrase: ");
-		set_curses_mode(NCURSES_MODE_STRING);
-
-		/* store search string  */
-		searchstring = malloc((cols-16)*sizeof(char));
-		wgetstr(statusbar, searchstring);
-		sb_timeout = time(NULL) + 3;
-		set_curses_mode(NCURSES_MODE_STD);
-	}
-	else
-	{
-		const int arglen = strlen(arg);
-		searchstring = calloc(arglen, sizeof(char));
-		strncpy(searchstring, arg, arglen);
-	}
-
-	/* go to first result */
-	find_next_search_result(head, get_task_by_position(selline));
-	check_curs_pos();
-	state.redraw = 1;
-} /* }}} */
-
-void key_tasklist_search_next() /* {{{ */
-{
-	/* handle a keyboard direction to move to next search result */
-	if (searchstring!=NULL)
-	{
-		find_next_search_result(head, get_task_by_position(selline));
-		check_curs_pos();
-		state.redraw = 1;
-	}
-	else
-		statusbar_message(cfg.statusbar_timeout, "no active search string");
-} /* }}} */
-
-void key_tasklist_sort(const char *arg) /* {{{ */
-{
-	/* handle a keyboard direction to sort */
-	char m;
-
-	/* get sort mode */
-	if (arg==NULL)
-	{
-		statusbar_message(cfg.statusbar_timeout, "enter sort mode: iNdex, Project, Due, pRiority");
-		set_curses_mode(NCURSES_MODE_STD_BLOCKING);
-
-		m = wgetch(statusbar);
-		set_curses_mode(NCURSES_MODE_STD);
-	}
-	else
-		m = *arg;
-
-	/* do sort */
-	switch (m)
-	{
-		case 'n':
-		case 'p':
-		case 'd':
-		case 'r':
-			cfg.sortmode = m;
-			sort_wrapper(head);
-			break;
-		case 'N':
-		case 'P':
-		case 'D':
-		case 'R':
-			cfg.sortmode = m+32;
-			sort_wrapper(head);
-			break;
-		default:
-			statusbar_message(cfg.statusbar_timeout, "invalid sort mode");
-			break;
-	}
-	state.redraw = 1;
-} /* }}} */
-
-void key_tasklist_sync() /* {{{ */
-{
-	/* handle a keyboard direction to sync */
-	int ret;
-
-	if (cfg.silent_shell == '1')
-	{
-		statusbar_message(cfg.statusbar_timeout, "synchronizing tasks...");
-		ret = system("yes n | task merge 2&> /dev/null");
-		if (ret==0)
-			ret = system("task push 2&> /dev/null");
-	}
-	else
-	{
-		def_prog_mode();
-		endwin();
-		ret = system("yes n | task merge");
-		if (ret==0)
-			ret = system("task push");
-	}
-	wnoutrefresh(tasklist);
-	wnoutrefresh(statusbar);
-	wnoutrefresh(header);
-	if (ret==0)
-	{
-		statusbar_message(cfg.statusbar_timeout, "tasks synchronized");
-		state.reload = 1;
-	}
-	else
-		statusbar_message(cfg.statusbar_timeout, "task syncronization failed");
-} /* }}} */
-
-void key_tasklist_action(const task_action_type action, const char *msg_success, const char *msg_fail) /* {{{ */
-{
-	/* handle a keyboard direction to run a task command */
-	int ret;
-
-	def_prog_mode();
-	endwin();
-	if (action!=ACTION_VIEW && action!=ACTION_COMPLETE && action!=ACTION_DELETE)
-		state.reload = 1;
-	ret = tasklist_task_action(action);
-	wnoutrefresh(header);
-	wnoutrefresh(tasklist);
-	wnoutrefresh(statusbar);
-	if (ret==0)
-		statusbar_message(cfg.statusbar_timeout, msg_success);
-	else
-		statusbar_message(cfg.statusbar_timeout, msg_fail);
-} /* }}} */
-
-void key_tasklist_undo() /* {{{ */
-{
-	/* handle a keyboard direction to run an undo */
-	int ret;
-
-	if (cfg.silent_shell=='1')
-	{
-		statusbar_message(cfg.statusbar_timeout, "running task undo...");
-		ret = system("task undo > /dev/null");
-	}
-	else
-	{
-		def_prog_mode();
-		endwin();
-		ret = system("task undo");
-	}
-	wnoutrefresh(header);
-	wnoutrefresh(tasklist);
-	wnoutrefresh(statusbar);
-	if (ret==0)
-	{
-		statusbar_message(cfg.statusbar_timeout, "undo executed");
-		state.reload = 1;
-	}
-	else
-		statusbar_message(cfg.statusbar_timeout, "undo execution failed (%d)", ret);
+	/* exit tasknc */
+	done = 1;
 } /* }}} */
 
 char max_project_length() /* {{{ */
 {
+	/* compute max project length */
 	char len = 0;
 	task *cur;
 
@@ -952,14 +659,8 @@ void ncurses_end(int sig) /* {{{ */
 	exit(0);
 } /* }}} */
 
-void tasklist_window() /* {{{ */
+void ncurses_init() /* {{{ */
 {
-	/* ncurses main function */
-	WINDOW *stdscr;
-	int c, oldrows, oldcols;
-	fieldlengths.project = max_project_length();
-	fieldlengths.date = DATELENGTH;
-
 	/* initialize ncurses */
 	tnc_fprintf(stdout, LOG_DEBUG, "starting ncurses...");
 	signal(SIGINT, ncurses_end);
@@ -970,159 +671,6 @@ void tasklist_window() /* {{{ */
 	    exit(EXIT_FAILURE);
 	}
 
-	/* create windows */
-	rows = LINES;
-	cols = COLS;
-	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "rows: %d, columns: %d", rows, cols);
-	header = newwin(1, cols, 0, 0);
-	tasklist = newwin(rows-2, cols, 1, 0);
-	statusbar = newwin(1, cols, rows-1, 0);
-	if (statusbar==NULL)
-		tnc_fprintf(logfp, LOG_ERROR, "statusbar creation failed (rows:%d, cols:%d)", rows, cols);
-
-	/* set curses settings */
-	set_curses_mode(NCURSES_MODE_STD);
-
-	/* print main screen */
-	check_screen_size();
-	oldrows = LINES;
-	oldcols = COLS;
-	fieldlengths.description = oldcols-fieldlengths.project-1-fieldlengths.date;
-	task_count();
-	print_header();
-	tasklist_print_task_list();
-
-	/* main loop */
-	while (1)
-	{
-		/* set variables for determining actions */
-		state.done = 0;
-		state.redraw = 0;
-		state.reload = 0;
-
-		/* get the screen size */
-		rows = LINES;
-		cols = COLS;
-
-		/* check for a screen thats too small */
-		check_screen_size();
-
-		/* check for size changes */
-		if (cols!=oldcols || rows!=oldrows)
-		{
-			state.resize = 1;
-			state.redraw = 1;
-			wipe_statusbar();
-		}
-		oldcols = cols;
-		oldrows = rows;
-
-		/* apply staged window updates */
-		doupdate();
-
-		/* get a character */
-		c = wgetch(statusbar);
-
-		/* handle the character */
-		handle_keypress(c);
-
-		if (state.done==1)
-			break;
-		if (state.reload==1)
-		{
-			wipe_tasklist();
-			reload_tasks();
-			task_count();
-			state.redraw = 1;
-		}
-		if (state.resize==1)
-		{
-			wresize(header, 1, cols);
-			wresize(tasklist, rows-2, cols);
-			wresize(statusbar, 1, cols);
-			mvwin(header, 0, 0);
-			mvwin(tasklist, 1, 0);
-			mvwin(statusbar, rows-1, 0);
-		}
-		if (state.redraw==1)
-		{
-			fieldlengths.project = max_project_length();
-			fieldlengths.description = cols-fieldlengths.project-1-fieldlengths.date;
-			print_header();
-			tasklist_print_task_list();
-			check_curs_pos();
-			wnoutrefresh(tasklist);
-			wnoutrefresh(header);
-			wnoutrefresh(statusbar);
-			doupdate();
-		}
-		if (sb_timeout>0 && sb_timeout<time(NULL))
-		{
-			sb_timeout = 0;
-			wipe_statusbar();
-		}
-	}
-} /* }}} */
-
-void tasklist_print_task(int tasknum, task *this) /* {{{ */
-{
-	/* print a task specified by number */
-	bool sel = 0;
-	char *tmp;
-	int x, y;
-
-	/* determine position to print */
-	y = tasknum-pageoffset;
-	if (y<0 || y>=rows-1)
-		return;
-
-	/* find task pointer if necessary */
-	if (this==NULL)
-		this = get_task_by_position(tasknum);
-
-	/* check if this is NULL */
-	if (this==NULL)
-	{
-		tnc_fprintf(logfp, LOG_ERROR, "task %d is null", tasknum);
-		return;
-	}
-
-	/* determine if line is selected */
-	if (tasknum==selline)
-		sel = 1;
-
-	/* wipe line */
-	wattrset(tasklist, COLOR_PAIR(0));
-	for (x=0; x<cols; x++)
-		mvwaddch(tasklist, y, x, ' ');
-
-	/* evaluate line */
-	wmove(tasklist, 0, 0);
-	wattrset(tasklist, COLOR_PAIR(2+sel));
-	tmp = (char *)eval_string(2*cols, formats.task, this, NULL, 0);
-	umvaddstr_align(tasklist, y, tmp);
-	free(tmp);
-
-	wnoutrefresh(tasklist);
-} /* }}} */
-
-void tasklist_print_task_list() /* {{{ */
-{
-	/* print every task in the task list */
-	task *cur;
-	short counter = 0;
-
-	cur = head;
-	while (cur!=NULL)
-	{
-		tasklist_print_task(counter, cur);
-
-		/* move to next item */
-		counter++;
-		cur = cur->next;
-	}
-	if (counter<cols-2)
-		wipe_screen(tasklist, counter-pageoffset, rows-2);
 } /* }}} */
 
 void print_header() /* {{{ */
@@ -1138,7 +686,7 @@ void print_header() /* {{{ */
 		mvwaddch(header, 0, x, ' ');
 
 	/* evaluate title string */
-	tmp0 = (char *)eval_string(2*cols, formats.title, NULL, NULL, 0);
+	tmp0 = (char *)eval_string(2*cols, cfg.formats.title, NULL, NULL, 0);
 	umvaddstr_align(header, 0, tmp0);
 	free(tmp0);
 
@@ -1404,126 +952,6 @@ char *str_trim(char *str) /* {{{ */
 	return str;
 } /* }}} */
 
-int tasklist_task_action(const task_action_type action) /* {{{ */
-{
-	/* spawn a command to perform an action on a task */
-	task *cur;
-	static const char *str_for_action[] = {
-		[ACTION_EDIT]     = "edit",
-		[ACTION_COMPLETE] = "done",
-		[ACTION_DELETE]   = "del",
-		[ACTION_VIEW]     = "info"
-	};
-	const char *actionstr = str_for_action[(int)action];
-	char *cmd, *redir;
-	const bool wait = action == ACTION_VIEW;
-	int ret;
-
-	/* move to correct task */
-	cur = get_task_by_position(selline);
-
-	/* determine whether stdio should be used */
-	if (cfg.silent_shell && action!=ACTION_VIEW && action!=ACTION_EDIT)
-	{
-		statusbar_message(cfg.statusbar_timeout, "running task %s", actionstr);
-		redir = "> /dev/null";
-	}
-	else
-		redir = "";
-
-	/* generate and run command */
-	cmd = malloc(128*sizeof(char));
-
-	/* update task index if version<2*/
-	if (cfg.version[0]<'2')
-	{
-		cur->index = get_task_id(cur->uuid);
-		if (cur->index==0)
-			return -1;
-		sprintf(cmd, "task %s %d %s", actionstr, cur->index, redir);
-	}
-
-	/* if version is >=2, use uuid index */
-	else
-		sprintf(cmd, "task %s %s %s", cur->uuid, actionstr, redir);
-
-	tnc_fprintf(logfp, LOG_DEBUG, "running: %s", cmd);
-	ret = system(cmd);
-	free(cmd);
-	if (wait)
-	{
-		puts("press ENTER to return");
-		fflush(stdout);
-		getchar();
-	}
-
-	/* remove from task list if command was successful */
-	if (ret==0 && (action==ACTION_DELETE || action==ACTION_COMPLETE))
-	{
-		if (cur==head)
-			head = cur->next;
-		else
-			cur->prev->next = cur->next;
-		if (cur->next!=NULL)
-			cur->next->prev = cur->prev;
-		free_task(cur);
-		taskcount--;
-		totaltaskcount--;
-		state.redraw = 1;
-	}
-
-	return ret;
-} /* }}} */
-
-void tasklist_task_add(void) /* {{{ */
-{
-	/* create a new task by adding a generic task
-	 * then letting the user edit it
-	 */
-	FILE *cmdout;
-	char *cmd, line[TOTALLENGTH], *redir;
-	const char addstr[] = "Created task ";
-	unsigned short tasknum;
-
-	/* determine whether stdio should be used */
-	if (cfg.silent_shell)
-	{
-		statusbar_message(cfg.statusbar_timeout, "running task add");
-		redir = "> /dev/null";
-	}
-	else
-		redir = "";
-
-	/* add new task */
-	cmd = malloc(128*sizeof(char));
-	sprintf(cmd, "task add new task %s", redir);
-	tnc_fprintf(logfp, LOG_DEBUG, "running: %s", cmd);
-	cmdout = popen("task add new task", "r");
-	while (fgets(line, sizeof(line)-1, cmdout) != NULL)
-	{
-		if (strncmp(line, addstr, strlen(addstr))==0)
-			if (sscanf(line, "Created task %hu.", &tasknum))
-				break;
-	}
-	pclose(cmdout);
-	free(cmd);
-
-	/* edit task */
-	def_prog_mode();
-	cmd = malloc(128*sizeof(char));
-	if (cfg.version[0]<'2')
-		sprintf(cmd, "task edit %d", tasknum);
-	else
-		sprintf(cmd, "task %d edit", tasknum);
-	endwin();
-	system(cmd);
-	free(cmd);
-	reset_prog_mode();
-	wnoutrefresh(tasklist);
-	wnoutrefresh(header);
-	wnoutrefresh(statusbar);
-} /* }}} */
-
 int umvaddstr(WINDOW *win, const int y, const int x, const char *format, ...) /* {{{ */
 {
 	/* convert a string to a wchar string and mvaddwstr */
@@ -1742,6 +1170,7 @@ int main(int argc, char **argv) /* {{{ */
 	if (!debug)
 	{
 		tnc_fprintf(logfp, LOG_DEBUG, "running gui");
+		ncurses_init();
 		tasklist_window();
 		ncurses_end(0);
 	}

@@ -91,6 +91,15 @@ typedef struct _config {
 	char *version;
 	char sortmode;
 	char silent_shell;
+	struct {
+		char *task;
+                char *title;
+	} formats;
+	struct {
+                int description;
+                int date;
+                int project;
+	} fieldlengths;
 } config;
 
 /* string comparison */
