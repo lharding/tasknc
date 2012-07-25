@@ -60,6 +60,10 @@ char *active_filter = NULL;             /* a string containing the active filter
 task *head = NULL;                      /* the current top of the list */
 FILE *logfp;                            /* handle for log file */
 keybind *keybinds = NULL;               /* linked list of keybinds */
+
+WINDOW *header;
+WINDOW *tasklist;
+WINDOW *statusbar;
 /* }}} */
 
 /* user-exposed variables & functions {{{ */
@@ -975,6 +979,9 @@ void nc_colors(void) /* {{{ */
 void nc_end(int sig) /* {{{ */
 {
 	/* terminate ncurses */
+	delwin(header);
+	delwin(tasklist);
+	delwin(statusbar);
 	delwin(stdscr);
 	endwin();
 
@@ -1021,6 +1028,11 @@ void nc_main() /* {{{ */
 	    exit(EXIT_FAILURE);
 	}
 
+	/* create windows */
+	header = newwin(1, cols, 0, 0);
+	tasklist = newwin(rows-2, cols, 1, 0);
+	statusbar = newwin(1, cols, rows-1, 0);
+
 	/* set curses settings */
 	set_curses_mode(NCURSES_MODE_STD);
 
@@ -1056,6 +1068,12 @@ void nc_main() /* {{{ */
 		}
 		oldcols = cols;
 		oldrows = rows;
+
+		/* DEBUG - make sure window order is correct */
+		touchwin(header);
+		wrefresh(header);
+		touchwin(tasklist);
+		wrefresh(tasklist);
 
 		/* get a character */
 		c = wgetch(stdscr);
@@ -1111,7 +1129,7 @@ void print_task(int tasknum, task *this) /* {{{ */
 	int x, y;
 
 	/* determine position to print */
-	y = tasknum-pageoffset+1;
+	y = tasknum-pageoffset;
 	if (y<=0 || y>=rows-1)
 		return;
 
@@ -1136,6 +1154,7 @@ void print_task(int tasknum, task *this) /* {{{ */
 		mvaddch(y, x, ' ');
 
 	/* evaluate line */
+	wmove(tasklist, 0, 0);
 	attrset(COLOR_PAIR(2+sel));
 	tmp = (char *)eval_string(2*cols, formats.task, this, NULL, 0);
 	umvaddstr_align(stdscr, y, tmp);
@@ -1168,13 +1187,14 @@ void print_title() /* {{{ */
 	int x;
 
 	/* wipe bar and print bg color */
+	wmove(header, 0, 0);
 	attrset(COLOR_PAIR(1));
 	for (x=0; x<cols; x++)
 		mvaddch(0, x, ' ');
 
 	/* evaluate title string */
 	tmp0 = (char *)eval_string(2*cols, formats.title, NULL, NULL, 0);
-	umvaddstr_align(stdscr, 0, tmp0);
+	umvaddstr_align(header, 0, tmp0);
 	free(tmp0);
 } /* }}} */
 
