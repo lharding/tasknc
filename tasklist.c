@@ -20,6 +20,7 @@
 #include "tasklist.h"
 #include "tasknc.h"
 #include "tasks.h"
+#include "view.h"
 
 void key_tasklist_add() /* {{{ */
 {
@@ -366,8 +367,10 @@ void tasklist_window() /* {{{ */
 		/* handle the character */
 		handle_keypress(c);
 
+		/* exit */
 		if (done==1)
 			break;
+		/* reload task list */
 		if (reload==1)
 		{
 			wipe_tasklist();
@@ -375,6 +378,7 @@ void tasklist_window() /* {{{ */
 			task_count();
 			redraw = 1;
 		}
+		/* resize windows */
 		if (resize==1)
 		{
 			wresize(header, 1, cols);
@@ -384,6 +388,7 @@ void tasklist_window() /* {{{ */
 			mvwin(tasklist, 1, 0);
 			mvwin(statusbar, rows-1, 0);
 		}
+		/* redraw all windows */
 		if (redraw==1)
 		{
 			cfg.fieldlengths.project = max_project_length();
@@ -396,6 +401,7 @@ void tasklist_window() /* {{{ */
 			wnoutrefresh(statusbar);
 			doupdate();
 		}
+		/* timeout statusbar */
 		if (sb_timeout>0 && sb_timeout<time(NULL))
 		{
 			sb_timeout = 0;
@@ -482,6 +488,13 @@ int tasklist_task_action(const task_action_type action) /* {{{ */
 
 	/* move to correct task */
 	cur = get_task_by_position(selline);
+
+	/* special case for view (TODO: move to new function) */
+	if (action == ACTION_VIEW)
+	{
+		view_task(cur);
+		return 0;
+	}
 
 	/* determine whether stdio should be used */
 	if (cfg.silent_shell && action!=ACTION_VIEW && action!=ACTION_EDIT)
