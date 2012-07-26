@@ -928,7 +928,11 @@ void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 	if (dtmout>=0)
 		sb_timeout = time(NULL) + dtmout;
 
-	wnoutrefresh(statusbar);
+	/* refresh now or at next doupdate depending on time */
+	if (dtmout<0)
+		wrefresh(statusbar);
+	else
+		wnoutrefresh(statusbar);
 } /* }}} */
 
 char *str_trim(char *str) /* {{{ */
