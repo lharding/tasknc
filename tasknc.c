@@ -181,7 +181,7 @@ void configure(void) /* {{{ */
 	cfg.formats.task = calloc(64, sizeof(char));
 	strcpy(cfg.formats.task, " $project $description $> $due");
 	cfg.formats.view = calloc(64, sizeof(char));
-	strcpy(cfg.formats.view, "  task info $> ");
+	strcpy(cfg.formats.view, " task info");
 
 	/* get task version */
 	cmd = popen("task version rc._forcecolor=no", "r");
@@ -1009,19 +1009,24 @@ int umvaddstr_align(WINDOW *win, const int y, char *str) /* {{{ */
 	pos = strstr(str, "$>");
 
 	/* end left string */
-	(*pos) = 0;
-
-	/* start right string */
-	right = (pos+2);
+	if (pos != NULL)
+	{
+		(*pos) = 0;
+		right = (pos+2);
+	}
+	else
+		right = NULL;
 
 	/* print strings */
 	tmp = umvaddstr(win, y, 0, str);
-	ret = umvaddstr(win, y, cols-strlen(right), right);
-	if (tmp>ret)
+	if (right != NULL)
+		ret = umvaddstr(win, y, cols-strlen(right), right);
+	if (tmp > ret)
 		ret = tmp;
 
 	/* fix string */
-	(*pos) = '$';
+	if (pos != NULL)
+		(*pos) = '$';
 
 	return ret;
 } /* }}} */
