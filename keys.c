@@ -1,9 +1,9 @@
 /*
+ * vim: noet ts=4 sw=4 sts=4
+ *
  * keys.c - handle keyboard input
  * for tasknc
  * by mjheagle
- *
- * vim: noet ts=4 sw=4 sts=4
  */
 
 #define _GNU_SOURCE

@@ -1,9 +1,9 @@
 /*
+ * vim: noet ts=4 sw=4 sts=4
+ *
  * common.c - generic functions
  * for tasknc
  * by mjheagle
- *
- * vim: noet ts=4 sw=4 sts=4
  */
 
 #include <regex.h>

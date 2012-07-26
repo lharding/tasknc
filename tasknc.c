@@ -1,8 +1,8 @@
 /*
+ * vim: noet ts=4 sw=4 sts=4
+ *
  * task nc - a ncurses wrapper around taskwarrior
  * by mjheagle
- *
- * vim: noet ts=4 sw=4 sts=4
  */
 
 #define _GNU_SOURCE
