@@ -73,6 +73,7 @@ var vars[] = {
 	{"program_version",   VAR_STR,  &progversion},
 	{"title_format",      VAR_STR,  &(cfg.formats.title)},
 	{"task_format",       VAR_STR,  &(cfg.formats.task)},
+	{"view_format",       VAR_STR,  &(cfg.formats.view)},
 };
 
 funcmap funcmaps[] = {
@@ -179,6 +180,8 @@ void configure(void) /* {{{ */
 	strcpy(cfg.formats.title, " $program_name ($selected_line/$task_count) $> $date");
 	cfg.formats.task = calloc(64, sizeof(char));
 	strcpy(cfg.formats.task, " $project $description $> $due");
+	cfg.formats.view = calloc(64, sizeof(char));
+	strcpy(cfg.formats.view, "  task info $> ");
 
 	/* get task version */
 	cmd = popen("task version rc._forcecolor=no", "r");

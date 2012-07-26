@@ -13,13 +13,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "common.h"
+#include "tasknc.h"
 #include "view.h"
 
 void view_task(task *this)
 {
 	/* read in task info and print it to a window */
 	FILE *cmd;
-	char *line, **lines, *cmdstr;
+	char *line, **lines, *cmdstr, *tmp;
 	int count = 0, i, maxlen = 0, len;
 
 	/* build and run command, gathering lines into a buffer */
@@ -45,6 +46,9 @@ void view_task(task *this)
 	/* print task data */
 	wattrset(view_win, COLOR_PAIR(1));
 	mvwhline(view_win, 0, 0, ' ', cols);
+	tmp = (char *)eval_string(2*cols, cfg.formats.view, this, NULL, 0);
+	umvaddstr_align(view_win, 0, tmp);
+	free(tmp);
 	wattrset(view_win, COLOR_PAIR(0));
 	for (i=1; i<count-2; i++)
 		mvwaddnstr(view_win, i, 1, lines[i], strlen(lines[i])-1);

@@ -93,7 +93,8 @@ typedef struct _config {
 	char silent_shell;
 	struct {
 		char *task;
-                char *title;
+		char *title;
+		char *view;
 	} formats;
 	struct {
                 int description;

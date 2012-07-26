@@ -12,8 +12,9 @@
 
 void view_task(task *);
 
+extern bool redraw;
+extern config cfg;
 extern int cols;
 extern int rows;
-extern bool redraw;
 
 #endif
