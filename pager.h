@@ -10,6 +10,9 @@
 #ifndef _VIEW_H
 #define _VIEW_H
 
+#include <stdbool.h>
+#include "common.h"
+
 typedef struct _line
 {
 	char *str;
@@ -17,7 +20,8 @@ typedef struct _line
 } line;
 
 void free_lines(line *);
-void pager_command(const char *, const char *, const int, const int);
+void pager_command(const char *, const char *, const bool, const int, const int);
+void view_stats();
 void view_task(task *);
 
 extern bool redraw;

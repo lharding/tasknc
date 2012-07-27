@@ -89,7 +89,8 @@ funcmap funcmaps[] = {
 	{"filter",      (void *)key_tasklist_filter,      0},
 	{"sync",        (void *)key_tasklist_sync,        0},
 	{"quit",        (void *)key_done,                 0},
-	{"command",     (void *)key_command,              0}
+	{"command",     (void *)key_command,              0},
+	{"stats",       (void *)view_stats,               0}
 };
 /* }}} */
 

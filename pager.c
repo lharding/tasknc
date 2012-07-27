@@ -36,7 +36,7 @@ void free_lines(line *head) /* {{{ */
 	}
 } /* }}} */
 
-void pager_command(const char *cmdstr, const char *title, const int head_skip, const int tail_skip) /* {{{ */
+void pager_command(const char *cmdstr, const char *title, const bool fullscreen, const int head_skip, const int tail_skip) /* {{{ */
 {
 	/* run a command and page through its results */
 	FILE *cmd;
@@ -71,7 +71,7 @@ void pager_command(const char *cmdstr, const char *title, const int head_skip, c
 	count -= tail_skip;
 
 	/* run pager */
-	pager_window(head, 0, count, (char *)title);
+	pager_window(head, fullscreen, count, (char *)title);
 
 	/* free lines */
 	free_lines(head);
@@ -144,6 +144,20 @@ void pager_window(line *head, const bool fullscreen, int linecount, char *title)
 	redraw = 1;
 } /* }}} */
 
+void view_stats() /* {{{ */
+{
+	/* run task stat and page the output */
+	char *cmdstr;
+	asprintf(&cmdstr, "task stat rc._forcecolor=no rc.defaultwidth=%d", cols-4);
+	const char *title = "task statistics";
+
+	/* run pager */
+	pager_command(cmdstr, title, 1, 1, 4);
+
+	/* clean up */
+	free(cmdstr);
+} /* }}} */
+
 void view_task(task *this) /* {{{ */
 {
 	/* read in task info and print it to a window */
@@ -154,7 +168,7 @@ void view_task(task *this) /* {{{ */
 	title = (char *)eval_string(2*cols, cfg.formats.view, this, NULL, 0);
 
 	/* run pager */
-	pager_command(cmdstr, title, 1, 4);
+	pager_command(cmdstr, title, 0, 1, 4);
 
 	/* clean up */
 	free(cmdstr);
