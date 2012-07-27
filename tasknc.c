@@ -529,7 +529,7 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 	this_bind = keybinds;
 	while (this_bind!=NULL)
 	{
-		if (c == this_bind->key)
+		if (this_bind->mode == mode && c == this_bind->key)
 		{
 			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p", this_bind->function);
 			if (this_bind->function == (void *)key_tasklist_scroll)
