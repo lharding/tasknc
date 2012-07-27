@@ -25,7 +25,7 @@
 #include "tasks.h"
 #include "log.h"
 #include "keys.h"
-#include "view.h"
+#include "pager.h"
 
 /* global variables {{{ */
 const char *progname = "tasknc";

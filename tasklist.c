@@ -20,7 +20,7 @@
 #include "tasklist.h"
 #include "tasknc.h"
 #include "tasks.h"
-#include "view.h"
+#include "pager.h"
 
 void key_tasklist_add() /* {{{ */
 {
@@ -262,8 +262,6 @@ void key_tasklist_action(const task_action_type action, const char *msg_success,
 	/* handle a keyboard direction to run a task command */
 	int ret;
 
-	def_prog_mode();
-	endwin();
 	if (action!=ACTION_VIEW && action!=ACTION_COMPLETE && action!=ACTION_DELETE)
 		reload = 1;
 	ret = tasklist_task_action(action);
@@ -503,7 +501,11 @@ int tasklist_task_action(const task_action_type action) /* {{{ */
 		redir = "> /dev/null";
 	}
 	else
+	{
 		redir = "";
+		def_prog_mode();
+		endwin();
+	}
 
 	/* generate and run command */
 	cmd = malloc(128*sizeof(char));
