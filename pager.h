@@ -16,6 +16,7 @@ typedef struct _line
 	struct _line *next;
 } line;
 
+void free_lines(line *);
 void view_task(task *);
 
 extern bool redraw;

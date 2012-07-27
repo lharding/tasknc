@@ -21,6 +21,21 @@
 /* local functions */
 static void pager_window(line *, const bool, int, char *);
 
+void free_lines(line *head) /* {{{ */
+{
+	/* iterate through lines list and free all elements */
+	line *cur, *last;
+
+	cur = head;
+	while (cur!=NULL)
+	{
+		last = cur;
+		cur = cur->next;
+		free(last->str);
+		free(last);
+	}
+} /* }}} */
+
 void pager_window(line *head, const bool fullscreen, int linecount, char *title) /* {{{ */
 {
 	/* page through a series of lines */
@@ -130,12 +145,5 @@ void view_task(task *this) /* {{{ */
 	free(title);
 
 	/* free lines */
-	cur = head;
-	while (cur!=NULL)
-	{
-		last = cur;
-		free(last->str);
-		free(last);
-		cur = cur->next;
-	}
+	free_lines(head);
 } /* }}} */
