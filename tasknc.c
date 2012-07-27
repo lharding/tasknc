@@ -199,32 +199,32 @@ void configure(void) /* {{{ */
 	pclose(cmd);
 
 	/* default keybinds */
-	add_keybind(ERR,           NULL,                     NULL);
-	add_keybind('k',           key_tasklist_scroll,      "u");
-	add_keybind(KEY_UP,        key_tasklist_scroll,      "u");
-	add_keybind('j',           key_tasklist_scroll,      "d");
-	add_keybind(KEY_DOWN,      key_tasklist_scroll,      "d");
-	add_keybind(KEY_HOME,      key_tasklist_scroll,      "h");
-	add_keybind('g',           key_tasklist_scroll,      "h");
-	add_keybind(KEY_END,       key_tasklist_scroll,      "e");
-	add_keybind('G',           key_tasklist_scroll,      "e");
-	add_int_keybind('e',       key_tasklist_action,      ACTION_EDIT);
-	add_keybind('r',           key_tasklist_reload,      NULL);
-	add_keybind('u',           key_tasklist_undo,        NULL);
-	add_int_keybind('d',       key_tasklist_action,      ACTION_DELETE);
-	add_int_keybind('c',       key_tasklist_action,      ACTION_COMPLETE);
-	add_keybind('a',           key_tasklist_add,         NULL);
-	add_int_keybind('v',       key_tasklist_action,      ACTION_VIEW);
-	add_int_keybind(13,        key_tasklist_action,      ACTION_VIEW);
-	add_int_keybind(KEY_ENTER, key_tasklist_action,      ACTION_VIEW);
-	add_keybind('s',           key_tasklist_sort,        NULL);
-	add_keybind('/',           key_tasklist_search,      NULL);
-	add_keybind('n',           key_tasklist_search_next, NULL);
-	add_keybind('f',           key_tasklist_filter,      NULL);
-	add_keybind('y',           key_tasklist_sync,        NULL);
-	add_keybind('q',           key_done,                 NULL);
-	add_keybind(';',           key_command,              NULL);
-	add_keybind(':',           key_command,              NULL);
+	add_keybind(ERR,           NULL,                     NULL,            MODE_TASKLIST);
+	add_keybind('k',           key_tasklist_scroll,      "u",             MODE_TASKLIST);
+	add_keybind(KEY_UP,        key_tasklist_scroll,      "u",             MODE_TASKLIST);
+	add_keybind('j',           key_tasklist_scroll,      "d",             MODE_TASKLIST);
+	add_keybind(KEY_DOWN,      key_tasklist_scroll,      "d",             MODE_TASKLIST);
+	add_keybind(KEY_HOME,      key_tasklist_scroll,      "h",             MODE_TASKLIST);
+	add_keybind('g',           key_tasklist_scroll,      "h",             MODE_TASKLIST);
+	add_keybind(KEY_END,       key_tasklist_scroll,      "e",             MODE_TASKLIST);
+	add_keybind('G',           key_tasklist_scroll,      "e",             MODE_TASKLIST);
+	add_int_keybind('e',       key_tasklist_action,      ACTION_EDIT,     MODE_TASKLIST);
+	add_keybind('r',           key_tasklist_reload,      NULL,            MODE_TASKLIST);
+	add_keybind('u',           key_tasklist_undo,        NULL,            MODE_TASKLIST);
+	add_int_keybind('d',       key_tasklist_action,      ACTION_DELETE,   MODE_TASKLIST);
+	add_int_keybind('c',       key_tasklist_action,      ACTION_COMPLETE, MODE_TASKLIST);
+	add_keybind('a',           key_tasklist_add,         NULL,            MODE_TASKLIST);
+	add_int_keybind('v',       key_tasklist_action,      ACTION_VIEW,     MODE_TASKLIST);
+	add_int_keybind(13,        key_tasklist_action,      ACTION_VIEW,     MODE_TASKLIST);
+	add_int_keybind(KEY_ENTER, key_tasklist_action,      ACTION_VIEW,     MODE_TASKLIST);
+	add_keybind('s',           key_tasklist_sort,        NULL,            MODE_TASKLIST);
+	add_keybind('/',           key_tasklist_search,      NULL,            MODE_TASKLIST);
+	add_keybind('n',           key_tasklist_search_next, NULL,            MODE_TASKLIST);
+	add_keybind('f',           key_tasklist_filter,      NULL,            MODE_TASKLIST);
+	add_keybind('y',           key_tasklist_sync,        NULL,            MODE_TASKLIST);
+	add_keybind('q',           key_done,                 NULL,            MODE_TASKLIST);
+	add_keybind(';',           key_command,              NULL,            MODE_TASKLIST);
+	add_keybind(':',           key_command,              NULL,            MODE_TASKLIST);
 
 	/* determine config path */
 	xdg_config_home = getenv("XDG_CONFIG_HOME");
@@ -507,7 +507,7 @@ void handle_command(char *cmdstr) /* {{{ */
 	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: [args] %s", args);
 } /* }}} */
 
-void handle_keypress(int c) /* {{{ */
+void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 {
 	/* handle a key press on the main screen */
 	keybind *this_bind;
@@ -766,7 +766,7 @@ void run_command_bind(char *args) /* {{{ */
 		aarg = NULL;
 
 	/* add keybind */
-	add_keybind(key, func, aarg);
+	add_keybind(key, func, aarg, MODE_TASKLIST);
 	statusbar_message(cfg.statusbar_timeout, "key bound");
 } /* }}} */
 

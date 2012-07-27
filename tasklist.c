@@ -363,7 +363,7 @@ void tasklist_window() /* {{{ */
 		c = wgetch(statusbar);
 
 		/* handle the character */
-		handle_keypress(c);
+		handle_keypress(c, MODE_TASKLIST);
 
 		/* exit */
 		if (done==1)

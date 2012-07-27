@@ -18,17 +18,17 @@
 
 keybind *keybinds = NULL;
 
-void add_int_keybind(int key, void *function, int argint) /* {{{ */
+void add_int_keybind(const int key, void *function, const int argint, const prog_mode mode) /* {{{ */
 {
 	/* convert integer to string, then add keybind */
 	char *argstr;
 
 	asprintf(&argstr, "%d", argint);
-	add_keybind(key, function, argstr);
+	add_keybind(key, function, argstr, mode);
 	free(argstr);
 } /* }}} */
 
-void add_keybind(int key, void *function, char *arg) /* {{{ */
+void add_keybind(const int key, void *function, char *arg, const prog_mode mode) /* {{{ */
 {
 	/* add a keybind to the list of binds */
 	keybind *this_bind, *new;

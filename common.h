@@ -64,14 +64,11 @@ typedef struct _funcmap
 	int argn;
 } funcmap;
 
-typedef struct _bind
-{
-	int key;
-	void (*function)();
-	int argint;
-	char *argstr;
-	struct _bind *next;
-} keybind;
+/* program modes */
+typedef enum {
+	MODE_TASKLIST = 0,
+	MODE_PAGER
+} prog_mode;
 
 /* log levels */
 typedef enum {
