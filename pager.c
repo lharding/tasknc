@@ -36,6 +36,47 @@ void free_lines(line *head) /* {{{ */
 	}
 } /* }}} */
 
+void pager_command(const char *cmdstr, const char *title, const int head_skip, const int tail_skip) /* {{{ */
+{
+	/* run a command and page through its results */
+	FILE *cmd;
+	char *str;
+	int count = 0, maxlen = 0, len;
+	line *head = NULL, *last = NULL, *cur;
+
+	/* run command, gathering strs into a buffer */
+	cmd = popen(cmdstr, "r");
+	str = calloc(256, sizeof(char));
+	while (fgets(str, 256, cmd) != NULL)
+	{
+		len = strlen(str);
+
+		if (len>maxlen)
+			maxlen = len;
+
+		cur = calloc(1, sizeof(line));
+		cur->str = str;
+
+		if (count == head_skip)
+			head = cur;
+
+		if (last != NULL)
+			last->next = cur;
+
+		str = malloc(256*sizeof(char));
+		count++;
+		last = cur;
+	}
+	pclose(cmd);
+	count -= tail_skip;
+
+	/* run pager */
+	pager_window(head, 0, count, (char *)title);
+
+	/* free lines */
+	free_lines(head);
+} /* }}} */
+
 void pager_window(line *head, const bool fullscreen, int linecount, char *title) /* {{{ */
 {
 	/* page through a series of lines */
@@ -106,44 +147,16 @@ void pager_window(line *head, const bool fullscreen, int linecount, char *title)
 void view_task(task *this) /* {{{ */
 {
 	/* read in task info and print it to a window */
-	FILE *cmd;
-	char *str, *cmdstr, *title;
-	int count = 0, maxlen = 0, len;
-	line *head = NULL, *last = NULL, *cur;
+	char *cmdstr, *title;
 
-	/* build and run command, gathering strs into a buffer */
+	/* build command and title */
 	asprintf(&cmdstr, "task %s info rc._forcecolor=no rc.defaultwidth=%d", this->uuid, cols-4);
-	cmd = popen(cmdstr, "r");
-	free(cmdstr);
-	str = calloc(256, sizeof(char));
-	while (fgets(str, 256, cmd) != NULL)
-	{
-		len = strlen(str);
-
-		if (len>maxlen)
-			maxlen = len;
-
-		cur = calloc(1, sizeof(line));
-		cur->str = str;
-
-		if (count == 1)
-			head = cur;
-
-		if (last != NULL)
-			last->next = cur;
-
-		str = malloc(256*sizeof(char));
-		count++;
-		last = cur;
-	}
-	pclose(cmd);
-	count -= 4;
+	title = (char *)eval_string(2*cols, cfg.formats.view, this, NULL, 0);
 
 	/* run pager */
-	title = (char *)eval_string(2*cols, cfg.formats.view, this, NULL, 0);
-	pager_window(head, 0, count, title);
-	free(title);
+	pager_command(cmdstr, title, 1, 4);
 
-	/* free lines */
-	free_lines(head);
+	/* clean up */
+	free(cmdstr);
+	free(title);
 } /* }}} */

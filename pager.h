@@ -17,6 +17,7 @@ typedef struct _line
 } line;
 
 void free_lines(line *);
+void pager_command(const char *, const char *, const int, const int);
 void view_task(task *);
 
 extern bool redraw;
