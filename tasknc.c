@@ -94,7 +94,8 @@ funcmap funcmaps[] = {
 	{"quit",        (void *)key_done,                 0},
 	{"command",     (void *)key_command,              0},
 	{"stats",       (void *)view_stats,               0},
-	{"help",        (void *)help_window,              0}
+	{"help",        (void *)help_window,              0},
+	{"view",        (void *)key_tasklist_view,        0}
 };
 /* }}} */
 
@@ -218,9 +219,9 @@ void configure(void) /* {{{ */
 	add_int_keybind('d',       key_tasklist_action,      ACTION_DELETE,   MODE_TASKLIST);
 	add_int_keybind('c',       key_tasklist_action,      ACTION_COMPLETE, MODE_TASKLIST);
 	add_keybind('a',           key_tasklist_add,         NULL,            MODE_TASKLIST);
-	add_int_keybind('v',       key_tasklist_action,      ACTION_VIEW,     MODE_TASKLIST);
-	add_int_keybind(13,        key_tasklist_action,      ACTION_VIEW,     MODE_TASKLIST);
-	add_int_keybind(KEY_ENTER, key_tasklist_action,      ACTION_VIEW,     MODE_TASKLIST);
+	add_keybind('v',           key_tasklist_view,        NULL,            MODE_TASKLIST);
+	add_keybind(13,            key_tasklist_view,        NULL,            MODE_TASKLIST);
+	add_keybind(KEY_ENTER,     key_tasklist_view,        NULL,            MODE_TASKLIST);
 	add_keybind('s',           key_tasklist_sort,        NULL,            MODE_TASKLIST);
 	add_keybind('/',           key_tasklist_search,      NULL,            MODE_TASKLIST);
 	add_keybind('n',           key_tasklist_search_next, NULL,            MODE_TASKLIST);
@@ -519,14 +520,12 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 	static const char *action_success_str[] = {
 		[ACTION_COMPLETE] = "task completed",
 		[ACTION_DELETE]   = "task deleted",
-		[ACTION_EDIT]     = "task edited",
-		[ACTION_VIEW]     = ""
+		[ACTION_EDIT]     = "task edited"
 	};
 	static const char *action_fail_str[] = {
 		[ACTION_COMPLETE] = "task complete failed",
 		[ACTION_DELETE]   = "task delete failed",
-		[ACTION_EDIT]     = "task edit failed",
-		[ACTION_VIEW]     = ""
+		[ACTION_EDIT]     = "task edit failed"
 	};
 
 	this_bind = keybinds;

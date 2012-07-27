@@ -15,8 +15,7 @@
 typedef enum {
 	ACTION_EDIT = 0,
 	ACTION_COMPLETE,
-	ACTION_DELETE,
-	ACTION_VIEW
+	ACTION_DELETE
 } task_action_type;
 
 /* ncurses settings */

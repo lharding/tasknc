@@ -282,7 +282,7 @@ void key_tasklist_action(const task_action_type action, const char *msg_success,
 	/* handle a keyboard direction to run a task command */
 	int ret;
 
-	if (action!=ACTION_VIEW && action!=ACTION_COMPLETE && action!=ACTION_DELETE)
+	if (action!=ACTION_COMPLETE && action!=ACTION_DELETE)
 		reload = 1;
 	ret = tasklist_task_action(action);
 	wnoutrefresh(header);
@@ -320,6 +320,12 @@ void key_tasklist_undo() /* {{{ */
 	}
 	else
 		statusbar_message(cfg.statusbar_timeout, "undo execution failed (%d)", ret);
+} /* }}} */
+
+void key_tasklist_view() /* {{{ */
+{
+	/* run task info on a task and display in pager */
+	view_task(get_task_by_position(selline));
 } /* }}} */
 
 void tasklist_window() /* {{{ */
@@ -497,25 +503,16 @@ int tasklist_task_action(const task_action_type action) /* {{{ */
 		[ACTION_EDIT]     = "edit",
 		[ACTION_COMPLETE] = "done",
 		[ACTION_DELETE]   = "del",
-		[ACTION_VIEW]     = "info"
 	};
 	const char *actionstr = str_for_action[(int)action];
 	char *cmd, *redir;
-	const bool wait = action == ACTION_VIEW;
 	int ret;
 
 	/* move to correct task */
 	cur = get_task_by_position(selline);
 
-	/* special case for view (TODO: move to new function) */
-	if (action == ACTION_VIEW)
-	{
-		view_task(cur);
-		return 0;
-	}
-
 	/* determine whether stdio should be used */
-	if (cfg.silent_shell && action!=ACTION_VIEW && action!=ACTION_EDIT)
+	if (cfg.silent_shell && action!=ACTION_EDIT)
 	{
 		statusbar_message(cfg.statusbar_timeout, "running task %s", actionstr);
 		redir = "> /dev/null";
@@ -546,12 +543,6 @@ int tasklist_task_action(const task_action_type action) /* {{{ */
 	tnc_fprintf(logfp, LOG_DEBUG, "running: %s", cmd);
 	ret = system(cmd);
 	free(cmd);
-	if (wait)
-	{
-		puts("press ENTER to return");
-		fflush(stdout);
-		getchar();
-	}
 
 	/* remove from task list if command was successful */
 	if (ret==0 && (action==ACTION_DELETE || action==ACTION_COMPLETE))

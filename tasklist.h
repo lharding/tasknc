@@ -27,6 +27,7 @@ void key_tasklist_sort(const char *arg);
 void key_tasklist_sync();
 void key_tasklist_action(const task_action_type action, const char *msg_success, const char *msg_fail);
 void key_tasklist_undo();
+void key_tasklist_view();
 void tasklist_window();
 void tasklist_print_task(int tasknum, task *this);
 void tasklist_print_task_list();
