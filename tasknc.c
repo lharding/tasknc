@@ -77,7 +77,10 @@ var vars[] = {
 };
 
 funcmap funcmaps[] = {
-	{"scroll",      (void *)key_tasklist_scroll,      1},
+	{"scroll_down", (void *)key_tasklist_scroll_down, 0},
+	{"scroll_end",  (void *)key_tasklist_scroll_end,  0},
+	{"scroll_home", (void *)key_tasklist_scroll_home, 0},
+	{"scroll_up",   (void *)key_tasklist_scroll_up,   0},
 	{"task_action", (void *)key_tasklist_action,      1},
 	{"reload",      (void *)key_tasklist_reload,      0},
 	{"undo",        (void *)key_tasklist_undo,        0},
@@ -201,14 +204,14 @@ void configure(void) /* {{{ */
 
 	/* default keybinds */
 	add_keybind(ERR,           NULL,                     NULL,            MODE_TASKLIST);
-	add_keybind('k',           key_tasklist_scroll,      "u",             MODE_TASKLIST);
-	add_keybind(KEY_UP,        key_tasklist_scroll,      "u",             MODE_TASKLIST);
-	add_keybind('j',           key_tasklist_scroll,      "d",             MODE_TASKLIST);
-	add_keybind(KEY_DOWN,      key_tasklist_scroll,      "d",             MODE_TASKLIST);
-	add_keybind(KEY_HOME,      key_tasklist_scroll,      "h",             MODE_TASKLIST);
-	add_keybind('g',           key_tasklist_scroll,      "h",             MODE_TASKLIST);
-	add_keybind(KEY_END,       key_tasklist_scroll,      "e",             MODE_TASKLIST);
-	add_keybind('G',           key_tasklist_scroll,      "e",             MODE_TASKLIST);
+	add_keybind('k',           key_tasklist_scroll_up,   NULL,            MODE_TASKLIST);
+	add_keybind(KEY_UP,        key_tasklist_scroll_up,   NULL,            MODE_TASKLIST);
+	add_keybind('j',           key_tasklist_scroll_down, NULL,            MODE_TASKLIST);
+	add_keybind(KEY_DOWN,      key_tasklist_scroll_down, NULL,            MODE_TASKLIST);
+	add_keybind(KEY_HOME,      key_tasklist_scroll_home, NULL,            MODE_TASKLIST);
+	add_keybind('g',           key_tasklist_scroll_home, NULL,            MODE_TASKLIST);
+	add_keybind(KEY_END,       key_tasklist_scroll_end,  NULL,            MODE_TASKLIST);
+	add_keybind('G',           key_tasklist_scroll_end,  NULL,            MODE_TASKLIST);
 	add_int_keybind('e',       key_tasklist_action,      ACTION_EDIT,     MODE_TASKLIST);
 	add_keybind('r',           key_tasklist_reload,      NULL,            MODE_TASKLIST);
 	add_keybind('u',           key_tasklist_undo,        NULL,            MODE_TASKLIST);
@@ -532,9 +535,7 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 		if (this_bind->mode == mode && c == this_bind->key)
 		{
 			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p", this_bind->function);
-			if (this_bind->function == (void *)key_tasklist_scroll)
-				key_tasklist_scroll(this_bind->argint);
-			else if (this_bind->function == (void *)key_tasklist_action)
+			if (this_bind->function == (void *)key_tasklist_action)
 				key_tasklist_action(this_bind->argint, action_success_str[this_bind->argint], action_fail_str[this_bind->argint]);
 			else if (this_bind->function != NULL)
 				(*(this_bind->function))(this_bind->argstr);

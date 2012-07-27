@@ -143,6 +143,26 @@ void key_tasklist_scroll(const int direction) /* {{{ */
 	print_header();
 } /* }}} */
 
+void key_tasklist_scroll_down() /* {{{ */
+{
+	key_tasklist_scroll('d');
+} /* }}} */
+
+void key_tasklist_scroll_end() /* {{{ */
+{
+	key_tasklist_scroll('e');
+} /* }}} */
+
+void key_tasklist_scroll_home() /* {{{ */
+{
+	key_tasklist_scroll('h');
+} /* }}} */
+
+void key_tasklist_scroll_up() /* {{{ */
+{
+	key_tasklist_scroll('u');
+} /* }}} */
+
 void key_tasklist_search(const char *arg) /* {{{ */
 {
 	/* handle a keyboard direction to search */

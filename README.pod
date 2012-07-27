@@ -299,21 +299,21 @@ For task formats, the following variables are available:
 
 =over 4
 
-=item B<scroll> I<arg> moves the cursor in arg direction. Available directions:
-
-=over 4
-
-=item I<u> up
-
-=item I<d> down
-
-=item I<h> home
-
-=item I<e> end
+=item B<scroll_down> moves the cursor down
 
 =item
 
-=back
+=item B<scroll_end> moves the cursor to the end of the task list
+
+=item
+
+=item B<scroll_home> moves the cursor to the first task
+
+=item
+
+=item B<scroll_up> moves the cursor up
+
+=item
 
 =item B<task_action> I<arg> performs an action on the selected task.  Available actions:
 
