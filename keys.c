@@ -16,8 +16,6 @@
 #include "tasklist.h"
 #include "tasknc.h"
 
-keybind *keybinds = NULL;
-
 void add_int_keybind(const int key, void *function, const int argint, const prog_mode mode) /* {{{ */
 {
 	/* convert integer to string, then add keybind */

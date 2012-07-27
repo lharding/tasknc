@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "common.h"
+#include "config.h"
+#include "keys.h"
 #include "log.h"
 #include "pager.h"
 #include "tasknc.h"
@@ -36,6 +38,29 @@ void free_lines(line *head) /* {{{ */
 	}
 } /* }}} */
 
+void help_window() /* {{{ */
+{
+	/* display a help window */
+	line *head, *cur, *last;
+	keybind *this;
+
+	head = calloc(1, sizeof(line));
+	head->str = "keybinds";
+
+	last = head;
+	this = keybinds;
+	while (this!=NULL)
+	{
+		cur = calloc(1, sizeof(line));
+		last->next = cur;
+		asprintf(&(cur->str), "%2c\t(%3d)\t%s", this->key, this->key, name_function(this->function));
+		this = this->next;
+		last = cur;
+	}
+
+	pager_window(head, 1, -1, "help");
+} /* }}} */
+
 void pager_command(const char *cmdstr, const char *title, const bool fullscreen, const int head_skip, const int tail_skip) /* {{{ */
 {
 	/* run a command and page through its results */
@@ -46,8 +71,8 @@ void pager_command(const char *cmdstr, const char *title, const bool fullscreen,
 
 	/* run command, gathering strs into a buffer */
 	cmd = popen(cmdstr, "r");
-	str = calloc(256, sizeof(char));
-	while (fgets(str, 256, cmd) != NULL)
+	str = calloc(TOTALLENGTH, sizeof(char));
+	while (fgets(str, TOTALLENGTH, cmd) != NULL)
 	{
 		len = strlen(str);
 

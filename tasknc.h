@@ -36,6 +36,7 @@ void help(void);
 void key_command(const char *);
 void key_done();
 char max_project_length();
+const char *name_function(void *);
 void ncurses_colors(void);
 void ncurses_end(int);
 void ncurses_init();

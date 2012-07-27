@@ -20,6 +20,7 @@ typedef struct _line
 } line;
 
 void free_lines(line *);
+void help_window();
 void pager_command(const char *, const char *, const bool, const int, const int);
 void view_stats();
 void view_task(task *);

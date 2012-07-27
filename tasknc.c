@@ -42,7 +42,7 @@ int taskcount;                          /* number of tasks */
 char *active_filter = NULL;             /* a string containing the active filter string */
 task *head = NULL;                      /* the current top of the list */
 FILE *logfp;                            /* handle for log file */
-extern keybind *keybinds;               /* key bind array */
+keybind *keybinds = NULL;
 
 /* runtime status */
 bool redraw;
@@ -90,7 +90,8 @@ funcmap funcmaps[] = {
 	{"sync",        (void *)key_tasklist_sync,        0},
 	{"quit",        (void *)key_done,                 0},
 	{"command",     (void *)key_command,              0},
-	{"stats",       (void *)view_stats,               0}
+	{"stats",       (void *)view_stats,               0},
+	{"help",        (void *)help_window,              0}
 };
 /* }}} */
 
@@ -225,6 +226,7 @@ void configure(void) /* {{{ */
 	add_keybind('q',           key_done,                 NULL,            MODE_TASKLIST);
 	add_keybind(';',           key_command,              NULL,            MODE_TASKLIST);
 	add_keybind(':',           key_command,              NULL,            MODE_TASKLIST);
+	add_keybind('h',           help_window,              NULL,            MODE_TASKLIST);
 
 	/* determine config path */
 	xdg_config_home = getenv("XDG_CONFIG_HOME");
@@ -614,6 +616,20 @@ char max_project_length() /* {{{ */
 	}
 
 	return len;
+} /* }}} */
+
+const char *name_function(void *function) /* {{{ */
+{
+	/* search through the function maps */
+	int i;
+
+	for (i=0; i<NFUNCS; i++)
+	{
+		if (function == funcmaps[i].function)
+			return funcmaps[i].name;
+	}
+
+	return NULL;
 } /* }}} */
 
 void ncurses_colors(void) /* {{{ */

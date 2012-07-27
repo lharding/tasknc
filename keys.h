@@ -24,3 +24,4 @@ int parse_key(const char *);
 int remove_keybinds(const int);
 
 extern FILE *logfp;
+extern keybind *keybinds;
