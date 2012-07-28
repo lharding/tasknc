@@ -959,6 +959,10 @@ char *str_trim(char *str) /* {{{ */
 	 * returns the pointer to the new start */
 	char *pos;
 
+	/* skip nulls */
+	if (str==NULL)
+		return NULL;
+
 	/* leading */
 	while ((*str)==' ')
 		str++;
