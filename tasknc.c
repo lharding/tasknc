@@ -218,6 +218,7 @@ void configure(void) /* {{{ */
 
 	/* default keybinds */
 	add_keybind(ERR,           NULL,                     NULL,            MODE_TASKLIST);
+	add_keybind(ERR,           NULL,                     NULL,            MODE_PAGER);
 	add_keybind('k',           key_tasklist_scroll_up,   NULL,            MODE_TASKLIST);
 	add_keybind('k',           key_pager_scroll_up,      NULL,            MODE_PAGER);
 	add_keybind(KEY_UP,        key_tasklist_scroll_up,   NULL,            MODE_TASKLIST);

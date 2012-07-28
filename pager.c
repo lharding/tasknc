@@ -72,12 +72,16 @@ void key_pager_scroll_up() /* {{{ */
 {
 	if (offset>0)
 		offset--;
+	else
+		statusbar_message(cfg.statusbar_timeout, "already at top");
 } /* }}} */
 
 void key_pager_scroll_down() /* {{{ */
 {
-	if (offset<linecount-1-height)
+	if (offset<linecount+1-height)
 		offset++;
+	else
+		statusbar_message(cfg.statusbar_timeout, "already at bottom");
 } /* }}} */
 
 void pager_command(const char *cmdstr, const char *title, const bool fullscreen, const int head_skip, const int tail_skip) /* {{{ */
@@ -124,7 +128,7 @@ void pager_command(const char *cmdstr, const char *title, const bool fullscreen,
 void pager_window(line *head, const bool fullscreen, int nlines, char *title) /* {{{ */
 {
 	/* page through a series of lines */
-	int startx, starty, lineno = 1, c;
+	int startx, starty, lineno, c;
 	line *tmp;
 	offset = 0;
 
@@ -170,9 +174,12 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 	pager_done = 0;
 	while (1)
 	{
+		tnc_fprintf(logfp, LOG_DEBUG, "offset:%d height:%d lines:%d", offset, height, linecount);
+
 		/* print lines */
 		wattrset(pager, COLOR_PAIR(0));
 		tmp = head;
+		lineno = 1;
 		while (tmp!=NULL && lineno<=linecount && lineno-offset<=height)
 		{
 			if (lineno>offset)
@@ -185,9 +192,10 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 		wrefresh(pager);
 
 		/* accept keys */
-		c = wgetch(pager);
+		c = wgetch(statusbar);
 		handle_keypress(c, MODE_PAGER);
 
+		/* TODO: make below a bound function */
 		if (c == 'q')
 			break;
 	}
