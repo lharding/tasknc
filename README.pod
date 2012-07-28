@@ -315,11 +315,13 @@ For task formats, the following variables are available:
 
 =item
 
+=item B<edit> opens task for editing
+
+=item
+
 =item B<task_action> I<arg> performs an action on the selected task.  Available actions:
 
 =over 4
-
-=item I<edit>
 
 =item I<delete>
 

@@ -13,6 +13,7 @@
 #include "common.h"
 
 void key_tasklist_add();
+void key_tasklist_edit();
 void key_tasklist_filter(const char *arg);
 void key_tasklist_modify(const char *arg);
 void key_tasklist_reload();

@@ -13,8 +13,7 @@
 
 /* action definitions */
 typedef enum {
-	ACTION_EDIT = 0,
-	ACTION_COMPLETE,
+	ACTION_COMPLETE = 0,
 	ACTION_DELETE
 } task_action_type;
 

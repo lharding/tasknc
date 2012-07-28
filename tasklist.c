@@ -30,6 +30,23 @@ void key_tasklist_add() /* {{{ */
 	statusbar_message(cfg.statusbar_timeout, "task added");
 } /* }}} */
 
+void key_tasklist_edit() /* {{{ */
+{
+	/* edit selected task */
+	task *cur = get_task_by_position(selline);
+	int ret;
+
+	statusbar_message(cfg.statusbar_timeout, "editing task");
+
+	ret = task_interactive_command("task %s edit");
+	reload_task(cur);
+
+	if (ret)
+		statusbar_message(cfg.statusbar_timeout, "edit failed");
+	else
+		statusbar_message(cfg.statusbar_timeout, "edit successful");
+} /* }}} */
+
 void key_tasklist_filter(const char *arg) /* {{{ */
 {
 	/* handle a keyboard direction to add a new filter */
@@ -500,7 +517,6 @@ int tasklist_task_action(const task_action_type action) /* {{{ */
 	/* spawn a command to perform an action on a task */
 	task *cur;
 	static const char *str_for_action[] = {
-		[ACTION_EDIT]     = "edit",
 		[ACTION_COMPLETE] = "done",
 		[ACTION_DELETE]   = "del",
 	};
@@ -512,7 +528,7 @@ int tasklist_task_action(const task_action_type action) /* {{{ */
 	cur = get_task_by_position(selline);
 
 	/* determine whether stdio should be used */
-	if (cfg.silent_shell && action!=ACTION_EDIT)
+	if (cfg.silent_shell)
 	{
 		statusbar_message(cfg.statusbar_timeout, "running task %s", actionstr);
 		redir = "> /dev/null";
