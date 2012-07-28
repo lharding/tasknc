@@ -22,12 +22,15 @@ task *parse_task(char *);
 void reload_task(task *);
 void reload_tasks();
 void sort_wrapper(task *);
+int task_background_command(const char *);
 void task_count();
+int task_interactive_command(const char *);
 bool task_match(const task *, const char *);
 void task_modify(const char *);
 
 extern FILE *logfp;
 extern task *head;
+extern bool redraw;
 extern int selline;
 extern int taskcount;
 extern char *active_filter;

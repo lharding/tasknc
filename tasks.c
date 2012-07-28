@@ -6,7 +6,8 @@
  * by mjheagle
  */
 
-#define _XOPEN_SOURCE
+#define _GNU_SOURCE
+#include <curses.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -623,6 +624,25 @@ void swap_tasks(task *a, task *b) /* {{{ */
 	b->description = strtmp;
 } /* }}} */
 
+int task_background_command(const char *cmdfmt) /* {{{ */
+{
+	/* run a command on the current task in the background */
+	task *cur;
+	char *cmdstr;
+	FILE *cmd;
+	int ret;
+
+	/* build command */
+	cur = get_task_by_position(selline);
+	asprintf(&cmdstr, cmdfmt, cur->uuid);
+
+	/* run command in background */
+	cmd = popen(cmdstr, "r");
+	ret = pclose(cmd);
+
+	return ret;
+} /* }}} */
+
 void task_count() /* {{{ */
 {
 	taskcount = 0;
@@ -634,6 +654,31 @@ void task_count() /* {{{ */
 		taskcount++;
 		cur = cur->next;
 	}
+} /* }}} */
+
+int task_interactive_command(const char *cmdfmt) /* {{{ */
+{
+	/* run a command on the current task in the foreground */
+	task *cur;
+	char *cmdstr;
+	int ret;
+
+	/* build command */
+	cur = get_task_by_position(selline);
+	asprintf(&cmdstr, cmdfmt, cur->uuid);
+
+	/* exit window */
+	def_prog_mode();
+	endwin();
+
+	/* run command */
+	ret = system(cmdstr);
+
+	/* force redraw */
+	reset_prog_mode();
+	redraw = 1;
+
+	return ret;
 } /* }}} */
 
 bool task_match(const task *cur, const char *str) /* {{{ */
