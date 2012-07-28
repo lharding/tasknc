@@ -47,6 +47,23 @@ void key_tasklist_complete() /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "complete successful");
 } /* }}} */
 
+void key_tasklist_delete() /* {{{ */
+{
+	/* complete selected task */
+	task *cur = get_task_by_position(selline);
+	int ret;
+
+	statusbar_message(cfg.statusbar_timeout, "deleting task");
+
+	ret = task_background_command("task %s delete");
+	tasklist_remove_task(cur);
+
+	if (ret)
+		statusbar_message(cfg.statusbar_timeout, "delete failed");
+	else
+		statusbar_message(cfg.statusbar_timeout, "delete successful");
+} /* }}} */
+
 void key_tasklist_edit() /* {{{ */
 {
 	/* edit selected task */
@@ -311,21 +328,6 @@ void key_tasklist_sync() /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "task syncronization failed");
 } /* }}} */
 
-void key_tasklist_action(const task_action_type action, const char *msg_success, const char *msg_fail) /* {{{ */
-{
-	/* handle a keyboard direction to run a task command */
-	int ret;
-
-	ret = tasklist_task_action(action);
-	wnoutrefresh(header);
-	wnoutrefresh(tasklist);
-	wnoutrefresh(statusbar);
-	if (ret==0)
-		statusbar_message(cfg.statusbar_timeout, msg_success);
-	else
-		statusbar_message(cfg.statusbar_timeout, msg_fail);
-} /* }}} */
-
 void key_tasklist_undo() /* {{{ */
 {
 	/* handle a keyboard direction to run an undo */
@@ -539,60 +541,6 @@ void tasklist_remove_task(task *this) /* {{{ */
 	free_task(this);
 	taskcount--;
 	redraw = 1;
-} /* }}} */
-
-int tasklist_task_action(const task_action_type action) /* {{{ */
-{
-	/* spawn a command to perform an action on a task */
-	task *cur;
-	static const char *str_for_action[] = {
-		[ACTION_DELETE]   = "del"
-	};
-	const char *actionstr = str_for_action[(int)action];
-	char *cmd, *redir;
-	int ret;
-
-	/* move to correct task */
-	cur = get_task_by_position(selline);
-
-	/* determine whether stdio should be used */
-	if (cfg.silent_shell)
-	{
-		statusbar_message(cfg.statusbar_timeout, "running task %s", actionstr);
-		redir = "> /dev/null";
-	}
-	else
-	{
-		redir = "";
-		def_prog_mode();
-		endwin();
-	}
-
-	/* generate and run command */
-	cmd = malloc(128*sizeof(char));
-
-	/* update task index if version<2*/
-	if (cfg.version[0]<'2')
-	{
-		cur->index = get_task_id(cur->uuid);
-		if (cur->index==0)
-			return -1;
-		sprintf(cmd, "task %s %d %s", actionstr, cur->index, redir);
-	}
-
-	/* if version is >=2, use uuid index */
-	else
-		sprintf(cmd, "task %s %s %s", cur->uuid, actionstr, redir);
-
-	tnc_fprintf(logfp, LOG_DEBUG, "running: %s", cmd);
-	ret = system(cmd);
-	free(cmd);
-
-	/* remove from task list if command was successful */
-	if (ret==0)
-		tasklist_remove_task(cur);
-
-	return ret;
 } /* }}} */
 
 void tasklist_task_add(void) /* {{{ */

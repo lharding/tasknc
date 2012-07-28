@@ -38,12 +38,7 @@ void add_keybind(const int key, void *function, char *arg, const prog_mode mode)
 	new->function = function;
 	new->argint = 0;
 	new->argstr = NULL;
-	if (function==key_tasklist_action)
-		new->argint = atoi(arg);
-	else if (function==key_tasklist_scroll)
-		new->argint = *arg;
-	else
-		new->argstr = arg;
+	new->argstr = arg;
 	new->next = NULL;
 
 	/* append it to the list */

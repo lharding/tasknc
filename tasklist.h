@@ -13,8 +13,9 @@
 #include "common.h"
 
 void key_tasklist_add();
-void key_tasklist_edit();
 void key_tasklist_complete();
+void key_tasklist_delete();
+void key_tasklist_edit();
 void key_tasklist_filter(const char *arg);
 void key_tasklist_modify(const char *arg);
 void key_tasklist_reload();
@@ -27,14 +28,12 @@ void key_tasklist_search(const char *arg);
 void key_tasklist_search_next();
 void key_tasklist_sort(const char *arg);
 void key_tasklist_sync();
-void key_tasklist_action(const task_action_type action, const char *msg_success, const char *msg_fail);
 void key_tasklist_undo();
 void key_tasklist_view();
 void tasklist_window();
 void tasklist_print_task(int tasknum, task *this);
 void tasklist_print_task_list();
 void tasklist_remove_task(task *);
-int tasklist_task_action(const task_action_type action);
 void tasklist_task_add();
 
 extern bool reload;

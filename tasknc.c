@@ -81,7 +81,6 @@ funcmap funcmaps[] = {
 	{"scroll_end",  (void *)key_tasklist_scroll_end,  0},
 	{"scroll_home", (void *)key_tasklist_scroll_home, 0},
 	{"scroll_up",   (void *)key_tasklist_scroll_up,   0},
-	{"task_action", (void *)key_tasklist_action,      1},
 	{"reload",      (void *)key_tasklist_reload,      0},
 	{"undo",        (void *)key_tasklist_undo,        0},
 	{"add",         (void *)key_tasklist_add,         0},
@@ -97,7 +96,8 @@ funcmap funcmaps[] = {
 	{"help",        (void *)help_window,              0},
 	{"view",        (void *)key_tasklist_view,        0},
 	{"edit",        (void *)key_tasklist_edit,        0},
-	{"complete",    (void *)key_tasklist_complete,    0}
+	{"complete",    (void *)key_tasklist_complete,    0},
+	{"delete",      (void *)key_tasklist_delete,      0}
 };
 /* }}} */
 
@@ -222,7 +222,7 @@ void configure(void) /* {{{ */
 	add_keybind('e',           key_tasklist_edit,        NULL,            MODE_TASKLIST);
 	add_keybind('r',           key_tasklist_reload,      NULL,            MODE_TASKLIST);
 	add_keybind('u',           key_tasklist_undo,        NULL,            MODE_TASKLIST);
-	add_int_keybind('d',       key_tasklist_action,      ACTION_DELETE,   MODE_TASKLIST);
+	add_keybind('d',           key_tasklist_delete,      NULL,            MODE_TASKLIST);
 	add_keybind('c',           key_tasklist_complete,    NULL,            MODE_TASKLIST);
 	add_keybind('a',           key_tasklist_add,         NULL,            MODE_TASKLIST);
 	add_keybind('v',           key_tasklist_view,        NULL,            MODE_TASKLIST);
@@ -523,12 +523,6 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 {
 	/* handle a key press on the main screen */
 	keybind *this_bind;
-	static const char *action_success_str[] = {
-		[ACTION_DELETE]   = "task deleted"
-	};
-	static const char *action_fail_str[] = {
-		[ACTION_DELETE]   = "task delete failed"
-	};
 
 	this_bind = keybinds;
 	while (this_bind!=NULL)
@@ -536,9 +530,7 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 		if (this_bind->mode == mode && c == this_bind->key)
 		{
 			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p", this_bind->function);
-			if (this_bind->function == (void *)key_tasklist_action)
-				key_tasklist_action(this_bind->argint, action_success_str[this_bind->argint], action_fail_str[this_bind->argint]);
-			else if (this_bind->function != NULL)
+			if (this_bind->function != NULL)
 				(*(this_bind->function))(this_bind->argstr);
 			break;
 		}

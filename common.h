@@ -11,12 +11,6 @@
 
 #include <stdbool.h>
 
-/* action definitions */
-typedef enum {
-	ACTION_COMPLETE = 0,
-	ACTION_DELETE
-} task_action_type;
-
 /* ncurses settings */
 typedef enum {
 	NCURSES_MODE_STD = 0,

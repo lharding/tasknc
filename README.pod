@@ -315,23 +315,17 @@ For task formats, the following variables are available:
 
 =item
 
-=item B<complete> marks task as complete
+=item B<complete> marks selected task as complete
+
+=item
+
+=item B<delete> deletes selected task
 
 =item
 
 =item B<edit> opens task for editing
 
 =item
-
-=item B<task_action> I<arg> performs an action on the selected task.  Available actions:
-
-=over 4
-
-=item I<delete>
-
-=item
-
-=back
 
 =item B<reload> reloads the task list.
 
