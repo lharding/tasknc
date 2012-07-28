@@ -265,6 +265,7 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 	{
 		statusbar_message(cfg.statusbar_timeout, "enter sort mode: iNdex, Project, Due, pRiority");
 		set_curses_mode(NCURSES_MODE_STD_BLOCKING);
+		wrefresh(statusbar);
 
 		m = wgetch(statusbar);
 		set_curses_mode(NCURSES_MODE_STD);
