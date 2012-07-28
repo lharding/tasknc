@@ -40,6 +40,7 @@ void add_keybind(const int key, void *function, char *arg, const prog_mode mode)
 	new->argstr = NULL;
 	new->argstr = arg;
 	new->next = NULL;
+	new->mode = mode;
 
 	/* append it to the list */
 	if (keybinds==NULL)

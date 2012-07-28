@@ -23,6 +23,10 @@
 /* local functions */
 static void pager_window(line *, const bool, int, char *);
 
+/* global variables */
+int offset, height, linecount;
+bool pager_done;
+
 void free_lines(line *head) /* {{{ */
 {
 	/* iterate through lines list and free all elements */
@@ -62,6 +66,18 @@ void help_window() /* {{{ */
 	}
 
 	pager_window(head, 1, -1, "help");
+} /* }}} */
+
+void key_pager_scroll_up() /* {{{ */
+{
+	if (offset>0)
+		offset--;
+} /* }}} */
+
+void key_pager_scroll_down() /* {{{ */
+{
+	if (offset<linecount-1-height)
+		offset++;
 } /* }}} */
 
 void pager_command(const char *cmdstr, const char *title, const bool fullscreen, const int head_skip, const int tail_skip) /* {{{ */
@@ -105,29 +121,30 @@ void pager_command(const char *cmdstr, const char *title, const bool fullscreen,
 	free_lines(head);
 } /* }}} */
 
-void pager_window(line *head, const bool fullscreen, int linecount, char *title) /* {{{ */
+void pager_window(line *head, const bool fullscreen, int nlines, char *title) /* {{{ */
 {
 	/* page through a series of lines */
-	WINDOW *pager;
-	int startx, starty, height, offset = 0, lineno = 1;
+	int startx, starty, lineno = 1, c;
 	line *tmp;
+	offset = 0;
 
 	/* count lines if necessary */
-	if (linecount<=0)
+	if (nlines<=0)
 	{
 		tmp = head;
-		linecount = 0;
+		nlines = 0;
 		while (tmp!=NULL)
 		{
-			linecount++;
+			nlines++;
 			tmp = tmp->next;
 		}
 	}
 
 	/* exit if there are no lines */
 	tnc_fprintf(logfp, LOG_DEBUG, "pager: linecount=%d", linecount);
-	if (linecount==0)
+	if (nlines==0)
 		return;
+	linecount = nlines;
 
 	/* determine screen dimensions and create window */
 	if (fullscreen)
@@ -150,25 +167,34 @@ void pager_window(line *head, const bool fullscreen, int linecount, char *title)
 	mvwhline(pager, 0, 0, ' ', cols);
 	umvaddstr_align(pager, 0, title);
 
-	/* print lines */
-	wattrset(pager, COLOR_PAIR(0));
-	tmp = head;
-	while (tmp!=NULL && lineno<=linecount && lineno-offset<=height)
+	pager_done = 0;
+	while (1)
 	{
-		if (lineno>offset)
-			umvaddstr(pager, lineno-offset, 0, tmp->str);
+		/* print lines */
+		wattrset(pager, COLOR_PAIR(0));
+		tmp = head;
+		while (tmp!=NULL && lineno<=linecount && lineno-offset<=height)
+		{
+			if (lineno>offset)
+				umvaddstr(pager, lineno-offset, 0, tmp->str);
 
-		lineno++;
-		tmp = tmp->next;
+			lineno++;
+			tmp = tmp->next;
+		}
+		touchwin(pager);
+		wrefresh(pager);
+
+		/* accept keys */
+		c = wgetch(pager);
+		handle_keypress(c, MODE_PAGER);
+
+		if (c == 'q')
+			break;
 	}
-	touchwin(pager);
-	wrefresh(pager);
-
-	/* TODO: accept keys */
-	wgetch(pager);
 
 	/* destroy window and force redraw of tasklist */
 	delwin(pager);
+	pager = NULL;
 	redraw = 1;
 } /* }}} */
 

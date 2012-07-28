@@ -54,6 +54,7 @@ bool done;
 WINDOW *header = NULL;
 WINDOW *tasklist = NULL;
 WINDOW *statusbar = NULL;
+WINDOW *pager = NULL;
 /* }}} */
 
 /* user-exposed variables & functions {{{ */
@@ -77,31 +78,33 @@ var vars[] = {
 };
 
 funcmap funcmaps[] = {
-	{"scroll_down", (void *)key_tasklist_scroll_down, 0},
-	{"scroll_end",  (void *)key_tasklist_scroll_end,  0},
-	{"scroll_home", (void *)key_tasklist_scroll_home, 0},
-	{"scroll_up",   (void *)key_tasklist_scroll_up,   0},
-	{"reload",      (void *)key_tasklist_reload,      0},
-	{"undo",        (void *)key_tasklist_undo,        0},
-	{"add",         (void *)key_tasklist_add,         0},
-	{"modify",      (void *)key_tasklist_modify,      0},
-	{"sort",        (void *)key_tasklist_sort,        0},
-	{"search",      (void *)key_tasklist_search,      0},
-	{"search_next", (void *)key_tasklist_search_next, 0},
-	{"filter",      (void *)key_tasklist_filter,      0},
-	{"sync",        (void *)key_tasklist_sync,        0},
-	{"quit",        (void *)key_done,                 0},
-	{"command",     (void *)key_command,              0},
-	{"stats",       (void *)view_stats,               0},
-	{"help",        (void *)help_window,              0},
-	{"view",        (void *)key_tasklist_view,        0},
-	{"edit",        (void *)key_tasklist_edit,        0},
-	{"complete",    (void *)key_tasklist_complete,    0},
-	{"delete",      (void *)key_tasklist_delete,      0},
-	{"set",         (void *)run_command_set,          1},
-	{"show",        (void *)run_command_show,         1},
-	{"bind",        (void *)run_command_bind,         1},
-	{"unbind",      (void *)run_command_unbind,       1},
+	{"scroll_down", (void *)key_tasklist_scroll_down, 0, MODE_TASKLIST},
+	{"scroll_down", (void *)key_pager_scroll_down,    0, MODE_PAGER},
+	{"scroll_end",  (void *)key_tasklist_scroll_end,  0, MODE_TASKLIST},
+	{"scroll_home", (void *)key_tasklist_scroll_home, 0, MODE_TASKLIST},
+	{"scroll_up",   (void *)key_tasklist_scroll_up,   0, MODE_TASKLIST},
+	{"scroll_up",   (void *)key_pager_scroll_up,      0, MODE_PAGER},
+	{"reload",      (void *)key_tasklist_reload,      0, MODE_TASKLIST},
+	{"undo",        (void *)key_tasklist_undo,        0, MODE_TASKLIST},
+	{"add",         (void *)key_tasklist_add,         0, MODE_TASKLIST},
+	{"modify",      (void *)key_tasklist_modify,      0, MODE_TASKLIST},
+	{"sort",        (void *)key_tasklist_sort,        0, MODE_TASKLIST},
+	{"search",      (void *)key_tasklist_search,      0, MODE_TASKLIST},
+	{"search_next", (void *)key_tasklist_search_next, 0, MODE_TASKLIST},
+	{"filter",      (void *)key_tasklist_filter,      0, MODE_TASKLIST},
+	{"sync",        (void *)key_tasklist_sync,        0, MODE_TASKLIST},
+	{"quit",        (void *)key_done,                 0, MODE_TASKLIST},
+	{"command",     (void *)key_command,              0, MODE_TASKLIST},
+	{"stats",       (void *)view_stats,               0, MODE_TASKLIST},
+	{"help",        (void *)help_window,              0, MODE_TASKLIST},
+	{"view",        (void *)key_tasklist_view,        0, MODE_TASKLIST},
+	{"edit",        (void *)key_tasklist_edit,        0, MODE_TASKLIST},
+	{"complete",    (void *)key_tasklist_complete,    0, MODE_TASKLIST},
+	{"delete",      (void *)key_tasklist_delete,      0, MODE_TASKLIST},
+	{"set",         (void *)run_command_set,          1, MODE_TASKLIST},
+	{"show",        (void *)run_command_show,         1, MODE_TASKLIST},
+	{"bind",        (void *)run_command_bind,         1, MODE_TASKLIST},
+	{"unbind",      (void *)run_command_unbind,       1, MODE_TASKLIST},
 };
 /* }}} */
 
@@ -216,8 +219,10 @@ void configure(void) /* {{{ */
 	/* default keybinds */
 	add_keybind(ERR,           NULL,                     NULL,            MODE_TASKLIST);
 	add_keybind('k',           key_tasklist_scroll_up,   NULL,            MODE_TASKLIST);
+	add_keybind('k',           key_pager_scroll_up,      NULL,            MODE_PAGER);
 	add_keybind(KEY_UP,        key_tasklist_scroll_up,   NULL,            MODE_TASKLIST);
 	add_keybind('j',           key_tasklist_scroll_down, NULL,            MODE_TASKLIST);
+	add_keybind('j',           key_pager_scroll_down,    NULL,            MODE_PAGER);
 	add_keybind(KEY_DOWN,      key_tasklist_scroll_down, NULL,            MODE_TASKLIST);
 	add_keybind(KEY_HOME,      key_tasklist_scroll_home, NULL,            MODE_TASKLIST);
 	add_keybind('g',           key_tasklist_scroll_home, NULL,            MODE_TASKLIST);

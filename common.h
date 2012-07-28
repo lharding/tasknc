@@ -26,6 +26,15 @@ typedef enum {
 	VAR_INT
 } var_type;
 
+/* variable management */
+typedef struct _var
+{
+	char *name;
+	var_type type;
+	void *ptr;
+} var;
+
+/* task definition */
 typedef struct _task
 {
 	unsigned short index;
@@ -42,25 +51,20 @@ typedef struct _task
 	struct _task *next;
 } task;
 
-typedef struct _var
-{
-	char *name;
-	var_type type;
-	void *ptr;
-} var;
-
-typedef struct _funcmap
-{
-	char *name;
-	void (*function)();
-	int argn;
-} funcmap;
-
 /* program modes */
 typedef enum {
 	MODE_TASKLIST = 0,
 	MODE_PAGER
 } prog_mode;
+
+/* function maps */
+typedef struct _funcmap
+{
+	char *name;
+	void (*function)();
+	int argn;
+	prog_mode mode;
+} funcmap;
 
 /* log levels */
 typedef enum {
