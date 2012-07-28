@@ -14,6 +14,7 @@
 
 void key_tasklist_add();
 void key_tasklist_edit();
+void key_tasklist_complete();
 void key_tasklist_filter(const char *arg);
 void key_tasklist_modify(const char *arg);
 void key_tasklist_reload();
@@ -32,6 +33,7 @@ void key_tasklist_view();
 void tasklist_window();
 void tasklist_print_task(int tasknum, task *this);
 void tasklist_print_task_list();
+void tasklist_remove_task(task *);
 int tasklist_task_action(const task_action_type action);
 void tasklist_task_add();
 

@@ -96,7 +96,8 @@ funcmap funcmaps[] = {
 	{"stats",       (void *)view_stats,               0},
 	{"help",        (void *)help_window,              0},
 	{"view",        (void *)key_tasklist_view,        0},
-	{"edit",        (void *)key_tasklist_edit,        0}
+	{"edit",        (void *)key_tasklist_edit,        0},
+	{"complete",    (void *)key_tasklist_complete,    0}
 };
 /* }}} */
 
@@ -222,7 +223,7 @@ void configure(void) /* {{{ */
 	add_keybind('r',           key_tasklist_reload,      NULL,            MODE_TASKLIST);
 	add_keybind('u',           key_tasklist_undo,        NULL,            MODE_TASKLIST);
 	add_int_keybind('d',       key_tasklist_action,      ACTION_DELETE,   MODE_TASKLIST);
-	add_int_keybind('c',       key_tasklist_action,      ACTION_COMPLETE, MODE_TASKLIST);
+	add_keybind('c',           key_tasklist_complete,    NULL,            MODE_TASKLIST);
 	add_keybind('a',           key_tasklist_add,         NULL,            MODE_TASKLIST);
 	add_keybind('v',           key_tasklist_view,        NULL,            MODE_TASKLIST);
 	add_keybind(13,            key_tasklist_view,        NULL,            MODE_TASKLIST);
@@ -523,11 +524,9 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 	/* handle a key press on the main screen */
 	keybind *this_bind;
 	static const char *action_success_str[] = {
-		[ACTION_COMPLETE] = "task completed",
 		[ACTION_DELETE]   = "task deleted"
 	};
 	static const char *action_fail_str[] = {
-		[ACTION_COMPLETE] = "task complete failed",
 		[ACTION_DELETE]   = "task delete failed"
 	};
 

@@ -640,7 +640,7 @@ int task_background_command(const char *cmdfmt) /* {{{ */
 	cmd = popen(cmdstr, "r");
 	ret = pclose(cmd);
 
-	return ret;
+	return WEXITSTATUS(ret);
 } /* }}} */
 
 void task_count() /* {{{ */

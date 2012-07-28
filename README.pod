@@ -315,6 +315,10 @@ For task formats, the following variables are available:
 
 =item
 
+=item B<complete> marks task as complete
+
+=item
+
 =item B<edit> opens task for editing
 
 =item
@@ -324,10 +328,6 @@ For task formats, the following variables are available:
 =over 4
 
 =item I<delete>
-
-=item I<complete>
-
-=item I<info>
 
 =item
 

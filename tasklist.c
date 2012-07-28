@@ -30,6 +30,23 @@ void key_tasklist_add() /* {{{ */
 	statusbar_message(cfg.statusbar_timeout, "task added");
 } /* }}} */
 
+void key_tasklist_complete() /* {{{ */
+{
+	/* complete selected task */
+	task *cur = get_task_by_position(selline);
+	int ret;
+
+	statusbar_message(cfg.statusbar_timeout, "completing task");
+
+	ret = task_background_command("task %s complete");
+	tasklist_remove_task(cur);
+
+	if (ret)
+		statusbar_message(cfg.statusbar_timeout, "complete failed");
+	else
+		statusbar_message(cfg.statusbar_timeout, "complete successful");
+} /* }}} */
+
 void key_tasklist_edit() /* {{{ */
 {
 	/* edit selected task */
@@ -299,8 +316,6 @@ void key_tasklist_action(const task_action_type action, const char *msg_success,
 	/* handle a keyboard direction to run a task command */
 	int ret;
 
-	if (action!=ACTION_COMPLETE && action!=ACTION_DELETE)
-		reload = 1;
 	ret = tasklist_task_action(action);
 	wnoutrefresh(header);
 	wnoutrefresh(tasklist);
@@ -512,13 +527,26 @@ void tasklist_print_task_list() /* {{{ */
 		wipe_screen(tasklist, counter-pageoffset, rows-2);
 } /* }}} */
 
+void tasklist_remove_task(task *this) /* {{{ */
+{
+	/* remove a task from the task list without reloading */
+	if (this==head)
+		head = this->next;
+	else
+		this->prev->next = this->next;
+	if (this->next!=NULL)
+		this->next->prev = this->prev;
+	free_task(this);
+	taskcount--;
+	redraw = 1;
+} /* }}} */
+
 int tasklist_task_action(const task_action_type action) /* {{{ */
 {
 	/* spawn a command to perform an action on a task */
 	task *cur;
 	static const char *str_for_action[] = {
-		[ACTION_COMPLETE] = "done",
-		[ACTION_DELETE]   = "del",
+		[ACTION_DELETE]   = "del"
 	};
 	const char *actionstr = str_for_action[(int)action];
 	char *cmd, *redir;
@@ -561,18 +589,8 @@ int tasklist_task_action(const task_action_type action) /* {{{ */
 	free(cmd);
 
 	/* remove from task list if command was successful */
-	if (ret==0 && (action==ACTION_DELETE || action==ACTION_COMPLETE))
-	{
-		if (cur==head)
-			head = cur->next;
-		else
-			cur->prev->next = cur->next;
-		if (cur->next!=NULL)
-			cur->next->prev = cur->prev;
-		free_task(cur);
-		taskcount--;
-		redraw = 1;
-	}
+	if (ret==0)
+		tasklist_remove_task(cur);
 
 	return ret;
 } /* }}} */
