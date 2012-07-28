@@ -535,7 +535,8 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 	{
 		if (this_bind->mode == mode && c == this_bind->key)
 		{
-			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p", this_bind->function);
+			if (this_bind->function != NULL)
+				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p %s", this_bind->function, name_function(this_bind->function));
 			if (this_bind->function != NULL)
 				(*(this_bind->function))(this_bind->argstr);
 			break;
