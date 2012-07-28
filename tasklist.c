@@ -38,7 +38,7 @@ void key_tasklist_complete() /* {{{ */
 
 	statusbar_message(cfg.statusbar_timeout, "completing task");
 
-	ret = task_background_command("task %s complete");
+	ret = task_background_command("task %s done");
 	tasklist_remove_task(cur);
 
 	if (ret)

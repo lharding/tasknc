@@ -635,6 +635,7 @@ int task_background_command(const char *cmdfmt) /* {{{ */
 	/* build command */
 	cur = get_task_by_position(selline);
 	asprintf(&cmdstr, cmdfmt, cur->uuid);
+	tnc_fprintf(logfp, LOG_DEBUG, "running command: %s", cmdstr);
 
 	/* run command in background */
 	cmd = popen(cmdstr, "r");
@@ -666,6 +667,7 @@ int task_interactive_command(const char *cmdfmt) /* {{{ */
 	/* build command */
 	cur = get_task_by_position(selline);
 	asprintf(&cmdstr, cmdfmt, cur->uuid);
+	tnc_fprintf(logfp, LOG_DEBUG, "running command: %s", cmdstr);
 
 	/* exit window */
 	def_prog_mode();
