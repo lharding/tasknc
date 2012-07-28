@@ -21,6 +21,7 @@ typedef struct _line
 
 void free_lines(line *);
 void help_window();
+void key_pager_close();
 void key_pager_scroll_down();
 void key_pager_scroll_up();
 void pager_command(const char *, const char *, const bool, const int, const int);

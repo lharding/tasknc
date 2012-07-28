@@ -68,6 +68,11 @@ void help_window() /* {{{ */
 	pager_window(head, 1, -1, "help");
 } /* }}} */
 
+void key_pager_close() /* {{{ */
+{
+	pager_done = 1;
+} /* }}} */
+
 void key_pager_scroll_up() /* {{{ */
 {
 	if (offset>0)
@@ -195,8 +200,7 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 		c = wgetch(statusbar);
 		handle_keypress(c, MODE_PAGER);
 
-		/* TODO: make below a bound function */
-		if (c == 'q')
+		if (pager_done)
 			break;
 	}
 

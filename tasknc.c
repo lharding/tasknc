@@ -94,6 +94,7 @@ funcmap funcmaps[] = {
 	{"filter",      (void *)key_tasklist_filter,      0, MODE_TASKLIST},
 	{"sync",        (void *)key_tasklist_sync,        0, MODE_TASKLIST},
 	{"quit",        (void *)key_done,                 0, MODE_TASKLIST},
+	{"quit",        (void *)key_pager_close,          0, MODE_PAGER},
 	{"command",     (void *)key_command,              0, MODE_TASKLIST},
 	{"stats",       (void *)view_stats,               0, MODE_TASKLIST},
 	{"help",        (void *)help_window,              0, MODE_TASKLIST},
@@ -244,6 +245,7 @@ void configure(void) /* {{{ */
 	add_keybind('f',           key_tasklist_filter,      NULL,            MODE_TASKLIST);
 	add_keybind('y',           key_tasklist_sync,        NULL,            MODE_TASKLIST);
 	add_keybind('q',           key_done,                 NULL,            MODE_TASKLIST);
+	add_keybind('q',           key_pager_close,          NULL,            MODE_PAGER);
 	add_keybind(';',           key_command,              NULL,            MODE_TASKLIST);
 	add_keybind(':',           key_command,              NULL,            MODE_TASKLIST);
 	add_keybind('h',           help_window,              NULL,            MODE_TASKLIST);
