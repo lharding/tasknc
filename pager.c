@@ -53,7 +53,10 @@ void help_window() /* {{{ */
 	{
 		cur = calloc(1, sizeof(line));
 		last->next = cur;
-		asprintf(&(cur->str), "%2c\t(%3d)\t%s", this->key, this->key, name_function(this->function));
+		if (this->argstr == NULL)
+			asprintf(&(cur->str), "%2c\t%3d\t%s", this->key, this->key, name_function(this->function));
+		else
+			asprintf(&(cur->str), "%2c\t%3d\t%s %s", this->key, this->key, name_function(this->function), this->argstr);
 		this = this->next;
 		last = cur;
 	}
