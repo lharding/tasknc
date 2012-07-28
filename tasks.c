@@ -169,9 +169,9 @@ task *get_tasks(char *uuid) /* {{{ */
 	/* generate & run command */
 	cmdstr = calloc(128, sizeof(char));
 	if (cfg.version[0]<'2')
-		strcat(cmdstr, "task export.json status:pending");
+		strcat(cmdstr, "task export.json");
 	else
-		strcat(cmdstr, "task export status:pending");
+		strcat(cmdstr, "task export");
 	if (active_filter!=NULL)
 	{
 		strcat(cmdstr, " ");

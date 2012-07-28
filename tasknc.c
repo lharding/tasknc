@@ -189,6 +189,10 @@ void configure(void) /* {{{ */
 	cfg.formats.view = calloc(64, sizeof(char));
 	strcpy(cfg.formats.view, " task info");
 
+	/* set initial filter */
+	active_filter = calloc(32, sizeof(char));
+	strcpy(active_filter, "status:pending");
+
 	/* get task version */
 	cmd = popen("task version rc._forcecolor=no", "r");
 	while (fgets(line, sizeof(line)-1, cmd) != NULL)
@@ -697,13 +701,10 @@ void print_header() /* {{{ */
 {
 	/* print the window title bar */
 	char *tmp0;
-	int x;
 
 	/* wipe bar and print bg color */
 	wmove(header, 0, 0);
 	wattrset(header, COLOR_PAIR(1));
-	for (x=0; x<cols; x++)
-		mvwaddch(header, 0, x, ' ');
 
 	/* evaluate title string */
 	tmp0 = (char *)eval_string(2*cols, cfg.formats.title, NULL, NULL, 0);
@@ -1021,6 +1022,9 @@ int umvaddstr_align(WINDOW *win, const int y, char *str) /* {{{ */
 	/* evaluate an aligned string */
 	char *right, *pos;
 	int ret, tmp;
+
+	/* print background line */
+	mvwhline(win, y, 0, ' ', cols);
 
 	/* find break */
 	pos = strstr(str, "$>");
