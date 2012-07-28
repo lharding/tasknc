@@ -58,7 +58,7 @@ WINDOW *statusbar = NULL;
 
 /* user-exposed variables & functions {{{ */
 var vars[] = {
-	{"nc_timeout",   VAR_INT,  &(cfg.nc_timeout)},
+	{"nc_timeout",        VAR_INT,  &(cfg.nc_timeout)},
 	{"statusbar_timeout", VAR_INT,  &(cfg.statusbar_timeout)},
 	{"log_level",         VAR_INT,  &(cfg.loglvl)},
 	{"task_version",      VAR_STR,  &(cfg.version)},
@@ -97,7 +97,11 @@ funcmap funcmaps[] = {
 	{"view",        (void *)key_tasklist_view,        0},
 	{"edit",        (void *)key_tasklist_edit,        0},
 	{"complete",    (void *)key_tasklist_complete,    0},
-	{"delete",      (void *)key_tasklist_delete,      0}
+	{"delete",      (void *)key_tasklist_delete,      0},
+	{"set",         (void *)run_command_set,          1},
+	{"show",        (void *)run_command_show,         1},
+	{"bind",        (void *)run_command_bind,         1},
+	{"unbind",      (void *)run_command_unbind,       1},
 };
 /* }}} */
 
@@ -455,6 +459,7 @@ void handle_command(char *cmdstr) /* {{{ */
 	/* accept a command string, determine what action to take, and execute */
 	char *pos, *args = NULL;
 	cmdstr = str_trim(cmdstr);
+	funcmap *fmap;
 
 	tnc_fprintf(logfp, LOG_DEBUG, "command received: %s", cmdstr);
 
@@ -468,7 +473,18 @@ void handle_command(char *cmdstr) /* {{{ */
 		args = ++pos;
 	}
 
+	/* log command */
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: %s", cmdstr);
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: [args] %s", args);
+
 	/* handle command & arguments */
+	/* try for exposed command */
+	fmap = find_function(cmdstr);
+	if (fmap!=NULL)
+	{
+		(fmap->function)(str_trim(args));
+		return;
+	}
 	/* version: print version string */
 	if (str_eq(cmdstr, "version"))
 		statusbar_message(cfg.statusbar_timeout, "%s %s by %s\n", progname, progversion, progauthor);
@@ -484,12 +500,6 @@ void handle_command(char *cmdstr) /* {{{ */
 	/* redraw: force redraw of screen */
 	else if (str_eq(cmdstr, "redraw"))
 		redraw = 1;
-	/* show: print a variable's value */
-	else if (str_eq(cmdstr, "show"))
-		run_command_show(str_trim(args));
-	/* set: set a variable's value */
-	else if (str_eq(cmdstr, "set"))
-		run_command_set(str_trim(args));
 	/* dump: write all displayed tasks to log file */
 	else if (str_eq(cmdstr, "dump"))
 	{
@@ -503,20 +513,11 @@ void handle_command(char *cmdstr) /* {{{ */
 			this = this->next;
 		}
 	}
-	/* bind: add a new keybind */
-	else if (str_eq(cmdstr, "bind"))
-		run_command_bind(str_trim(args));
-	/* unbind: remove keybinds */
-	else if (str_eq(cmdstr, "unbind"))
-		run_command_unbind(str_trim(args));
 	else
 	{
 		statusbar_message(cfg.statusbar_timeout, "error: command %s not found", cmdstr);
 		tnc_fprintf(logfp, LOG_ERROR, "error: command %s not found", cmdstr);
 	}
-
-	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: %s", cmdstr);
-	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: [args] %s", args);
 } /* }}} */
 
 void handle_keypress(const int c, const prog_mode mode) /* {{{ */
