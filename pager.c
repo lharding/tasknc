@@ -202,6 +202,8 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 
 		if (pager_done)
 			break;
+
+		statusbar_timeout();
 	}
 
 	/* destroy window and force redraw of tasklist */

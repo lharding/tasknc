@@ -957,6 +957,16 @@ void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 		wnoutrefresh(statusbar);
 } /* }}} */
 
+void statusbar_timeout() /* {{{ */
+{
+	/* timeout statusbar */
+	if (sb_timeout>0 && sb_timeout<time(NULL))
+	{
+		sb_timeout = 0;
+		wipe_statusbar();
+	}
+} /* }}} */
+
 char *str_trim(char *str) /* {{{ */
 {
 	/* remove trailing and leading spaces from a string in place

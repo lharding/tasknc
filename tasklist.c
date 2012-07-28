@@ -460,12 +460,8 @@ void tasklist_window() /* {{{ */
 			wnoutrefresh(statusbar);
 			doupdate();
 		}
-		/* timeout statusbar */
-		if (sb_timeout>0 && sb_timeout<time(NULL))
-		{
-			sb_timeout = 0;
-			wipe_statusbar();
-		}
+
+		statusbar_timeout();
 	}
 } /* }}} */
 
