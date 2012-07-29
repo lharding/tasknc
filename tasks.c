@@ -698,7 +698,6 @@ void task_modify(const char *argstr) /* {{{ */
 	/* run a modify command on the selected task */
 	task *cur;
 	char *cmd;
-	FILE *run;
 	int arglen;
 
 	if (argstr!=NULL)
@@ -709,14 +708,15 @@ void task_modify(const char *argstr) /* {{{ */
 	cur = get_task_by_position(selline);
 	cmd = calloc(64+arglen, sizeof(char));
 
-	sprintf(cmd, "task %s modify ", cur->uuid);
+	strcpy(cmd, "task %s modify ");
 	if (arglen>0)
 		strcat(cmd, argstr);
 
-	run = popen(cmd, "r");
-	pclose(run);
+	task_background_command(cmd);
 
 	reload_task(cur);
 
 	free(cmd);
+
+	redraw = 1;
 } /* }}} */
