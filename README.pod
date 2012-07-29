@@ -131,7 +131,7 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =over 4
 
-=item B<bind> I<key> I<function> I<args> assign I<function> to run every time a I<key> is pressed.  Defining I<key>s is described in the KEYS section.  I<function>s are listed below in the FUNCTIONS section.
+=item B<bind> I<mode> I<key> I<function> I<args> assign I<function> to run every time a I<key> is pressed in I<mode>.  Defining I<key>s is described in the KEYS section.  I<function>s are listed below in the FUNCTIONS section.
 
 =item
 
@@ -155,7 +155,7 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
-=item B<unbind> will remove all keybindings from a specific key.
+=item B<unbind> I<mode> will remove all keybindings from a specific key in I<mode>.
 
 =item
 
@@ -290,6 +290,20 @@ For task formats, the following variables are available:
 =item
 
 =item B<project>
+
+=item
+
+=back
+
+=head1 MODES
+
+=over 4
+
+=item B<tasklist>
+
+=item
+
+=item B<pager>
 
 =item
 

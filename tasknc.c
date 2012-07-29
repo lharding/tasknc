@@ -724,19 +724,36 @@ void run_command_bind(char *args) /* {{{ */
 {
 	/* create a new keybind */
 	int key;
-	char *function, *arg, *keystr, *aarg;
+	char *function, *arg, *keystr, *modestr, *aarg;
 	void (*func)();
 	funcmap *fmap;
+	prog_mode mode;
 
 	/* make sure an argument was passed */
 	if (args==NULL)
 	{
-		tnc_fprintf(logfp, LOG_ERROR, "bind: key must be specified (%s)", args);
+		tnc_fprintf(logfp, LOG_ERROR, "bind: mode must be specified (%s)", args);
 		return;
 	}
 
+	/* split off mode */
+	modestr = args;
+	keystr = strchr(args, ' ');
+	if (keystr==NULL)
+	{
+		tnc_fprintf(logfp, LOG_ERROR, "bind: key must be specified (%s)", args);
+		return;
+	}
+	(*keystr) = 0;
+	keystr++;
+
+	/* parse mode string */
+	if (str_eq(modestr, "tasklist"))
+		mode = MODE_TASKLIST;
+	else if (str_eq(modestr, "pager"))
+		mode = MODE_PAGER;
+
 	/* split off key */
-	keystr = args;
 	function = strchr(keystr, ' ');
 	if (function==NULL)
 	{
@@ -783,14 +800,33 @@ void run_command_bind(char *args) /* {{{ */
 		aarg = NULL;
 
 	/* add keybind */
-	add_keybind(key, func, aarg, MODE_TASKLIST);
+	add_keybind(key, func, aarg, mode);
 	statusbar_message(cfg.statusbar_timeout, "key bound");
 } /* }}} */
 
-void run_command_unbind(char *keystr) /* {{{ */
+void run_command_unbind(char *argstr) /* {{{ */
 {
 	/* handle a keyboard instruction to unbind a key */
-	const int key = parse_key(keystr);
+	char *modestr, *keystr;
+
+	/* split strings */
+	modestr = argstr;
+	if (modestr==NULL)
+	{
+		statusbar_message(cfg.statusbar_timeout, "unbind: mode required");
+		return;
+	}
+
+	keystr = strchr(argstr, ' ');
+	if (keystr==NULL)
+	{
+		statusbar_message(cfg.statusbar_timeout, "unbind: key required");
+		return;
+	}
+	(*keystr) = 0;
+	keystr++;
+
+	int key = parse_key(keystr);
 
 	remove_keybinds(key);
 	statusbar_message(cfg.statusbar_timeout, "key unbound: %c (%d)", key, key);
