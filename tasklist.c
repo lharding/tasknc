@@ -548,17 +548,11 @@ void tasklist_task_add(void) /* {{{ */
 	free(cmd);
 
 	/* edit task */
-	def_prog_mode();
 	cmd = malloc(128*sizeof(char));
 	if (cfg.version[0]<'2')
 		sprintf(cmd, "task edit %d", tasknum);
 	else
 		sprintf(cmd, "task %d edit", tasknum);
-	endwin();
-	system(cmd);
+	task_interactive_command(cmd);
 	free(cmd);
-	reset_prog_mode();
-	wnoutrefresh(tasklist);
-	wnoutrefresh(header);
-	wnoutrefresh(statusbar);
 } /* }}} */
