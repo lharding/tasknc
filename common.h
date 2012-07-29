@@ -54,7 +54,8 @@ typedef struct _task
 /* program modes */
 typedef enum {
 	MODE_TASKLIST = 0,
-	MODE_PAGER
+	MODE_PAGER,
+	MODE_ANY
 } prog_mode;
 
 /* function maps */

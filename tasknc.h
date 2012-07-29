@@ -27,7 +27,7 @@ void check_screen_size();
 void cleanup();
 void configure(void);
 const char *eval_string(const int, const char *, const task *, char *, int);
-funcmap *find_function(const char *);
+funcmap *find_function(const char *, const prog_mode);
 void find_next_search_result(task *, task *);
 var *find_var(const char *);
 void handle_command(char *);

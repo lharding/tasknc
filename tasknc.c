@@ -398,14 +398,14 @@ const char *eval_string(const int maxlen, const char *fmt, const task *this, cha
 	return eval_string(maxlen, ++fmt, this, str, ++position);
 } /* }}} */
 
-funcmap *find_function(const char *name) /* {{{ */
+funcmap *find_function(const char *name, const prog_mode mode) /* {{{ */
 {
 	/* search through the function maps */
 	int i;
 
 	for (i=0; i<NFUNCS; i++)
 	{
-		if (str_eq(name, funcmaps[i].name))
+		if (str_eq(name, funcmaps[i].name) && (mode == funcmaps[i].mode || mode == MODE_ANY))
 			return &(funcmaps[i]);
 	}
 
@@ -487,7 +487,7 @@ void handle_command(char *cmdstr) /* {{{ */
 
 	/* handle command & arguments */
 	/* try for exposed command */
-	fmap = find_function(cmdstr);
+	fmap = find_function(cmdstr, MODE_ANY);
 	if (fmap!=NULL)
 	{
 		(fmap->function)(str_trim(args));
@@ -775,7 +775,7 @@ void run_command_bind(char *args) /* {{{ */
 	}
 
 	/* map function to function call */
-	fmap = find_function(function);
+	fmap = find_function(function, mode);
 	if (fmap==NULL)
 	{
 		tnc_fprintf(logfp, LOG_ERROR, "bind: invalid function specified (%s)", args);
