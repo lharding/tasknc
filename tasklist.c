@@ -302,24 +302,10 @@ void key_tasklist_sync() /* {{{ */
 	/* handle a keyboard direction to sync */
 	int ret;
 
-	if (cfg.silent_shell == '1')
-	{
-		statusbar_message(cfg.statusbar_timeout, "synchronizing tasks...");
-		ret = system("yes n | task merge 2&> /dev/null");
-		if (ret==0)
-			ret = system("task push 2&> /dev/null");
-	}
-	else
-	{
-		def_prog_mode();
-		endwin();
-		ret = system("yes n | task merge");
-		if (ret==0)
-			ret = system("task push");
-	}
-	wnoutrefresh(tasklist);
-	wnoutrefresh(statusbar);
-	wnoutrefresh(header);
+	statusbar_message(cfg.statusbar_timeout, "synchronizing tasks...");
+
+	ret = task_interactive_command("yes n | task merge && task push");
+
 	if (ret==0)
 	{
 		statusbar_message(cfg.statusbar_timeout, "tasks synchronized");
