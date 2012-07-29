@@ -31,6 +31,7 @@ void add_keybind(const int key, void *function, char *arg, const prog_mode mode)
 	/* add a keybind to the list of binds */
 	keybind *this_bind, *new;
 	int n = 0;
+	char *modestr;
 
 	/* create new bind */
 	new = calloc(1, sizeof(keybind));
@@ -55,7 +56,13 @@ void add_keybind(const int key, void *function, char *arg, const prog_mode mode)
 	}
 
 	/* write log */
-	tnc_fprintf(logfp, LOG_DEBUG, "bind #%d: key %c (%d) bound to @%p (args: %d/%s)", n, key, key, function,new->argint, new->argstr);
+	if (mode == MODE_PAGER)
+		modestr = "pager - ";
+	else if (mode == MODE_TASKLIST)
+		modestr = "tasklist - ";
+	else
+		modestr = " ";
+	tnc_fprintf(logfp, LOG_DEBUG, "bind #%d: key %c (%d) bound to @%p %s%s(args: %d/%s)", n, key, key, function, modestr, name_function(function), new->argint, new->argstr);
 } /* }}} */
 
 int parse_key(const char *keystr) /* {{{ */

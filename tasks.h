@@ -21,6 +21,7 @@ task *malloc_task(void);
 task *parse_task(char *);
 void reload_task(task *);
 void reload_tasks();
+void remove_char(char *, char);
 void sort_wrapper(task *);
 int task_background_command(const char *);
 void task_count();

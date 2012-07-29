@@ -20,7 +20,6 @@
 
 /* local function declarations {{{ */
 static char compare_tasks(const task *, const task *, const char);
-static void remove_char(char *, char);
 static void sort_tasks(task *, task *);
 static void swap_tasks(task *, task*);
 /* }}} */
@@ -209,6 +208,7 @@ task *get_tasks(char *uuid) /* {{{ */
 
 		/* remove escapes */
 		remove_char(line, '\\');
+		remove_char(line, '\n');
 
 		/* log line */
 		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, line);
@@ -717,6 +717,4 @@ void task_modify(const char *argstr) /* {{{ */
 	reload_task(cur);
 
 	free(cmd);
-
-	redraw = 1;
 } /* }}} */

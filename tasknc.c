@@ -532,6 +532,7 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 {
 	/* handle a key press on the main screen */
 	keybind *this_bind;
+	char *modestr;
 
 	this_bind = keybinds;
 	while (this_bind!=NULL)
@@ -539,9 +540,16 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 		if (this_bind->mode == mode && c == this_bind->key)
 		{
 			if (this_bind->function != NULL)
-				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p %s", this_bind->function, name_function(this_bind->function));
-			if (this_bind->function != NULL)
+			{
+				if (this_bind->mode == MODE_PAGER)
+					modestr = "pager - ";
+				else if (this_bind->mode == MODE_TASKLIST)
+					modestr = "tasklist - ";
+				else
+					modestr = " ";
+				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p %s%s", this_bind->function, modestr, name_function(this_bind->function));
 				(*(this_bind->function))(this_bind->argstr);
+			}
 			break;
 		}
 		this_bind = this_bind->next;
@@ -746,6 +754,7 @@ void run_command_bind(char *args) /* {{{ */
 	}
 	(*keystr) = 0;
 	keystr++;
+	keystr = str_trim(keystr);
 
 	/* parse mode string */
 	if (str_eq(modestr, "tasklist"))
@@ -762,6 +771,7 @@ void run_command_bind(char *args) /* {{{ */
 	}
 	(*function) = 0;
 	function++;
+	str_trim(function);
 
 	/* parse key */
 	key = parse_key(keystr);
@@ -800,7 +810,7 @@ void run_command_bind(char *args) /* {{{ */
 		aarg = NULL;
 
 	/* add keybind */
-	add_keybind(key, func, aarg, mode);
+	add_keybind(key, func, str_trim(aarg), mode);
 	statusbar_message(cfg.statusbar_timeout, "key bound");
 } /* }}} */
 
@@ -1014,15 +1024,15 @@ char *str_trim(char *str) /* {{{ */
 		return NULL;
 
 	/* leading */
-	while ((*str)==' ')
+	while (*str==' ' || *str=='\n' || *str=='\t')
 		str++;
 
 	/* trailing */
 	pos = str;
 	while ((*pos)!=0)
 		pos++;
-	while (*(--pos)==' ')
-		(*pos) = 0;
+	while (*(pos-1)==' ' || *(pos-1)=='\n' || *(pos-1)=='\t')
+		*(pos-1) = 0;
 
 	return str;
 } /* }}} */

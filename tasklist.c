@@ -192,6 +192,7 @@ void key_tasklist_scroll(const int direction) /* {{{ */
 		tasklist_print_task(selline, NULL);
 	}
 	print_header();
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "selline:%d offset:%d tasks:%d", selline, pageoffset, taskcount);
 } /* }}} */
 
 void key_tasklist_scroll_down() /* {{{ */
@@ -430,6 +431,9 @@ void tasklist_window() /* {{{ */
 			print_header();
 			tasklist_print_task_list();
 			check_curs_pos();
+			touchwin(tasklist);
+			touchwin(header);
+			touchwin(statusbar);
 			wnoutrefresh(tasklist);
 			wnoutrefresh(header);
 			wnoutrefresh(statusbar);
