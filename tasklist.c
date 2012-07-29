@@ -334,20 +334,8 @@ void key_tasklist_undo() /* {{{ */
 	/* handle a keyboard direction to run an undo */
 	int ret;
 
-	if (cfg.silent_shell=='1')
-	{
-		statusbar_message(cfg.statusbar_timeout, "running task undo...");
-		ret = system("task undo > /dev/null");
-	}
-	else
-	{
-		def_prog_mode();
-		endwin();
-		ret = system("task undo");
-	}
-	wnoutrefresh(header);
-	wnoutrefresh(tasklist);
-	wnoutrefresh(statusbar);
+	ret = task_background_command("task undo");
+
 	if (ret==0)
 	{
 		statusbar_message(cfg.statusbar_timeout, "undo executed");
