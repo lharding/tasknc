@@ -406,6 +406,7 @@ void tasklist_window() /* {{{ */
 		/* reload task list */
 		if (reload==1)
 		{
+			pageoffset = 0;
 			wipe_tasklist();
 			reload_tasks();
 			task_count();
