@@ -810,7 +810,7 @@ void run_command_bind(char *args) /* {{{ */
 
 	/* add keybind */
 	add_keybind(key, func, str_trim(aarg), mode);
-	statusbar_message(cfg.statusbar_timeout, "key bound");
+	statusbar_message(cfg.statusbar_timeout, "key %c (%d) bound to %s - %s", key, key, modestr, name_function(func));
 } /* }}} */
 
 void run_command_unbind(char *argstr) /* {{{ */
