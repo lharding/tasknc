@@ -651,7 +651,7 @@ void ncurses_colors(void) /* {{{ */
 		use_default_colors();
 		init_pair(1, COLOR_BLUE,        COLOR_BLACK);   /* title bar */
 		init_pair(2, COLOR_WHITE,       -1);            /* default task */
-		init_pair(3, COLOR_CYAN,        -1);            /* selected task */
+		init_pair(3, COLOR_CYAN,        COLOR_BLACK);   /* selected task */
 		init_pair(8, COLOR_RED,         -1);            /* error message */
 	}
 } /* }}} */
