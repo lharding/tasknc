@@ -10,7 +10,6 @@
 #include <curses.h>
 #include <getopt.h>
 #include <locale.h>
-#include <panel.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>

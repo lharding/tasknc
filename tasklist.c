@@ -159,6 +159,8 @@ void key_tasklist_scroll(const int direction) /* {{{ */
 				if (selline<pageoffset)
 					pageoffset--;
 			}
+			else
+				statusbar_message(cfg.statusbar_timeout, "already at top");
 			break;
 		case 'd':
 			/* scroll one down */
@@ -168,6 +170,8 @@ void key_tasklist_scroll(const int direction) /* {{{ */
 				if (selline>=pageoffset+rows-2)
 					pageoffset++;
 			}
+			else
+				statusbar_message(cfg.statusbar_timeout, "already at bottom");
 			break;
 		case 'h':
 			/* go to first entry */
