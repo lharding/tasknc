@@ -334,6 +334,8 @@ void key_tasklist_undo() /* {{{ */
 	}
 	else
 		statusbar_message(cfg.statusbar_timeout, "undo execution failed (%d)", ret);
+
+	tasklist_check_curs_pos();
 } /* }}} */
 
 void key_tasklist_view() /* {{{ */
@@ -433,11 +435,11 @@ void tasklist_window() /* {{{ */
 		/* reload task list */
 		if (reload==1)
 		{
-			pageoffset = 0;
 			wipe_tasklist();
 			reload_tasks();
 			task_count();
 			redraw = 1;
+			tasklist_check_curs_pos();
 		}
 		/* resize windows */
 		if (resize==1)
