@@ -146,11 +146,16 @@ void cleanup() /* {{{ */
 		free(searchstring);
 	free_tasks(head);
 	free(cfg.version);
+	free(cfg.formats.task);
+	free(cfg.formats.title);
+	free(cfg.formats.view);
+	free(active_filter);
 	while (keybinds!=NULL)
 	{
 		lastbind = keybinds;
 		keybinds = keybinds->next;
 		free(lastbind);
+		check_free(lastbind->argstr);
 	}
 
 	/* close open files */
@@ -172,16 +177,12 @@ void configure(void) /* {{{ */
 	cfg.silent_shell = 0;                                   /* determine whether shell commands should be visible */
 
 	/* set default formats */
-	cfg.formats.title = calloc(64, sizeof(char));
-	strcpy(cfg.formats.title, " $program_name ($selected_line/$task_count) $> $date");
-	cfg.formats.task = calloc(64, sizeof(char));
-	strcpy(cfg.formats.task, " $project $description $> $due");
-	cfg.formats.view = calloc(64, sizeof(char));
-	strcpy(cfg.formats.view, " task info");
+	cfg.formats.title = strdup(" $program_name ($selected_line/$task_count) $> $date");
+	cfg.formats.task = strdup(" $project $description $> $due");
+	cfg.formats.view = strdup(" task info");
 
 	/* set initial filter */
-	active_filter = calloc(32, sizeof(char));
-	strcpy(active_filter, "status:pending");
+	active_filter = strdup("status:pending");
 
 	/* get task version */
 	cmd = popen("task version rc._forcecolor=no", "r");
@@ -364,6 +365,7 @@ const char *eval_string(const int maxlen, const char *fmt, const task *this, cha
 			field = var_value_message(&(vars[i]), 0);
 			fieldwidth = strlen(field);
 			var = vars[i].name;
+			free_field = 1;
 			break;
 		}
 	}
@@ -388,12 +390,13 @@ const char *eval_string(const int maxlen, const char *fmt, const task *this, cha
 		for (i=fieldlen; i<fieldwidth; i++)
 			*(str+position+i) = ' ';
 		*(str+position+fieldwidth) = 0;
+
+		/* free field */
+		if (free_field)
+			free(field);
+
 		return eval_string(maxlen, fmt+varlen+1, this, str, position+fieldwidth);
 	}
-
-	/* free field */
-	if (free_field)
-		free(field);
 
 	/* print uninterpreted */
 	str[position] = *fmt;
@@ -619,11 +622,7 @@ void key_command(const char *arg) /* {{{ */
 		set_curses_mode(NCURSES_MODE_STD);
 	}
 	else
-	{
-		const int arglen = (int)strlen(arg);
-		cmdstr = calloc(arglen, sizeof(char));
-		strncpy(cmdstr, arg, arglen);
-	}
+		cmdstr = strdup(arg);
 
 	/* run input command */
 	if (cmdstr[0]!=0)
@@ -789,6 +788,11 @@ void run_command_bind(char *args) /* {{{ */
 		mode = MODE_TASKLIST;
 	else if (str_eq(modestr, "pager"))
 		mode = MODE_PAGER;
+	else
+	{
+		tnc_fprintf(logfp, LOG_ERROR, "bind: invalid mode (%s)", modestr);
+		return;
+	}
 
 	/* split off key */
 	function = strchr(keystr, ' ');
@@ -830,10 +834,7 @@ void run_command_bind(char *args) /* {{{ */
 
 	/* copy argument if necessary */
 	if (arg!=NULL)
-	{
-		aarg = calloc((int)strlen(arg), sizeof(char));
-		strcpy(aarg, arg);
-	}
+		aarg = strdup(arg);
 	else
 		aarg = NULL;
 
@@ -842,6 +843,7 @@ void run_command_bind(char *args) /* {{{ */
 	keyname = name_key(key);
 	statusbar_message(cfg.statusbar_timeout, "key %s (%d) bound to %s - %s", keyname, key, modestr, name_function(func));
 	free(keyname);
+	free(aarg);
 } /* }}} */
 
 void run_command_unbind(char *argstr) /* {{{ */
@@ -1058,6 +1060,8 @@ char *str_trim(char *str) /* {{{ */
 	/* leading */
 	while (*str==' ' || *str=='\n' || *str=='\t')
 		str++;
+	if (*str == 0)
+		return NULL;
 
 	/* trailing */
 	pos = str;
@@ -1132,6 +1136,7 @@ int umvaddstr_align(WINDOW *win, const int y, char *str) /* {{{ */
 
 	/* print strings */
 	tmp = umvaddstr(win, y, 0, str);
+	ret = tmp;
 	if (right != NULL)
 		ret = umvaddstr(win, y, cols-strlen(right), right);
 	if (tmp > ret)
@@ -1279,8 +1284,7 @@ int main(int argc, char **argv) /* {{{ */
 				debug = 1;
 				break;
 			case 'f':
-				active_filter = malloc(strlen(optarg)*sizeof(char));
-				strcpy(active_filter, optarg);
+				active_filter = strdup(optarg);
 				break;
 			case 'h':
 			case '?':

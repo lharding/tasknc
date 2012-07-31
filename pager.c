@@ -50,7 +50,7 @@ void help_window() /* {{{ */
 	char *modestr, *keyname;
 
 	head = calloc(1, sizeof(line));
-	head->str = "keybinds";
+	head->str = strdup("keybinds");
 
 	last = head;
 	this = keybinds;
@@ -75,6 +75,7 @@ void help_window() /* {{{ */
 	}
 
 	pager_window(head, 1, -1, " help");
+	free_lines(head);
 } /* }}} */
 
 void key_pager_close() /* {{{ */
@@ -121,14 +122,19 @@ void pager_command(const char *cmdstr, const char *title, const bool fullscreen,
 
 		if (count == head_skip)
 			head = cur;
-
-		if (last != NULL)
+		else if (count < head_skip)
+		{
+			free(cur->str);
+			free(cur);
+		}
+		else if (last != NULL)
 			last->next = cur;
 
-		str = malloc(256*sizeof(char));
+		str = calloc(256, sizeof(char));
 		count++;
 		last = cur;
 	}
+	free(str);
 	pclose(cmd);
 	count -= tail_skip;
 

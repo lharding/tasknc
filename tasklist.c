@@ -7,6 +7,7 @@
  */
 
 #define _XOPEN_SOURCE
+#define _BSD_SOURCE
 
 #include <curses.h>
 #include <signal.h>
@@ -17,6 +18,7 @@
 #include "common.h"
 #include "config.h"
 #include "log.h"
+#include "string.h"
 #include "tasklist.h"
 #include "tasknc.h"
 #include "tasks.h"
@@ -84,23 +86,18 @@ void key_tasklist_edit() /* {{{ */
 void key_tasklist_filter(const char *arg) /* {{{ */
 {
 	/* handle a keyboard direction to add a new filter */
+	check_free(active_filter);
 	if (arg==NULL)
 	{
 		statusbar_message(-1, "filter by: ");
 		set_curses_mode(NCURSES_MODE_STRING);
-		check_free(active_filter);
 		active_filter = calloc(2*cols, sizeof(char));
 		wgetstr(statusbar, active_filter);
 		wipe_statusbar();
 		set_curses_mode(NCURSES_MODE_STD);
 	}
 	else
-	{
-		const int arglen = (int)strlen(arg);
-		check_free(active_filter);
-		active_filter = calloc(arglen, sizeof(char));
-		strncpy(active_filter, arg, arglen);
-	}
+		active_filter = strdup(arg);
 
 	statusbar_message(cfg.statusbar_timeout, "filter applied");
 	selline = 0;
@@ -109,7 +106,7 @@ void key_tasklist_filter(const char *arg) /* {{{ */
 
 void key_tasklist_modify(const char *arg) /* {{{ */
 {
-	/* handle a keyboard direction to add a new filter */
+	/* handle a keyboard direction to modify a task */
 	char *argstr;
 
 	if (arg==NULL)
@@ -122,11 +119,7 @@ void key_tasklist_modify(const char *arg) /* {{{ */
 		set_curses_mode(NCURSES_MODE_STD);
 	}
 	else
-	{
-		const int arglen = (int)strlen(arg);
-		argstr = calloc(arglen+1, sizeof(char));
-		strncpy(argstr, arg, arglen);
-	}
+		argstr = strdup(arg);
 
 	task_modify(argstr);
 	free(argstr);
@@ -234,11 +227,7 @@ void key_tasklist_search(const char *arg) /* {{{ */
 		set_curses_mode(NCURSES_MODE_STD);
 	}
 	else
-	{
-		const int arglen = strlen(arg);
-		searchstring = calloc(arglen, sizeof(char));
-		strncpy(searchstring, arg, arglen);
-	}
+		searchstring = strdup(arg);
 
 	/* go to first result */
 	find_next_search_result(head, get_task_by_position(selline));

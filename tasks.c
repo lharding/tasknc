@@ -359,8 +359,7 @@ task *parse_task(char *line) /* {{{ */
 			(*divider) = '\0';
 		else /* handle commas */
 		{
-			tmpcontent = malloc((strlen(content)+1)*sizeof(char));
-			strcpy(tmpcontent, content);
+			tmpcontent = strdup(content);
 			do
 			{
 				token = strtok(NULL, ",");
@@ -378,20 +377,11 @@ task *parse_task(char *line) /* {{{ */
 
 		/* handle data */
 		if (str_eq(field, "uuid"))
-		{
-			tsk->uuid = malloc(UUIDLENGTH*sizeof(char));
-			strcpy(tsk->uuid, content);
-		}
+			tsk->uuid = strdup(content);
 		else if (str_eq(field, "project"))
-		{
-			tsk->project = malloc(PROJECTLENGTH*sizeof(char));
-			strcpy(tsk->project, content);
-		}
+			tsk->project = strdup(content);
 		else if (str_eq(field, "description"))
-		{
-			tsk->description = malloc(DESCRIPTIONLENGTH*sizeof(char));
-			strcpy(tsk->description, content);
-		}
+			tsk->description = strdup(content);
 		else if (str_eq(field, "priority"))
 			tsk->priority = content[0];
 		else if (str_eq(field, "due"))
@@ -404,10 +394,7 @@ task *parse_task(char *line) /* {{{ */
 			free(tmpstr);
 		}
 		else if (str_eq(field, "tags"))
-		{
-			tsk->tags = malloc(TAGSLENGTH*sizeof(char));
-			strcpy(tsk->tags, content);
-		}
+			tsk->tags = strdup(content);
 
 		/* free tmpcontent if necessary */
 		if (tmpcontent!=NULL)
@@ -512,6 +499,8 @@ void remove_char(char *str, char remove) /* {{{ */
 		while (str[i]==remove || str[i]=='\0')
 		{
 			offset++;
+			if (i+offset>=len)
+				break;
 			str[i] = str[i+offset];
 		}
 		if (str[i+offset]=='\0')

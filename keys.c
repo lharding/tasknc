@@ -144,8 +144,10 @@ void add_keybind(const int key, void *function, char *arg, const prog_mode mode)
 	new->key = key;
 	new->function = function;
 	new->argint = 0;
-	new->argstr = NULL;
-	new->argstr = arg;
+	if (arg != NULL)
+		new->argstr = strdup(arg);
+	else
+		new->argstr = NULL;
 	new->next = NULL;
 	new->mode = mode;
 
