@@ -381,6 +381,10 @@ For task formats, the following variables are available:
 
 =item
 
+=item B<f_redraw> force a redraw of theh whole screen.
+
+=item
+
 =item B<command> I<optarg> runs the command I<optarg> or prompts the user for a command with no arg.
 
 =back

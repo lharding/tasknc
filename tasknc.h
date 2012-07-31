@@ -30,6 +30,7 @@ const char *eval_string(const int, const char *, const task *, char *, int);
 funcmap *find_function(const char *, const prog_mode);
 void find_next_search_result(task *, task *);
 var *find_var(const char *);
+void force_redraw();
 void handle_command(char *);
 void handle_keypress(const int, const prog_mode);
 void help(void);

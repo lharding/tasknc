@@ -105,6 +105,8 @@ funcmap funcmaps[] = {
 	{"show",        (void *)run_command_show,         1, MODE_TASKLIST},
 	{"bind",        (void *)run_command_bind,         1, MODE_TASKLIST},
 	{"unbind",      (void *)run_command_unbind,       1, MODE_TASKLIST},
+	{"f_redraw",    (void *)force_redraw,             0, MODE_TASKLIST},
+	{"f_redraw",    (void *)force_redraw,             0, MODE_PAGER},
 };
 /* }}} */
 
@@ -248,6 +250,8 @@ void configure(void) /* {{{ */
 	add_keybind(';',           key_command,              NULL,            MODE_TASKLIST);
 	add_keybind(':',           key_command,              NULL,            MODE_TASKLIST);
 	add_keybind('h',           help_window,              NULL,            MODE_TASKLIST);
+	add_keybind(12,            force_redraw,             NULL,            MODE_TASKLIST);
+	add_keybind(12,            force_redraw,             NULL,            MODE_PAGER);
 
 	/* determine config path */
 	xdg_config_home = getenv("XDG_CONFIG_HOME");
@@ -459,6 +463,28 @@ var *find_var(const char *name) /* {{{ */
 	}
 
 	return NULL;
+} /* }}} */
+
+void force_redraw() /* {{{ */
+{
+	/* force a redraw of active windows */
+	WINDOW *windows[] = {statusbar, tasklist, pager, header};
+	const int nwins = sizeof(windows)/sizeof(WINDOW *);
+	int i;
+
+	for (i=0; i<nwins; i++)
+	{
+		wattrset(windows[i], COLOR_PAIR(0));
+		if (windows[i]==NULL)
+			continue;
+		wipe_window(windows[i]);
+		wnoutrefresh(windows[i]);
+	}
+	doupdate();
+
+	print_header();
+	tasklist_print_task_list();
+	statusbar_message(cfg.statusbar_timeout, "redrawn");
 } /* }}} */
 
 void handle_command(char *cmdstr) /* {{{ */
