@@ -512,6 +512,8 @@ void tasklist_print_task_list() /* {{{ */
 void tasklist_remove_task(task *this) /* {{{ */
 {
 	/* remove a task from the task list without reloading */
+	int ty;
+
 	if (this==head)
 		head = this->next;
 	else
@@ -520,6 +522,11 @@ void tasklist_remove_task(task *this) /* {{{ */
 		this->next->prev = this->prev;
 	free_task(this);
 	taskcount--;
+	if (selline>=taskcount)
+		selline = taskcount-1;
+	ty = getmaxy(tasklist);
+	if (taskcount>ty && taskcount-pageoffset<ty)
+		pageoffset = taskcount-ty;
 	redraw = 1;
 } /* }}} */
 
