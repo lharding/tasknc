@@ -345,22 +345,23 @@ void key_tasklist_view() /* {{{ */
 void tasklist_check_curs_pos() /* {{{ */
 {
 	/* check if the cursor is in a valid position */
-	const short onscreentasks = rows-3;
+	const int onscreentasks = getmaxy(tasklist);
 
-	/* check for a valid selected line number */
+	/* check 0<=selline<taskcount */
 	if (selline<0)
 		selline = 0;
 	else if (selline>=taskcount)
 		selline = taskcount-1;
 
-	/* check if page offset needs to be changed */
-	if (selline<pageoffset)
-		pageoffset = selline;
-	else if (selline>pageoffset+onscreentasks)
-		pageoffset = selline - onscreentasks;
+	/* check if page offset is necessary */
+	if (taskcount<=onscreentasks)
+		pageoffset = 0;
+	/* dont allow blank lines if there is an offset */
+	else if (taskcount>onscreentasks && taskcount-pageoffset<onscreentasks)
+		pageoffset = taskcount-onscreentasks;
 
 	/* log cursor position */
-	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, rows-3);
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "cursor_check - selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, rows-3);
 } /* }}} */
 
 void tasklist_window() /* {{{ */
@@ -533,8 +534,6 @@ void tasklist_print_task_list() /* {{{ */
 void tasklist_remove_task(task *this) /* {{{ */
 {
 	/* remove a task from the task list without reloading */
-	int ty;
-
 	if (this==head)
 		head = this->next;
 	else
@@ -543,11 +542,7 @@ void tasklist_remove_task(task *this) /* {{{ */
 		this->next->prev = this->prev;
 	free_task(this);
 	taskcount--;
-	if (selline>=taskcount)
-		selline = taskcount-1;
-	ty = getmaxy(tasklist);
-	if (taskcount>ty && taskcount-pageoffset<ty)
-		pageoffset = taskcount-ty;
+	tasklist_check_curs_pos();
 	redraw = 1;
 } /* }}} */
 
