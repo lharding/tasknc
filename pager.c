@@ -178,15 +178,15 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 	tnc_fprintf(logfp, LOG_DEBUG, "pager: h=%d w=%d y=%d x=%d", height, cols, starty, startx);
 	pager = newwin(height, cols, starty, startx);
 
-	/* print title */
-	wattrset(pager, COLOR_PAIR(1));
-	mvwhline(pager, 0, 0, ' ', cols);
-	umvaddstr_align(pager, 0, title);
-
 	pager_done = 0;
 	while (1)
 	{
 		tnc_fprintf(logfp, LOG_DEBUG, "offset:%d height:%d lines:%d", offset, height, linecount);
+
+		/* print title */
+		wattrset(pager, COLOR_PAIR(1));
+		mvwhline(pager, 0, 0, ' ', cols);
+		umvaddstr_align(pager, 0, title);
 
 		/* print lines */
 		wattrset(pager, COLOR_PAIR(0));
