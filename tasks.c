@@ -36,11 +36,11 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 	switch (sort_mode)
 	{
 		case 'n':       // sort by index
-			if (strcmp(a->uuid, b->uuid)<0)
+			if (a->index<b->index)
 				ret = 1;
 			break;
 		default:
-		case 'p':       // sort by project name => index
+		case 'p':       // sort by project name => uuid
 			if (a->project == NULL)
 			{
 				if (b->project != NULL)
@@ -53,9 +53,9 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 			if (tmp<0)
 				ret = 1;
 			if (tmp==0)
-				ret = compare_tasks(a, b, 'n');
+				ret = compare_tasks(a, b, 'u');
 			break;
-		case 'd':       // sort by due date => priority => project => index
+		case 'd':       // sort by due date => priority => project => uuid
 			if (a->due == 0)
 			{
 				if (b->due == 0)
@@ -70,7 +70,7 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 			if (a->due<b->due)
 				ret = 1;
 			break;
-		case 'r':       // sort by priority => project => index
+		case 'r':       // sort by priority => project => uuid
 			if (a->priority == 0)
 			{
 				if (b->priority == 0)
@@ -101,6 +101,10 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 						ret = 1;
 					break;
 			}
+			break;
+		case 'u':       // sort by uuid
+			if (strcmp(a->uuid, b->uuid)<0)
+				ret = 1;
 			break;
 	}
 
