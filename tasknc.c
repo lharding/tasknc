@@ -288,7 +288,9 @@ const char *eval_string(const int maxlen, const char *fmt, const task *this, cha
 {
 	/* evaluate a string with format variables */
 	int i;
-	char *tmp;
+	char *field = NULL, *var = NULL;
+	int fieldlen = -1, fieldwidth = -1, varlen = -1;
+	bool free_field = 0;
 
 	/* check if string is done */
 	if (*fmt == 0)
@@ -308,76 +310,94 @@ const char *eval_string(const int maxlen, const char *fmt, const task *this, cha
 	/* try for a special format string */
 	if (str_starts_with(fmt+1, "date"))
 	{
-		char *msg = utc_date(0);
-		strcpy(str+position, msg);
-		const int msglen = strlen(msg);
-		free(msg);
-		return eval_string(maxlen, fmt+5, this, str, position+msglen);
+		field = utc_date(0);
+		fieldlen = strlen(field);
+		fieldwidth = fieldlen;
+		free_field = 1;
+		var = "date";
 	}
 
 	/* try for a variable relative to the current task */
 	if (this!=NULL)
 	{
-		int fieldlen = 0;
-		int fieldwidth = 0;
-		int varlen = 0;
 		if (str_starts_with(fmt+1, "due"))
 		{
-			/* fieldwidth = fieldlengths.date; */
 			if (this->due)
 			{
-				tmp = utc_date(this->due);
-				strcpy(str+position, tmp);
-				fieldlen = strlen(tmp);
-				free(tmp);
+				field = utc_date(this->due);
+				fieldlen = strlen(field);
+				free_field = 1;
 			}
 			else if (this->priority)
 			{
-				*(str+position) = this->priority;
+				field = calloc(2, sizeof(char));
+				sprintf(field, "%c", this->priority);
+				free_field = 1;
 				fieldlen = 1;
 			}
 			else
 				fieldlen = 0;
-			varlen = strlen("due");
 			fieldwidth = fieldlen;
+			var = "due";
 		}
 		else if (str_starts_with(fmt+1, "description"))
 		{
-			strcpy(str+position, this->description);
+			field = this->description;
 			fieldwidth = cfg.fieldlengths.description;
-			fieldlen = strlen(this->description);
-			varlen = strlen("description");
+			var = "description";
 		}
 		else if (str_starts_with(fmt+1, "project"))
 		{
-			strcpy(str+position, this->project);
+			field = this->project;
 			fieldwidth = cfg.fieldlengths.project;
-			fieldlen = strlen(this->project);
-			varlen = strlen("project");
+			var = "project";
 		}
-		for (i=fieldlen; i<fieldwidth; i++)
-			*(str+position+i) = ' ';
-		*(str+position+fieldwidth) = 0;
-		if (varlen>0)
-			return eval_string(maxlen, fmt+varlen+1, this, str, position+fieldwidth);
 	}
 
 	/* try for an exposed variable */
 	for (i=0; i<NVARS; i++)
 	{
+		if (vars[i].name == NULL)
+			break;
 		if (str_starts_with(fmt+1, vars[i].name))
 		{
-			char *msg = var_value_message(&(vars[i]), 0);
-			strcpy(str+position, msg);
-			const int msglen = strlen(msg);
-			free(msg);
-			return eval_string(maxlen, fmt+strlen(vars[i].name)+1, this, str, position+msglen);
+			field = var_value_message(&(vars[i]), 0);
+			fieldwidth = strlen(field);
+			var = vars[i].name;
+			break;
 		}
 	}
 
+	if (var != NULL)
+	{
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "appending \"%s\" to \"%s\" var=\"%s\" fieldlen=%d fieldwidth=%d varlen=%d", field, str, var, fieldlen, fieldwidth, varlen);
+		fflush(logfp);
+
+		/* compute lengths */
+		if (field == NULL)
+			fieldlen = 0;
+		if (fieldlen == -1)
+			fieldlen = strlen(field);
+		varlen = strlen(var);
+
+		/* copy string */
+		if (field != NULL)
+			strncpy(str+position, field, fieldwidth);
+
+		/* pad end of string */
+		for (i=fieldlen; i<fieldwidth; i++)
+			*(str+position+i) = ' ';
+		*(str+position+fieldwidth) = 0;
+		return eval_string(maxlen, fmt+varlen+1, this, str, position+fieldwidth);
+	}
+
+	/* free field */
+	if (free_field)
+		free(field);
+
 	/* print uninterpreted */
 	str[position] = *fmt;
-	return eval_string(maxlen, ++fmt, this, str, ++position);
+	return eval_string(maxlen, fmt+1, this, str, position+1);
 } /* }}} */
 
 funcmap *find_function(const char *name, const prog_mode mode) /* {{{ */
