@@ -213,7 +213,14 @@ char *name_key(const int val) /* {{{ */
 int parse_key(const char *keystr) /* {{{ */
 {
 	/* determine a key value from a string specifier */
-	int key;
+	int key, i;
+
+	/* try for a mapped key */
+	for (i=0; i<nkeys; i++)
+	{
+		if (str_eq(keymaps[i].name, keystr))
+			return keymaps[i].value;
+	}
 
 	/* try for integer key */
 	if (1==sscanf(keystr, "%d", &key))
