@@ -55,5 +55,6 @@ int umvaddstr_align(WINDOW *, const int, char *);
 char *utc_date(const unsigned int);
 char *var_value_message(var *, bool);
 void wipe_screen(WINDOW *, const short, const short);
+void wipe_window(WINDOW *);
 
 #endif

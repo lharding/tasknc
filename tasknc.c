@@ -1193,6 +1193,19 @@ void wipe_screen(WINDOW *win, const short startl, const short stopl) /* {{{ */
 			mvwaddch(win, y, x, ' ');
 } /* }}} */
 
+void wipe_window(WINDOW *win) /* {{{ */
+{
+	/* wipe everything on the screen */
+	int x, y, tx, ty;
+
+	getmaxyx(win, y, x);
+
+	for (ty=0; ty<y; ty++)
+		for (tx=0; tx<x; tx++)
+			mvwaddch(win, ty, tx, ' ');
+	touchwin(win);
+} /* }}} */
+
 int main(int argc, char **argv) /* {{{ */
 {
 	/* declare variables */
