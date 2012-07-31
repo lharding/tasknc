@@ -133,7 +133,6 @@ void key_tasklist_modify(const char *arg) /* {{{ */
 
 	statusbar_message(cfg.statusbar_timeout, "task modified");
 	redraw = 1;
-	sort_wrapper(head);
 } /* }}} */
 
 void key_tasklist_reload() /* {{{ */

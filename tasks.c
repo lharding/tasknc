@@ -36,7 +36,7 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 	switch (sort_mode)
 	{
 		case 'n':       // sort by index
-			if (a->index<b->index)
+			if (strcmp(a->uuid, b->uuid)<0)
 				ret = 1;
 			break;
 		default:
@@ -469,6 +469,9 @@ void reload_task(task *this) /* {{{ */
 
 	/* free old task */
 	free_task(this);
+
+	/* re-sort task list */
+	sort_wrapper(head);
 } /* }}} */
 
 void reload_tasks() /* {{{ */
