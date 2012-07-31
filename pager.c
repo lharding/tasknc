@@ -74,7 +74,7 @@ void help_window() /* {{{ */
 		last = cur;
 	}
 
-	pager_window(head, 1, -1, "help");
+	pager_window(head, 1, -1, " help");
 } /* }}} */
 
 void key_pager_close() /* {{{ */
@@ -196,6 +196,7 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 		lineno = 1;
 		while (tmp!=NULL && lineno<=linecount && lineno-offset<=height)
 		{
+			mvwhline(pager, lineno-offset, 0, ' ', cols);
 			if (lineno>offset)
 				umvaddstr(pager, lineno-offset, 0, tmp->str);
 
