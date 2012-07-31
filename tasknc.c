@@ -110,27 +110,6 @@ funcmap funcmaps[] = {
 };
 /* }}} */
 
-void check_curs_pos(void) /* {{{ */
-{
-	/* check if the cursor is in a valid position */
-	const short onscreentasks = rows-3;
-
-	/* check for a valid selected line number */
-	if (selline<0)
-		selline = 0;
-	else if (selline>=taskcount)
-		selline = taskcount-1;
-
-	/* check if page offset needs to be changed */
-	if (selline<pageoffset)
-		pageoffset = selline;
-	else if (selline>pageoffset+onscreentasks)
-		pageoffset = selline - onscreentasks;
-
-	/* log cursor position */
-	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, rows-3);
-} /* }}} */
-
 void check_screen_size() /* {{{ */
 {
 	/* check for a screen thats too small */

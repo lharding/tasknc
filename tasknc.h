@@ -22,7 +22,6 @@
 
 
 /* function prototypes */
-void check_curs_pos(void);
 void check_screen_size();
 void cleanup();
 void configure(void);

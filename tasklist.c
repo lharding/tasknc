@@ -243,7 +243,7 @@ void key_tasklist_search(const char *arg) /* {{{ */
 
 	/* go to first result */
 	find_next_search_result(head, get_task_by_position(selline));
-	check_curs_pos();
+	tasklist_check_curs_pos();
 	redraw = 1;
 } /* }}} */
 
@@ -253,7 +253,7 @@ void key_tasklist_search_next() /* {{{ */
 	if (searchstring!=NULL)
 	{
 		find_next_search_result(head, get_task_by_position(selline));
-		check_curs_pos();
+		tasklist_check_curs_pos();
 		redraw = 1;
 	}
 	else
@@ -340,6 +340,27 @@ void key_tasklist_view() /* {{{ */
 {
 	/* run task info on a task and display in pager */
 	view_task(get_task_by_position(selline));
+} /* }}} */
+
+void tasklist_check_curs_pos() /* {{{ */
+{
+	/* check if the cursor is in a valid position */
+	const short onscreentasks = rows-3;
+
+	/* check for a valid selected line number */
+	if (selline<0)
+		selline = 0;
+	else if (selline>=taskcount)
+		selline = taskcount-1;
+
+	/* check if page offset needs to be changed */
+	if (selline<pageoffset)
+		pageoffset = selline;
+	else if (selline>pageoffset+onscreentasks)
+		pageoffset = selline - onscreentasks;
+
+	/* log cursor position */
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, rows-3);
 } /* }}} */
 
 void tasklist_window() /* {{{ */
@@ -434,7 +455,7 @@ void tasklist_window() /* {{{ */
 			cfg.fieldlengths.description = cols-cfg.fieldlengths.project-1-cfg.fieldlengths.date;
 			print_header();
 			tasklist_print_task_list();
-			check_curs_pos();
+			tasklist_check_curs_pos();
 			touchwin(tasklist);
 			touchwin(header);
 			touchwin(statusbar);
