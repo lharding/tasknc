@@ -47,7 +47,7 @@ void help_window() /* {{{ */
 	/* display a help window */
 	line *head, *cur, *last;
 	keybind *this;
-	char *modestr;
+	char *modestr, *keyname;
 
 	head = calloc(1, sizeof(line));
 	head->str = "keybinds";
@@ -64,10 +64,12 @@ void help_window() /* {{{ */
 			modestr = "pager   ";
 		else
 			modestr = "unknown ";
+		keyname = name_key(this->key);
 		if (this->argstr == NULL)
-			asprintf(&(cur->str), "%2c\t%3d\t%s\t%s", this->key, this->key, modestr, name_function(this->function));
+			asprintf(&(cur->str), "%8s\t%3d\t%s\t%s", keyname, this->key, modestr, name_function(this->function));
 		else
-			asprintf(&(cur->str), "%2c\t%3d\t%s\t%s %s", this->key, this->key, modestr, name_function(this->function), this->argstr);
+			asprintf(&(cur->str), "%8s\t%3d\t%s\t%s %s", keyname, this->key, modestr, name_function(this->function), this->argstr);
+		free(keyname);
 		this = this->next;
 		last = cur;
 	}

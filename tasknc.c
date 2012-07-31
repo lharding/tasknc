@@ -536,7 +536,7 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 {
 	/* handle a key press on the main screen */
 	keybind *this_bind;
-	char *modestr;
+	char *modestr, *keyname;
 
 	this_bind = keybinds;
 	while (this_bind!=NULL)
@@ -559,7 +559,11 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 		this_bind = this_bind->next;
 	}
 	if (this_bind==NULL)
-		statusbar_message(cfg.statusbar_timeout, "unhandled key: %c (%d)", c, c);
+	{
+		keyname = name_key(c);
+		statusbar_message(cfg.statusbar_timeout, "unhandled key: %s (%d)", keyname, c);
+		free(keyname);
+	}
 } /* }}} */
 
 void help(void) /* {{{ */
@@ -736,7 +740,7 @@ void run_command_bind(char *args) /* {{{ */
 {
 	/* create a new keybind */
 	int key;
-	char *function, *arg, *keystr, *modestr, *aarg;
+	char *function, *arg, *keystr, *modestr, *aarg, *keyname;
 	void (*func)();
 	funcmap *fmap;
 	prog_mode mode;
@@ -815,13 +819,15 @@ void run_command_bind(char *args) /* {{{ */
 
 	/* add keybind */
 	add_keybind(key, func, str_trim(aarg), mode);
-	statusbar_message(cfg.statusbar_timeout, "key %c (%d) bound to %s - %s", key, key, modestr, name_function(func));
+	keyname = name_key(key);
+	statusbar_message(cfg.statusbar_timeout, "key %s (%d) bound to %s - %s", keyname, key, modestr, name_function(func));
+	free(keyname);
 } /* }}} */
 
 void run_command_unbind(char *argstr) /* {{{ */
 {
 	/* handle a keyboard instruction to unbind a key */
-	char *modestr, *keystr;
+	char *modestr, *keystr, *keyname;
 
 	/* split strings */
 	modestr = argstr;
@@ -843,7 +849,9 @@ void run_command_unbind(char *argstr) /* {{{ */
 	int key = parse_key(keystr);
 
 	remove_keybinds(key);
-	statusbar_message(cfg.statusbar_timeout, "key unbound: %c (%d)", key, key);
+	keyname = name_key(key);
+	statusbar_message(cfg.statusbar_timeout, "key unbound: %s (%d)", keyname, key);
+	free(keyname);
 } /* }}} */
 
 void run_command_set(char *args) /* {{{ */
