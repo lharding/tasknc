@@ -31,7 +31,6 @@ void find_next_search_result(task *, task *);
 var *find_var(const char *);
 void force_redraw();
 void handle_command(char *);
-void handle_keypress(const int, const prog_mode);
 void help(void);
 void key_command(const char *);
 void key_done();

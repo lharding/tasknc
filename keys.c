@@ -175,6 +175,40 @@ void add_keybind(const int key, void *function, char *arg, const prog_mode mode)
 	free(name);
 } /* }}} */
 
+void handle_keypress(const int c, const prog_mode mode) /* {{{ */
+{
+	/* handle a key press on the main screen */
+	keybind *this_bind;
+	char *modestr, *keyname;
+
+	this_bind = keybinds;
+	while (this_bind!=NULL)
+	{
+		if (this_bind->mode == mode && c == this_bind->key)
+		{
+			if (this_bind->function != NULL)
+			{
+				if (this_bind->mode == MODE_PAGER)
+					modestr = "pager - ";
+				else if (this_bind->mode == MODE_TASKLIST)
+					modestr = "tasklist - ";
+				else
+					modestr = " ";
+				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p %s%s", this_bind->function, modestr, name_function(this_bind->function));
+				(*(this_bind->function))(this_bind->argstr);
+			}
+			break;
+		}
+		this_bind = this_bind->next;
+	}
+	if (this_bind==NULL)
+	{
+		keyname = name_key(c);
+		statusbar_message(cfg.statusbar_timeout, "unhandled key: %s (%d)", keyname, c);
+		free(keyname);
+	}
+} /* }}} */
+
 char *name_key(const int val) /* {{{ */
 {
 	/* return a string naming the key */

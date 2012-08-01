@@ -17,6 +17,7 @@
 #include <time.h>
 #include "common.h"
 #include "config.h"
+#include "keys.h"
 #include "log.h"
 #include "string.h"
 #include "tasklist.h"
