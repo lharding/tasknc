@@ -289,7 +289,7 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 {
 	/* evaluate a string with format variables */
 	int i;
-	char *field = NULL, *var = NULL, *pos;
+	char *field = NULL, *var = NULL, *pos, *orig_fmt;
 	int fieldlen = -1, fieldwidth = -1, varlen = -1;
 	bool free_field = 0;
 
@@ -315,19 +315,37 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 	if (str==NULL)
 		str = calloc(maxlen+1, sizeof(char));
 
+	/* save original format in case fallback is needed */
+	orig_fmt = fmt;
+
 	/* check if this is a variable */
 	if (*fmt != '$')
 	{
 		str[position] = *fmt;
-		return eval_string(maxlen, ++fmt, this, str, ++position);
+		return eval_string(maxlen, fmt+1, this, str, position+1);
+	}
+	fmt++;
+
+	/* get field length */
+	while (*fmt <= '9' && *fmt >= '0')
+	{
+		if (fieldwidth == -1)
+			fieldwidth = (*fmt)-48;
+		else
+		{
+			fieldwidth *= 10;
+			fieldwidth += (*fmt)-48;
+		}
+		fmt++;
 	}
 
 	/* try for a special format string */
-	if (str_starts_with(fmt+1, "date"))
+	if (str_starts_with(fmt, "date"))
 	{
 		field = utc_date(0);
 		fieldlen = strlen(field);
-		fieldwidth = fieldlen;
+		if (fieldwidth == -1)
+			fieldwidth = fieldlen;
 		free_field = 1;
 		var = "date";
 	}
@@ -335,7 +353,7 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 	/* try for a variable relative to the current task */
 	if (this!=NULL)
 	{
-		if (str_starts_with(fmt+1, "due"))
+		if (str_starts_with(fmt, "due"))
 		{
 			if (this->due)
 			{
@@ -352,19 +370,22 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 			}
 			else
 				fieldlen = 0;
-			fieldwidth = fieldlen;
+			if (fieldwidth == -1)
+				fieldwidth = fieldlen;
 			var = "due";
 		}
-		else if (str_starts_with(fmt+1, "description"))
+		else if (str_starts_with(fmt, "description"))
 		{
 			field = this->description;
-			fieldwidth = cfg.fieldlengths.description;
+			if (fieldwidth == -1)
+				fieldwidth = cfg.fieldlengths.description;
 			var = "description";
 		}
-		else if (str_starts_with(fmt+1, "project"))
+		else if (str_starts_with(fmt, "project"))
 		{
 			field = this->project;
-			fieldwidth = cfg.fieldlengths.project;
+			if (fieldwidth == -1)
+				fieldwidth = cfg.fieldlengths.project;
 			var = "project";
 		}
 	}
@@ -374,10 +395,11 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 	{
 		if (vars[i].name == NULL)
 			break;
-		if (str_starts_with(fmt+1, vars[i].name))
+		if (str_starts_with(fmt, vars[i].name))
 		{
 			field = var_value_message(&(vars[i]), 0);
-			fieldwidth = strlen(field);
+			if (fieldwidth == -1)
+				fieldwidth = strlen(field);
 			var = vars[i].name;
 			free_field = 1;
 			break;
@@ -413,6 +435,7 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 	}
 
 	/* print uninterpreted */
+	fmt = orig_fmt;
 	str[position] = *fmt;
 	return eval_string(maxlen, fmt+1, this, str, position+1);
 } /* }}} */
@@ -1056,7 +1079,7 @@ int main(int argc, char **argv) /* {{{ */
 		free(tmp);
 
 		/* evaluating a format string */
-		char *titlefmt = "$program_name;();$program_version; $filter_string//$task_count\\/$badvar";
+		char *titlefmt = "$10program_name;();$program_version; $5filter_string//$task_count\\/$badvar";
 		printf("%s\n", eval_string(100, titlefmt, NULL, NULL, 0));
 
 		cleanup();
