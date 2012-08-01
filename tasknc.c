@@ -794,8 +794,11 @@ char *str_trim(char *str) /* {{{ */
 	pos = str;
 	while ((*pos)!=0)
 		pos++;
-	while (*(pos-1)==' ' || *(pos-1)=='\n' || *(pos-1)=='\t')
+	while (pos>str && (*(pos-1)==' ' || *(pos-1)=='\n' || *(pos-1)=='\t'))
+	{
 		*(pos-1) = 0;
+		pos--;
+	}
 
 	return str;
 } /* }}} */

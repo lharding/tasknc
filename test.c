@@ -24,6 +24,7 @@
 void test_result(const char *, const bool);
 void test_set_var();
 void test_task_count();
+void test_trim();
 /* }}} */
 
 void test(const char *tests) /* {{{ */
@@ -34,6 +35,7 @@ void test(const char *tests) /* {{{ */
 	if (str_eq(tests, "all"))
 	{
 		test_task_count();
+		test_trim();
 		test_set_var();
 	}
 
@@ -98,7 +100,8 @@ void test_result(const char *testname, const bool passed) /* {{{ */
 void test_set_var() /* {{{ */
 {
 	/* test the ability to set a variable */
-	handle_command("  set   task_version   0.6.9");
+	char *teststr = strdup("  set   task_version   0.6.9  ");
+	handle_command(teststr);
 	test_result("set var", strcmp(cfg.version, "0.6.9")==0);
 } /* }}} */
 
@@ -121,6 +124,25 @@ void test_task_count() /* {{{ */
 	test_result("task count", tcnt == taskcount);
 
 	free(line);
+} /* }}} */
+
+void test_trim() /* {{{ */
+{
+	/* test the functionality of str_trim */
+	bool pass;
+	const char *ref = "test string";
+	char *check;
+
+	char *teststr = strdup("\n\t test string \t  \n");
+	check = str_trim(teststr);
+	pass = strcmp(check, ref) == 0;
+	test_result("str_trim", pass);
+	if (!pass)
+	{
+		printf("(%d) %s\n", strlen(check), check);
+		printf("(%d) %s\n", strlen(ref), ref);
+	}
+	free(teststr);
 } /* }}} */
 
 #else
