@@ -40,10 +40,10 @@ typedef struct _task
 	unsigned short index;
 	char *uuid;
 	char *tags;
-	unsigned int start;
-	unsigned int end;
-	unsigned int entry;
-	unsigned int due;
+	time_t start;
+	time_t end;
+	time_t entry;
+	time_t due;
 	char *project;
 	char priority;
 	char *description;
@@ -84,16 +84,16 @@ typedef struct _config {
 	log_mode loglvl;
 	char *version;
 	char sortmode;
-	char silent_shell;
+	bool silent_shell;
 	struct {
 		char *task;
 		char *title;
 		char *view;
 	} formats;
 	struct {
-                int description;
-                int date;
-                int project;
+		int description;
+		int date;
+		int project;
 	} fieldlengths;
 } config;
 

@@ -865,20 +865,15 @@ int umvaddstr_align(WINDOW *win, const int y, char *str) /* {{{ */
 	return ret;
 } /* }}} */
 
-char *utc_date(const unsigned int timeint) /* {{{ */
+char *utc_date(const time_t timeint) /* {{{ */
 {
 	/* convert a utc time uint to a string */
-	struct tm tmr, *now;
+	struct tm *tmr, *now;
 	time_t cur;
-	char *timestr, *srcstr;
+	char *timestr;
 
 	/* convert the input timeint to a string */
-	srcstr = malloc(16*sizeof(char));
-	sprintf(srcstr, "%d", timeint);
-
-	/* extract time struct from string */
-	strptime(srcstr, "%s", &tmr);
-	free(srcstr);
+	tmr = localtime(&timeint);
 
 	/* get current time */
 	time(&cur);
@@ -886,14 +881,14 @@ char *utc_date(const unsigned int timeint) /* {{{ */
 
 	/* set time to now if 0 was the argument */
 	if (timeint==0)
-		tmr = *now;
+		tmr = now;
 
 	/* convert thte time to a formatted string */
 	timestr = malloc(TIMELENGTH*sizeof(char));
-	if (now->tm_year != tmr.tm_year)
-		strftime(timestr, TIMELENGTH, "%F", &tmr);
+	if (now->tm_year != tmr->tm_year)
+		strftime(timestr, TIMELENGTH, "%F", tmr);
 	else
-		strftime(timestr, TIMELENGTH, "%b %d", &tmr);
+		strftime(timestr, TIMELENGTH, "%b %d", tmr);
 
 	return timestr;
 } /* }}} */

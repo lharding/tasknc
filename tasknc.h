@@ -50,7 +50,7 @@ void statusbar_timeout();
 char *str_trim(char *);
 int umvaddstr(WINDOW *, const int, const int, const char *, ...) __attribute__((format(printf,4,5)));
 int umvaddstr_align(WINDOW *, const int, char *);
-char *utc_date(const unsigned int);
+char *utc_date(const time_t);
 char *var_value_message(var *, bool);
 void wipe_screen(WINDOW *, const short, const short);
 void wipe_window(WINDOW *);

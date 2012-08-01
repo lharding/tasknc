@@ -21,6 +21,7 @@
 /* local function declarations {{{ */
 static char compare_tasks(const task *, const task *, const char);
 static void sort_tasks(task *, task *);
+static time_t strtotime(const char *);
 static void swap_tasks(task *, task*);
 /* }}} */
 
@@ -312,7 +313,7 @@ task *malloc_task(void) /* {{{ */
 task *parse_task(char *line) /* {{{ */
 {
 	task *tsk = malloc_task();
-	char *token, *tmpstr, *tmpcontent;
+	char *token, *tmpcontent;
 	tmpcontent = NULL;
 	int tokencounter = 0;
 
@@ -325,7 +326,6 @@ task *parse_task(char *line) /* {{{ */
 	while (token != NULL)
 	{
 		char *field, *content, *divider, endchar;
-		struct tm tmr;
 
 		/* increment counter */
 		tokencounter++;
@@ -385,14 +385,7 @@ task *parse_task(char *line) /* {{{ */
 		else if (str_eq(field, "priority"))
 			tsk->priority = content[0];
 		else if (str_eq(field, "due"))
-		{
-			memset(&tmr, 0, sizeof(tmr));
-			strptime(content, "%Y%m%dT%H%M%S%z", &tmr);
-			tmpstr = malloc(32*sizeof(char));
-			strftime(tmpstr, 32, "%s", &tmr);
-			sscanf(tmpstr, "%d", &(tsk->due));
-			free(tmpstr);
-		}
+			tsk->due = strtotime(content);
 		else if (str_eq(field, "tags"))
 			tsk->tags = strdup(content);
 
@@ -480,7 +473,7 @@ void reload_tasks() /* {{{ */
 	cur = head;
 	while (cur!=NULL)
 	{
-		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "%d,%s,%s,%d,%d,%d,%d,%s,%c,%s", cur->index, cur->uuid, cur->tags, cur->start, cur->end, cur->entry, cur->due, cur->project, cur->priority, cur->description);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "%d,%s,%s,%llu,%llu,%llu,%llu,%s,%c,%s", cur->index, cur->uuid, cur->tags, (unsigned long long)cur->start, (unsigned long long)cur->end, (unsigned long long)cur->entry, (unsigned long long)cur->due, cur->project, cur->priority, cur->description);
 		cur = cur->next;
 	}
 } /* }}} */
@@ -569,6 +562,16 @@ void sort_tasks(task *first, task *last) /* {{{ */
 		if ((cur->prev != last) && (last->next != cur))
 			sort_tasks(cur, last);
 	}
+} /* }}} */
+
+time_t strtotime(const char *timestr) /* {{{ */
+{
+	/* convert a string to a time_t */
+	struct tm tmr;
+
+	memset(&tmr, 0, sizeof(tmr));
+	strptime(timestr, "%Y%m%dT%H%M%S%z", &tmr);
+	return mktime(&tmr);
 } /* }}} */
 
 void swap_tasks(task *a, task *b) /* {{{ */
