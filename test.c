@@ -22,6 +22,7 @@
 
 #ifdef TASKNC_INCLUDE_TESTS
 /* local functions {{{ */
+void test_eval_string();
 void test_result(const char *, const bool);
 void test_search();
 void test_set_var();
@@ -42,6 +43,7 @@ void test(const char *args) /* {{{ */
 	};
 	struct test tests[] =
 	{
+		{"eval_string", test_eval_string},
 		{"task_count", test_task_count},
 		{"trim", test_trim},
 		{"search", test_search},
@@ -72,6 +74,30 @@ void test(const char *args) /* {{{ */
 	fclose(devnull);
 
 	cleanup();
+} /* }}} */
+
+void test_eval_string() /* {{{ */
+{
+	/* test the functionality of eval_string function */
+	char *testfmt = strdup("\"$10program_name - $5program_author\"");
+	strip_quotes(&testfmt, 1);
+	const char *eval = eval_string(1000, testfmt, head, NULL, 0);
+	const char *eval2 = eval_string(1000, testfmt, head, NULL, 0);
+	const char *check = "tasknc     - mjhea";
+	bool pass = strcmp(check, eval)==0;
+	bool pass2 = strcmp(check, eval2)==0;
+	pass = pass && pass2;
+
+	test_result("eval_string", pass);
+	if (!pass)
+	{
+		puts(testfmt);
+		puts(eval);
+		puts(eval2);
+		puts(check);
+	}
+
+	free(testfmt);
 } /* }}} */
 
 void test_result(const char *testname, const bool passed) /* {{{ */

@@ -274,6 +274,8 @@ void run_command_set(char *args) /* {{{ */
 				value++;
 			*(char **)(this_var->ptr) = calloc(strlen(value)+1, sizeof(char));
 			ret = NULL==strcpy(*(char **)(this_var->ptr), value);
+			if (ret==0)
+				strip_quotes((char **)this_var->ptr, 1);
 			break;
 		default:
 			ret = 0;
@@ -313,4 +315,41 @@ void run_command_show(const char *arg) /* {{{ */
 	message = var_value_message(this_var, 1);
 	statusbar_message(cfg.statusbar_timeout, message);
 	free(message);
+} /* }}} */
+
+void strip_quotes(char **strptr, bool needsfree) /* {{{ */
+{
+	/* remove leading/trailing quotes from a string if necessary */
+	const char *quotes = "\"'";
+	char *newstr, *end, *str = *strptr;
+	bool inquotes = 0;
+	int len = 0;
+
+	/* walk to end of string */
+	end = str;
+	while (*(end+1) != 0)
+	{
+		len++;
+		end++;
+	}
+
+	/* determine if string has quotes */
+	if (*str == *end && strchr(quotes, *str) != NULL)
+		inquotes = 1;
+
+	/* copy quoted string */
+	if (inquotes)
+	{
+		newstr = calloc(len+1, sizeof(char));
+		strncpy(newstr, str+1, len-1);
+		*strptr = newstr;
+	}
+
+	/* copy unquoted string */
+	else
+		*strptr = strdup(str);
+
+	/* free if necessary */
+	if (needsfree)
+		free(str);
 } /* }}} */

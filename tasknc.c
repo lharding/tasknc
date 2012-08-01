@@ -290,27 +290,13 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 {
 	/* evaluate a string with format variables */
 	int i;
-	char *field = NULL, *var = NULL, *pos, *orig_fmt;
+	char *field = NULL, *var = NULL, *orig_fmt;
 	int fieldlen = -1, fieldwidth = -1, varlen = -1;
 	bool free_field = 0;
 
 	/* check if string is done */
 	if (*fmt == 0)
 		return str;
-
-	/* check if format string is in quotes */
-	if (position == 0)
-	{
-		if (*fmt == '"')
-		{
-			pos = strrchr(fmt, '"');
-			if (*(pos+1) == 0)
-			{
-				*pos = 0;
-				fmt++;
-			}
-		}
-	}
 
 	/* allocate string if necessary */
 	if (str==NULL)
