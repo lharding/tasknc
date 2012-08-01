@@ -79,11 +79,11 @@ void test(const char *args) /* {{{ */
 void test_eval_string() /* {{{ */
 {
 	/* test the functionality of eval_string function */
-	char *testfmt = strdup("\"$10program_name - $5program_author\"");
+	char *testfmt = strdup("\"$10program_name - $5program_author ?$search_string?YES?NO?\"");
 	strip_quotes(&testfmt, 1);
 	const char *eval = eval_string(1000, testfmt, head, NULL, 0);
 	const char *eval2 = eval_string(1000, testfmt, head, NULL, 0);
-	const char *check = "tasknc     - mjhea";
+	const char *check = "tasknc     - mjhea NO";
 	bool pass = strcmp(check, eval)==0;
 	bool pass2 = strcmp(check, eval2)==0;
 	pass = pass && pass2;

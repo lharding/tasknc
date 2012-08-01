@@ -289,10 +289,10 @@ void configure(void) /* {{{ */
 const char *eval_string(const int maxlen, char *fmt, const task *this, char *str, int position) /* {{{ */
 {
 	/* evaluate a string with format variables */
-	int i;
-	char *field = NULL, *var = NULL, *orig_fmt;
-	int fieldlen = -1, fieldwidth = -1, varlen = -1;
-	bool free_field = 0;
+	int i, condoffset;
+	char *field = NULL, *var = NULL, *orig_fmt, *cond[4], *condseg, *condstr;
+	int fieldlen = -1, fieldwidth = -1, varlen = -1, condlen;
+	bool free_field = 0, condition;
 
 	/* check if string is done */
 	if (*fmt == 0)
@@ -305,8 +305,56 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 	/* save original format in case fallback is needed */
 	orig_fmt = fmt;
 
+	/* check for a conditional */
+	if (*fmt == '?')
+	{
+		/* get positions of each section */
+		cond[0] = fmt;
+		for (i=1; i<4; i++)
+		{
+			fmt = strchr(fmt+1, '?');
+			cond[i] = fmt;
+			if (cond[i] == NULL)
+			{
+				tnc_fprintf(logfp, LOG_ERROR, "malformed conditional in format string: %s (%d)", fmt, i);
+				return "malformed conditional";
+			}
+		}
+		fmt = orig_fmt+1;
+
+		/* determine whether conditional is true */
+		condlen = cond[1]-cond[0]-1;
+		condstr = calloc(1+condlen, sizeof(char));
+		strncpy(condstr, fmt, condlen);
+		condseg = (char *)eval_string(3*cols, condstr, this, NULL, 0);
+		condition = !(condseg == NULL || *condseg == ' ' || str_starts_with(condseg, "(null)"));
+		free(condstr);
+		free(condseg);
+
+		/* evaluate proper segment of string */
+		if (condition)
+			condoffset = 1;
+		else
+			condoffset = 2;
+		condlen = cond[1+condoffset]-cond[condoffset]-1;
+		condstr = calloc(1+condlen, sizeof(char));
+		strncpy(condstr, cond[condoffset]+1, condlen);
+		condseg = (char *)eval_string(3*cols, condstr, this, NULL, 0);
+		field = condseg;
+		free_field = 1;
+		free(condstr);
+		varlen = cond[3]-cond[0];
+
+		/* copy field */
+		fieldwidth = strlen(field);
+		strncpy(str+position, field, fieldwidth);
+
+		/* move along */
+		return eval_string(maxlen, fmt+varlen, this, str, position+fieldwidth);
+	}
+
 	/* check if this is a variable */
-	if (*fmt != '$')
+	if (strchr("$?", *fmt) == NULL)
 	{
 		str[position] = *fmt;
 		return eval_string(maxlen, fmt+1, this, str, position+1);
@@ -338,7 +386,7 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 	}
 
 	/* try for a variable relative to the current task */
-	if (this!=NULL)
+	else if (this!=NULL)
 	{
 		if (str_starts_with(fmt, "due"))
 		{
@@ -403,7 +451,8 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 			fieldlen = 0;
 		if (fieldlen == -1)
 			fieldlen = strlen(field);
-		varlen = strlen(var);
+		if (var != (char *)-1)
+			varlen = strlen(var);
 
 		/* copy string */
 		if (field != NULL)
