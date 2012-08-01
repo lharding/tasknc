@@ -347,6 +347,12 @@ void tasklist_check_curs_pos() /* {{{ */
 	/* check if page offset is necessary */
 	if (taskcount<=onscreentasks)
 		pageoffset = 0;
+	/* offset up if necessary */
+	else if (selline<pageoffset)
+		pageoffset = selline;
+	/* offset down if necessary */
+	else if (taskcount>onscreentasks && pageoffset+onscreentasks-1<selline)
+		pageoffset = selline-onscreentasks+1;
 	/* dont allow blank lines if there is an offset */
 	else if (taskcount>onscreentasks && taskcount-pageoffset<onscreentasks)
 		pageoffset = taskcount-onscreentasks;
