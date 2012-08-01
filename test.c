@@ -18,60 +18,36 @@
 #include "log.h"
 #include "tasks.h"
 #include "tasknc.h"
+#include "test.h"
 
 #ifdef TASKNC_INCLUDE_TESTS
 /* local functions {{{ */
 void test_result(const char *, const bool);
+void test_search();
 void test_set_var();
 void test_task_count();
 void test_trim();
 /* }}} */
 
+FILE *devnull;
+FILE *out;
+
 void test(const char *tests) /* {{{ */
 {
 	/* run tests to check functionality of tasknc */
+	devnull = fopen("/dev/null", "w");
+	out = stdout;
 
 	/* determine which tests to run */
 	if (str_eq(tests, "all"))
 	{
 		test_task_count();
 		test_trim();
+		test_search();
 		test_set_var();
 	}
 
-	/* char *test; */
-	/* asprintf(&test, "set task_version 2.1"); */
-	/* char *tmp = var_value_message(find_var("task_version"), 1); */
-	/* puts(tmp); */
-	/* free(tmp); */
-	/* handle_command(test); */
-	/* tmp = var_value_message(find_var("task_version"), 1); */
-	/* puts(tmp); */
-	/* free(tmp); */
-	/* free(test); */
-	/* asprintf(&tmp, "set search_string tasknc"); */
-	/* handle_command(tmp); */
-	/* test = var_value_message(find_var("search_string"), 1); */
-	/* puts(test); */
-	/* free(test); */
-	/* printf("selline: %d\n", selline); */
-	/* find_next_search_result(head, head); */
-	/* printf("selline: %d\n", selline); */
-	/* task *t = get_task_by_position(selline); */
-	/* if (t==NULL) */
-		/* puts("???"); */
-	/* else */
-		/* puts(t->description); */
-	/* free(tmp); */
-	/* asprintf(&tmp, "  test string  "); */
-	/* printf("%s (%d)\n", tmp, (int)strlen(tmp)); */
-	/* test = str_trim(tmp); */
-	/* printf("%s (%d)\n", test, (int)strlen(test)); */
-	/* free(tmp); */
-
-	/* [> evaluating a format string <] */
-	/* char *titlefmt = "$10program_name;();$program_version; $5filter_string//$task_count\\/$badvar"; */
-	/* printf("%s\n", eval_string(100, titlefmt, NULL, NULL, 0)); */
+	fclose(devnull);
 
 	cleanup();
 } /* }}} */
@@ -97,12 +73,64 @@ void test_result(const char *testname, const bool passed) /* {{{ */
 	printf("%-15s %s%s%s\n", testname, color, msg, "\033[0;m");
 } /* }}} */
 
+void test_search() /* {{{ */
+{
+	/* test search functionality */
+	char *addcmdstr, *testcmdstr, *tmp;
+	const char *proj = "test123";
+	const char pri = 'H';
+	const char *unique = "simple";
+	FILE *cmdout;
+	task *this;
+	bool pass;
+
+	asprintf(&addcmdstr, "task add pro:%s pri:%c %s", proj, pri, unique);
+	cmdout = popen(addcmdstr, "r");
+	pclose(cmdout);
+	free_tasks(head);
+	head = get_tasks(NULL);
+
+	stdout = devnull;
+	searchstring = strdup(unique);
+	find_next_search_result(head, head);
+	stdout = out;
+	this = get_task_by_position(selline);
+	pass = strcmp(this->project, proj)==0 && this->priority==pri;
+	test_result("search", pass);
+	if (!pass)
+	{
+		puts(addcmdstr);
+		tmp = var_value_message(find_var("search_string"), 1);
+		puts(tmp);
+		free(tmp);
+		puts("selected:");
+		printf("uuid: %s\n", this->uuid);
+		printf("description: %s\n", this->description);
+		printf("project: %s\n", this->project);
+		printf("tags: %s\n", this->tags);
+		fflush(stdout);
+		asprintf(&testcmdstr, "task list %s", unique);
+		system(testcmdstr);
+		free(testcmdstr);
+	}
+
+	cmdout = popen("task undo", "r");
+	pclose(cmdout);
+	free(addcmdstr);
+} /* }}} */
+
 void test_set_var() /* {{{ */
 {
 	/* test the ability to set a variable */
-	char *teststr = strdup("  set   task_version   0.6.9  ");
+	char *teststr = strdup("  set \t task_version   0.6.9  ");
+	char *testint = strdup("  set \t nc_timeout \t 6969\t\t \n ");
+
+	stdout = devnull;
 	handle_command(teststr);
-	test_result("set var", strcmp(cfg.version, "0.6.9")==0);
+	handle_command(testint);
+	stdout = out;
+	test_result("set string var", strcmp(cfg.version, "0.6.9")==0);
+	test_result("set int var", cfg.nc_timeout==6969);
 } /* }}} */
 
 void test_task_count() /* {{{ */

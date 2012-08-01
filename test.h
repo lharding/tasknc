@@ -13,6 +13,9 @@
 
 void test(const char *);
 
+extern char *searchstring;
 extern config cfg;
+extern int selline;
+extern task *head;
 
 #endif
