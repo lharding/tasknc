@@ -507,9 +507,10 @@ void force_redraw() /* {{{ */
 void handle_command(char *cmdstr) /* {{{ */
 {
 	/* accept a command string, determine what action to take, and execute */
-	char *pos, *args = NULL;
+	char *pos, *args = NULL, *modestr;
 	cmdstr = str_trim(cmdstr);
 	funcmap *fmap;
+	prog_mode mode;
 
 	tnc_fprintf(logfp, LOG_DEBUG, "command received: %s", cmdstr);
 
@@ -523,13 +524,31 @@ void handle_command(char *cmdstr) /* {{{ */
 		args = ++pos;
 	}
 
+	/* determine mode */
+	if (pager != NULL)
+	{
+		modestr = "pager";
+		mode = MODE_PAGER;
+	}
+	else if (tasklist != NULL)
+	{
+		modestr = "tasklist";
+		mode = MODE_TASKLIST;
+	}
+	else
+	{
+		modestr = "none";
+		mode = MODE_ANY;
+	}
+
 	/* log command */
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: detected mode %s", modestr);
 	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: %s", cmdstr);
 	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: [args] %s", args);
 
 	/* handle command & arguments */
 	/* try for exposed command */
-	fmap = find_function(cmdstr, MODE_ANY);
+	fmap = find_function(cmdstr, mode);
 	if (fmap!=NULL)
 	{
 		(fmap->function)(str_trim(args));
