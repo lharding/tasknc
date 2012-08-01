@@ -215,8 +215,8 @@ void test_trim() /* {{{ */
 	test_result("str_trim", pass);
 	if (!pass)
 	{
-		printf("(%d) %s\n", strlen(check), check);
-		printf("(%d) %s\n", strlen(ref), ref);
+		printf("(%d) %s\n", (int)strlen(check), check);
+		printf("(%d) %s\n", (int)strlen(ref), ref);
 	}
 	free(teststr);
 } /* }}} */
