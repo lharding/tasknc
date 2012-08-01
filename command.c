@@ -273,8 +273,8 @@ void run_command_set(char *args) /* {{{ */
 			while ((*value)==' ')
 				value++;
 			*(char **)(this_var->ptr) = calloc(strlen(value)+1, sizeof(char));
-			ret = NULL==strcpy(*(char **)(this_var->ptr), value);
-			if (ret==0)
+			ret = NULL!=strcpy(*(char **)(this_var->ptr), value);
+			if (ret)
 				strip_quotes((char **)this_var->ptr, 1);
 			break;
 		default:
