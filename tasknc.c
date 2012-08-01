@@ -179,7 +179,7 @@ void configure(void) /* {{{ */
 
 	/* set default formats */
 	cfg.formats.title = strdup(" $program_name ($selected_line/$task_count) $> $date");
-	cfg.formats.task = strdup(" $project $description $> ?$due?$due?NO?");
+	cfg.formats.task = strdup(" $project $description $> ?$due?$due?$priority?");
 	cfg.formats.view = strdup(" task info");
 
 	/* set initial filter */
@@ -402,6 +402,16 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 			if (fieldwidth == -1)
 				fieldwidth = fieldlen;
 			var = "due";
+		}
+		else if (str_starts_with(fmt, "priority"))
+		{
+			field = calloc(2, sizeof(char));
+			*field = this->priority;
+			free_field = 1;
+			fieldlen = 1;
+			if (fieldwidth == -1)
+				fieldwidth = 1;
+			var = "priority";
 		}
 		else if (str_starts_with(fmt, "description"))
 		{
