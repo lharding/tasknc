@@ -32,19 +32,41 @@ void test_trim();
 FILE *devnull;
 FILE *out;
 
-void test(const char *tests) /* {{{ */
+void test(const char *args) /* {{{ */
 {
 	/* run tests to check functionality of tasknc */
+	struct test
+	{
+		const char *name;
+		void (*function)();
+	};
+	struct test tests[] =
+	{
+		{"task_count", test_task_count},
+		{"trim", test_trim},
+		{"search", test_search},
+		{"set_var", test_set_var},
+	};
+	const int ntests = sizeof(tests)/sizeof(struct test);
+	int i;
+
+	/* get file handles */
 	devnull = fopen("/dev/null", "w");
 	out = stdout;
 
 	/* determine which tests to run */
-	if (str_eq(tests, "all"))
+	if (str_eq(args, "all"))
 	{
-		test_task_count();
-		test_trim();
-		test_search();
-		test_set_var();
+		for (i=0; i<ntests; i++)
+			(tests[i].function)();
+	}
+	else
+	{
+		for (i=0; i<ntests; i++)
+		{
+			if (strstr(args, tests[i].name)!=NULL)
+				(tests[i].function)();
+		}
 	}
 
 	fclose(devnull);
