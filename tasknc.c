@@ -432,7 +432,7 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 		if (free_field)
 			free(field);
 
-		return eval_string(maxlen, fmt+varlen+1, this, str, position+fieldwidth);
+		return eval_string(maxlen, fmt+varlen, this, str, position+fieldwidth);
 	}
 
 	/* print uninterpreted */
