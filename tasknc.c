@@ -95,18 +95,17 @@ funcmap funcmaps[] = {
 	{"quit",        (void *)key_done,                 0, MODE_TASKLIST},
 	{"quit",        (void *)key_pager_close,          0, MODE_PAGER},
 	{"command",     (void *)key_command,              0, MODE_ANY},
-	{"stats",       (void *)view_stats,               0, MODE_TASKLIST},
-	{"help",        (void *)help_window,              0, MODE_TASKLIST},
+	{"stats",       (void *)view_stats,               0, MODE_ANY},
+	{"help",        (void *)help_window,              0, MODE_ANY},
 	{"view",        (void *)key_tasklist_view,        0, MODE_TASKLIST},
-	{"edit",        (void *)key_tasklist_edit,        0, MODE_TASKLIST},
-	{"complete",    (void *)key_tasklist_complete,    0, MODE_TASKLIST},
-	{"delete",      (void *)key_tasklist_delete,      0, MODE_TASKLIST},
-	{"set",         (void *)run_command_set,          1, MODE_TASKLIST},
-	{"show",        (void *)run_command_show,         1, MODE_TASKLIST},
-	{"bind",        (void *)run_command_bind,         1, MODE_TASKLIST},
-	{"unbind",      (void *)run_command_unbind,       1, MODE_TASKLIST},
-	{"f_redraw",    (void *)force_redraw,             0, MODE_TASKLIST},
-	{"f_redraw",    (void *)force_redraw,             0, MODE_PAGER},
+	{"edit",        (void *)key_tasklist_edit,        0, MODE_ANY},
+	{"complete",    (void *)key_tasklist_complete,    0, MODE_ANY},
+	{"delete",      (void *)key_tasklist_delete,      0, MODE_ANY},
+	{"set",         (void *)run_command_set,          1, MODE_ANY},
+	{"show",        (void *)run_command_show,         1, MODE_ANY},
+	{"bind",        (void *)run_command_bind,         1, MODE_ANY},
+	{"unbind",      (void *)run_command_unbind,       1, MODE_ANY},
+	{"f_redraw",    (void *)force_redraw,             0, MODE_ANY},
 };
 /* }}} */
 
@@ -211,11 +210,11 @@ void configure(void) /* {{{ */
 	add_keybind('g',           key_tasklist_scroll_home, NULL,            MODE_TASKLIST);
 	add_keybind(KEY_END,       key_tasklist_scroll_end,  NULL,            MODE_TASKLIST);
 	add_keybind('G',           key_tasklist_scroll_end,  NULL,            MODE_TASKLIST);
-	add_keybind('e',           key_tasklist_edit,        NULL,            MODE_TASKLIST);
+	add_keybind('e',           key_tasklist_edit,        NULL,            MODE_ANY);
 	add_keybind('r',           key_tasklist_reload,      NULL,            MODE_TASKLIST);
 	add_keybind('u',           key_tasklist_undo,        NULL,            MODE_TASKLIST);
-	add_keybind('d',           key_tasklist_delete,      NULL,            MODE_TASKLIST);
-	add_keybind('c',           key_tasklist_complete,    NULL,            MODE_TASKLIST);
+	add_keybind('d',           key_tasklist_delete,      NULL,            MODE_ANY);
+	add_keybind('c',           key_tasklist_complete,    NULL,            MODE_ANY);
 	add_keybind('a',           key_tasklist_add,         NULL,            MODE_TASKLIST);
 	add_keybind('v',           key_tasklist_view,        NULL,            MODE_TASKLIST);
 	add_keybind(13,            key_tasklist_view,        NULL,            MODE_TASKLIST);
@@ -228,9 +227,8 @@ void configure(void) /* {{{ */
 	add_keybind('q',           key_done,                 NULL,            MODE_TASKLIST);
 	add_keybind('q',           key_pager_close,          NULL,            MODE_PAGER);
 	add_keybind(';',           key_command,              NULL,            MODE_TASKLIST);
-	add_keybind(':',           key_command,              NULL,            MODE_TASKLIST);
-	add_keybind(':',           key_command,              NULL,            MODE_PAGER);
-	add_keybind('h',           help_window,              NULL,            MODE_TASKLIST);
+	add_keybind(':',           key_command,              NULL,            MODE_ANY);
+	add_keybind('h',           help_window,              NULL,            MODE_ANY);
 	add_keybind(12,            force_redraw,             NULL,            MODE_TASKLIST);
 	add_keybind(12,            force_redraw,             NULL,            MODE_PAGER);
 
