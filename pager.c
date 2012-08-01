@@ -18,6 +18,7 @@
 #include "keys.h"
 #include "log.h"
 #include "pager.h"
+#include "tasklist.h"
 #include "tasknc.h"
 
 /* local functions */
@@ -151,6 +152,11 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 	int startx, starty, lineno, c;
 	line *tmp;
 	offset = 0;
+	WINDOW *last_pager = NULL;
+
+	/* store previous pager window if necessary */
+	if (pager != NULL)
+		last_pager = pager;
 
 	/* count lines if necessary */
 	if (nlines<=0)
@@ -217,15 +223,26 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 		handle_keypress(c, MODE_PAGER);
 
 		if (pager_done)
+		{
+			pager_done = 0;
 			break;
+		}
 
 		statusbar_timeout();
 	}
 
 	/* destroy window and force redraw of tasklist */
 	delwin(pager);
-	pager = NULL;
-	redraw = 1;
+	if (last_pager == NULL)
+	{
+		pager = NULL;
+		redraw = 1;
+	}
+	else
+	{
+		tasklist_print_task_list();
+		pager = last_pager;
+	}
 } /* }}} */
 
 void view_stats() /* {{{ */
