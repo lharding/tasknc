@@ -1,5 +1,24 @@
 tasknc changelog
 
+v0.7
+    * long options
+    * improved search
+    * added modal keybinds
+    * added pager for running commands
+    * added stats window
+    * added help window
+    * added internal task view window
+    * added many more commands to command prompt
+    * added forced redraw of window
+    * massive code structure improvements
+        * keybinds as linked list
+        * cleaner memory handling
+        * use of ncurses windows
+        * split into multiple files
+        * lazy task printing
+        * internal removal of tasks after successful completion or deletion
+        * more robust statusbar_message
+
 v0.6
     * general code cleanup
         * make more variables global

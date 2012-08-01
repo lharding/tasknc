@@ -261,11 +261,15 @@ Sort modes:
 
 =item
 
+=item B<view_format> is the string which defines the format of the title bar of the pager when viewing a task.  See FORMATS for more information.
+
+=item
+
 =back
 
 =head1 FORMATS
 
-Formats describe how a line is printed.  Variables are denoted by a preceding $.  The variables listed in the VARIABLES section are all available.  The following additional variables are also available:
+Formats describe how a line is printed.  Variables are denoted by a preceding $.  The variables listed in the VARIABLES section are all available.  If you would like whitespace at the beginning or end of the string, enclose it in double quotes.  The following additional variables are also available:
 
 =over 4
 
