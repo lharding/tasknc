@@ -5,8 +5,13 @@
  * by mjheagle
  */
 
-#ifndef _TASKncurses_H
-#define _TASKncurses_H
+#ifndef _TASKNC_H
+#define _TASKNC_H
+
+/* program description */
+#define PROGNAME                        "tasknc"
+#define PROGVERSION                     "v0.7"
+#define PROGAUTHOR                      "mjheagle"
 
 /* wiping functions */
 #define wipe_tasklist()                 wipe_screen(tasklist, 0, rows-2)
@@ -20,7 +25,6 @@
 #define NCURSES_WAIT                    500
 #define LOGLVL_DEFAULT                  3
 
-
 /* function prototypes */
 void check_screen_size();
 void cleanup();
@@ -30,7 +34,6 @@ funcmap *find_function(const char *, const prog_mode);
 void find_next_search_result(task *, task *);
 var *find_var(const char *);
 void force_redraw();
-void handle_command(char *);
 void help(void);
 void key_command(const char *);
 void key_done();
@@ -41,10 +44,6 @@ void ncurses_end(int);
 void ncurses_init();
 void print_header();
 void print_version(void);
-void run_command_bind(char *);
-void run_command_unbind(char *);
-void run_command_set(char *);
-void run_command_show(const char *);
 void set_curses_mode(const ncurses_mode);
 void statusbar_message(const int, const char *, ...) __attribute__((format(printf,2,3)));
 void statusbar_timeout();
