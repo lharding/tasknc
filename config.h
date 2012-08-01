@@ -21,4 +21,7 @@
 #define UUIDLENGTH                      38
 #define DATELENGTH                      7
 
+/* compile in test suite */
+#define TASKNC_INCLUDE_TESTS
+
 #endif

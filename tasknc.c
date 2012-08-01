@@ -26,6 +26,7 @@
 #include "log.h"
 #include "keys.h"
 #include "pager.h"
+#include "test.h"
 
 /* global variables {{{ */
 const char *progname = PROGNAME;
@@ -974,6 +975,7 @@ int main(int argc, char **argv) /* {{{ */
 {
 	/* declare variables */
 	int c, debug = 0;
+	char *debugopts;
 
 	/* open log */
 	logfp = fopen(LOGFILE, "a");
@@ -994,7 +996,7 @@ int main(int argc, char **argv) /* {{{ */
 		{0, 0, 0, 0}
 	};
 	int option_index = 0;
-	while ((c = getopt_long(argc, argv, "l:hvdf:", long_options, &option_index)) != -1)
+	while ((c = getopt_long(argc, argv, "l:hvd:f:", long_options, &option_index)) != -1)
 	{
 		switch (c)
 		{
@@ -1008,6 +1010,7 @@ int main(int argc, char **argv) /* {{{ */
 				break;
 			case 'd':
 				debug = 1;
+				debugopts = strdup(optarg);
 				break;
 			case 'f':
 				active_filter = strdup(optarg);
@@ -1046,43 +1049,8 @@ int main(int argc, char **argv) /* {{{ */
 	/* debug mode */
 	else
 	{
-		task_count();
-		printf("task count: %d\n", taskcount);
-		char *test;
-		asprintf(&test, "set task_version 2.1");
-		char *tmp = var_value_message(find_var("task_version"), 1);
-		puts(tmp);
-		free(tmp);
-		handle_command(test);
-		tmp = var_value_message(find_var("task_version"), 1);
-		puts(tmp);
-		free(tmp);
-		free(test);
-		asprintf(&tmp, "set search_string tasknc");
-		handle_command(tmp);
-		test = var_value_message(find_var("search_string"), 1);
-		puts(test);
-		free(test);
-		printf("selline: %d\n", selline);
-		find_next_search_result(head, head);
-		printf("selline: %d\n", selline);
-		task *t = get_task_by_position(selline);
-		if (t==NULL)
-			puts("???");
-		else
-			puts(t->description);
-		free(tmp);
-		asprintf(&tmp, "  test string  ");
-		printf("%s (%d)\n", tmp, (int)strlen(tmp));
-		test = str_trim(tmp);
-		printf("%s (%d)\n", test, (int)strlen(test));
-		free(tmp);
-
-		/* evaluating a format string */
-		char *titlefmt = "$10program_name;();$program_version; $5filter_string//$task_count\\/$badvar";
-		printf("%s\n", eval_string(100, titlefmt, NULL, NULL, 0));
-
-		cleanup();
+		test(debugopts);
+		free(debugopts);
 	}
 
 	/* done */
