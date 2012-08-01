@@ -28,7 +28,7 @@
 
 /* global variables {{{ */
 const char *progname = "tasknc";
-const char *progversion = "v0.6";
+const char *progversion = "v0.7";
 const char *progauthor = "mjheagle";
 
 config cfg;                             /* runtime config struct */
