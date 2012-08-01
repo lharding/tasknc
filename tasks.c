@@ -677,7 +677,7 @@ int task_interactive_command(const char *cmdfmt) /* {{{ */
 
 	/* force redraw */
 	reset_prog_mode();
-	redraw = 1;
+	redraw = true;
 
 	return ret;
 } /* }}} */

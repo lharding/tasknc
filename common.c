@@ -15,19 +15,21 @@ bool match_string(const char *haystack, const char *needle) /* {{{ */
 {
 	/* match a string to a regex */
 	regex_t regex;
-	char ret;
+	bool ret;
 
 	/* check for NULL haystack or needle */
 	if (haystack==NULL || needle==NULL)
-		return 0;
+		return false;
 
-	/* compile and run regex */
+	/* compile regex */
 	if (regcomp(&regex, needle, REGEX_OPTS) != 0)
-		return 0;
+		return false;
+
+	/* run regex */
 	if (regexec(&regex, haystack, 0, 0, 0) != REG_NOMATCH)
-		ret = 1;
+		ret = true;
 	else
-		ret = 0;
+		ret = false;
 	regfree(&regex);
 	return ret;
 } /* }}} */

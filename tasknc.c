@@ -175,7 +175,7 @@ void configure(void) /* {{{ */
 	cfg.nc_timeout = NCURSES_WAIT;                          /* time getch will wait */
 	cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;      /* default time before resetting statusbar */
 	cfg.sortmode = 'd';                                     /* determine sort algorithm */
-	cfg.silent_shell = 0;                                   /* determine whether shell commands should be visible */
+	cfg.silent_shell = false;                               /* determine whether shell commands should be visible */
 
 	/* set default formats */
 	cfg.formats.title = strdup(" $program_name ($selected_line/$task_count) $> $date");
@@ -292,7 +292,7 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 	int i, condoffset;
 	char *field = NULL, *var = NULL, *orig_fmt, *cond[4], *condseg, *condstr;
 	int fieldlen = -1, fieldwidth = -1, varlen = -1, condlen;
-	bool free_field = 0, condition;
+	bool free_field = false, condition;
 
 	/* check if string is done */
 	if (*fmt == 0)
@@ -381,7 +381,7 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 		fieldlen = strlen(field);
 		if (fieldwidth == -1)
 			fieldwidth = fieldlen;
-		free_field = 1;
+		free_field = true;
 		var = "date";
 	}
 
@@ -398,7 +398,7 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 				*field = ' ';
 			}
 			fieldlen = strlen(field);
-			free_field = 1;
+			free_field = true;
 			if (fieldwidth == -1)
 				fieldwidth = fieldlen;
 			var = "due";
@@ -407,7 +407,7 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 		{
 			field = calloc(2, sizeof(char));
 			*field = this->priority;
-			free_field = 1;
+			free_field = true;
 			fieldlen = 1;
 			if (fieldwidth == -1)
 				fieldwidth = 1;
@@ -454,7 +454,7 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 			if (fieldwidth == -1)
 				fieldwidth = strlen(field);
 			var = vars[i].name;
-			free_field = 1;
+			free_field = true;
 			break;
 		}
 	}
@@ -624,7 +624,7 @@ void key_command(const char *arg) /* {{{ */
 void key_done() /* {{{ */
 {
 	/* exit tasknc */
-	done = 1;
+	done = true;
 } /* }}} */
 
 char max_project_length() /* {{{ */
@@ -985,7 +985,7 @@ char *var_value_message(var *v, bool printname) /* {{{ */
 			break;
 	}
 
-	if (printname == 0)
+	if (printname == false)
 		return value;
 
 	message = malloc(strlen(v->name) + strlen(value) + 3);
@@ -1025,7 +1025,8 @@ void wipe_window(WINDOW *win) /* {{{ */
 int main(int argc, char **argv) /* {{{ */
 {
 	/* declare variables */
-	int c, debug = 0;
+	int c;
+	bool debug = false;
 	char *debugopts;
 
 	/* open log */
@@ -1060,7 +1061,7 @@ int main(int argc, char **argv) /* {{{ */
 				return 0;
 				break;
 			case 'd':
-				debug = 1;
+				debug = true;
 				debugopts = strdup(optarg);
 				break;
 			case 'f':

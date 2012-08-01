@@ -81,7 +81,7 @@ void help_window() /* {{{ */
 
 void key_pager_close() /* {{{ */
 {
-	pager_done = 1;
+	pager_done = true;
 } /* }}} */
 
 void key_pager_scroll_up() /* {{{ */
@@ -192,7 +192,7 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 	tnc_fprintf(logfp, LOG_DEBUG, "pager: h=%d w=%d y=%d x=%d", height, cols, starty, startx);
 	pager = newwin(height, cols, starty, startx);
 
-	pager_done = 0;
+	pager_done = false;
 	while (1)
 	{
 		tnc_fprintf(logfp, LOG_DEBUG, "offset:%d height:%d lines:%d", offset, height, linecount);
@@ -224,7 +224,7 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 
 		if (pager_done)
 		{
-			pager_done = 0;
+			pager_done = false;
 			break;
 		}
 
@@ -236,7 +236,7 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 	if (last_pager == NULL)
 	{
 		pager = NULL;
-		redraw = 1;
+		redraw = true;
 	}
 	else
 	{

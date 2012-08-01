@@ -74,16 +74,16 @@ void handle_command(char *cmdstr) /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "%s %s by %s\n", PROGNAME, PROGVERSION, PROGAUTHOR);
 	/* quit/exit: exit tasknc */
 	else if (str_eq(cmdstr, "quit") || str_eq(cmdstr, "exit"))
-		done = 1;
+		done = true;
 	/* reload: force reload of task list */
 	else if (str_eq(cmdstr, "reload"))
 	{
-		reload = 1;
+		reload = true;
 		statusbar_message(cfg.statusbar_timeout, "task list reloaded");
 	}
 	/* redraw: force redraw of screen */
 	else if (str_eq(cmdstr, "redraw"))
-		redraw = 1;
+		redraw = true;
 	/* dump: write all displayed tasks to log file */
 	else if (str_eq(cmdstr, "dump"))
 	{
@@ -322,7 +322,7 @@ void strip_quotes(char **strptr, bool needsfree) /* {{{ */
 	/* remove leading/trailing quotes from a string if necessary */
 	const char *quotes = "\"'";
 	char *newstr, *end, *str = *strptr;
-	bool inquotes = 0;
+	bool inquotes = false;
 	int len = 0;
 
 	/* walk to end of string */
@@ -334,8 +334,7 @@ void strip_quotes(char **strptr, bool needsfree) /* {{{ */
 	}
 
 	/* determine if string has quotes */
-	if (*str == *end && strchr(quotes, *str) != NULL)
-		inquotes = 1;
+	inquotes = *str == *end && strchr(quotes, *str) != NULL;
 
 	/* copy quoted string */
 	if (inquotes)

@@ -102,7 +102,7 @@ void key_tasklist_filter(const char *arg) /* {{{ */
 
 	statusbar_message(cfg.statusbar_timeout, "filter applied");
 	selline = 0;
-	reload = 1;
+	reload = true;
 } /* }}} */
 
 void key_tasklist_modify(const char *arg) /* {{{ */
@@ -126,13 +126,13 @@ void key_tasklist_modify(const char *arg) /* {{{ */
 	free(argstr);
 
 	statusbar_message(cfg.statusbar_timeout, "task modified");
-	redraw = 1;
+	redraw = true;
 } /* }}} */
 
 void key_tasklist_reload() /* {{{ */
 {
 	/* wrapper function to handle keyboard instruction to reload task list */
-	reload = 1;
+	reload = true;
 	statusbar_message(cfg.statusbar_timeout, "task list reloaded");
 } /* }}} */
 
@@ -182,7 +182,7 @@ void key_tasklist_scroll(const int direction) /* {{{ */
 			break;
 	}
 	if (pageoffset!=oldoffset)
-		redraw = 1;
+		redraw = true;
 	else
 	{
 		tasklist_print_task(oldsel, NULL);
@@ -233,7 +233,7 @@ void key_tasklist_search(const char *arg) /* {{{ */
 	/* go to first result */
 	find_next_search_result(head, get_task_by_position(selline));
 	tasklist_check_curs_pos();
-	redraw = 1;
+	redraw = true;
 } /* }}} */
 
 void key_tasklist_search_next() /* {{{ */
@@ -243,7 +243,7 @@ void key_tasklist_search_next() /* {{{ */
 	{
 		find_next_search_result(head, get_task_by_position(selline));
 		tasklist_check_curs_pos();
-		redraw = 1;
+		redraw = true;
 	}
 	else
 		statusbar_message(cfg.statusbar_timeout, "no active search string");
@@ -288,7 +288,7 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 			statusbar_message(cfg.statusbar_timeout, "invalid sort mode");
 			break;
 	}
-	redraw = 1;
+	redraw = true;
 } /* }}} */
 
 void key_tasklist_sync() /* {{{ */
@@ -303,7 +303,7 @@ void key_tasklist_sync() /* {{{ */
 	if (ret==0)
 	{
 		statusbar_message(cfg.statusbar_timeout, "tasks synchronized");
-		reload = 1;
+		reload = true;
 	}
 	else
 		statusbar_message(cfg.statusbar_timeout, "task syncronization failed");
@@ -319,7 +319,7 @@ void key_tasklist_undo() /* {{{ */
 	if (ret==0)
 	{
 		statusbar_message(cfg.statusbar_timeout, "undo executed");
-		reload = 1;
+		reload = true;
 	}
 	else
 		statusbar_message(cfg.statusbar_timeout, "undo execution failed (%d)", ret);
@@ -394,9 +394,9 @@ void tasklist_window() /* {{{ */
 	while (1)
 	{
 		/* set variables for determining actions */
-		done = 0;
-		redraw = 0;
-		reload = 0;
+		done = false;
+		redraw = false;
+		reload = false;
 
 		/* get the screen size */
 		rows = LINES;
@@ -408,8 +408,8 @@ void tasklist_window() /* {{{ */
 		/* check for size changes */
 		if (cols!=oldcols || rows!=oldrows)
 		{
-			resize = 1;
-			redraw = 1;
+			resize = true;
+			redraw = true;
 			wipe_statusbar();
 		}
 		oldcols = cols;
@@ -425,19 +425,19 @@ void tasklist_window() /* {{{ */
 		handle_keypress(c, MODE_TASKLIST);
 
 		/* exit */
-		if (done==1)
+		if (done)
 			break;
 		/* reload task list */
-		if (reload==1)
+		if (reload)
 		{
 			wipe_tasklist();
 			reload_tasks();
 			task_count();
-			redraw = 1;
+			redraw = true;
 			tasklist_check_curs_pos();
 		}
 		/* resize windows */
-		if (resize==1)
+		if (resize)
 		{
 			wresize(header, 1, cols);
 			wresize(tasklist, rows-2, cols);
@@ -447,7 +447,7 @@ void tasklist_window() /* {{{ */
 			mvwin(statusbar, rows-1, 0);
 		}
 		/* redraw all windows */
-		if (redraw==1)
+		if (redraw)
 		{
 			cfg.fieldlengths.project = max_project_length();
 			cfg.fieldlengths.description = cols-cfg.fieldlengths.project-1-cfg.fieldlengths.date;
@@ -470,7 +470,7 @@ void tasklist_window() /* {{{ */
 void tasklist_print_task(int tasknum, task *this) /* {{{ */
 {
 	/* print a task specified by number */
-	bool sel = 0;
+	bool sel = false;
 	char *tmp;
 	int x, y;
 
@@ -492,7 +492,7 @@ void tasklist_print_task(int tasknum, task *this) /* {{{ */
 
 	/* determine if line is selected */
 	if (tasknum==selline)
-		sel = 1;
+		sel = true;
 
 	/* wipe line */
 	wattrset(tasklist, COLOR_PAIR(0));
@@ -540,7 +540,7 @@ void tasklist_remove_task(task *this) /* {{{ */
 	free_task(this);
 	taskcount--;
 	tasklist_check_curs_pos();
-	redraw = 1;
+	redraw = true;
 } /* }}} */
 
 void tasklist_task_add(void) /* {{{ */
