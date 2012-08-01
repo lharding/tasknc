@@ -285,17 +285,31 @@ void configure(void) /* {{{ */
 	fclose(config);
 } /* }}} */
 
-const char *eval_string(const int maxlen, const char *fmt, const task *this, char *str, int position) /* {{{ */
+const char *eval_string(const int maxlen, char *fmt, const task *this, char *str, int position) /* {{{ */
 {
 	/* evaluate a string with format variables */
 	int i;
-	char *field = NULL, *var = NULL;
+	char *field = NULL, *var = NULL, *pos;
 	int fieldlen = -1, fieldwidth = -1, varlen = -1;
 	bool free_field = 0;
 
 	/* check if string is done */
 	if (*fmt == 0)
 		return str;
+
+	/* check if format string is in quotes */
+	if (position == 0)
+	{
+		if (*fmt == '"')
+		{
+			pos = strrchr(fmt, '"');
+			if (*(pos+1) == 0)
+			{
+				*pos = 0;
+				fmt++;
+			}
+		}
+	}
 
 	/* allocate string if necessary */
 	if (str==NULL)
@@ -1353,7 +1367,7 @@ int main(int argc, char **argv) /* {{{ */
 		free(tmp);
 
 		/* evaluating a format string */
-		const char *titlefmt = "$program_name;();$program_version; $filter_string//$task_count\\/$badvar";
+		char *titlefmt = "$program_name;();$program_version; $filter_string//$task_count\\/$badvar";
 		printf("%s\n", eval_string(100, titlefmt, NULL, NULL, 0));
 
 		cleanup();
