@@ -179,7 +179,7 @@ void configure(void) /* {{{ */
 
 	/* set default formats */
 	cfg.formats.title = strdup(" $program_name ($selected_line/$task_count) $> $date");
-	cfg.formats.task = strdup(" $project $description $> $due");
+	cfg.formats.task = strdup(" $project $description $> ?$due?$due?NO?");
 	cfg.formats.view = strdup(" task info");
 
 	/* set initial filter */
@@ -391,20 +391,14 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 		if (str_starts_with(fmt, "due"))
 		{
 			if (this->due)
-			{
 				field = utc_date(this->due);
-				fieldlen = strlen(field);
-				free_field = 1;
-			}
-			else if (this->priority)
+			else
 			{
 				field = calloc(2, sizeof(char));
-				sprintf(field, "%c", this->priority);
-				free_field = 1;
-				fieldlen = 1;
+				*field = ' ';
 			}
-			else
-				fieldlen = 0;
+			fieldlen = strlen(field);
+			free_field = 1;
 			if (fieldwidth == -1)
 				fieldwidth = fieldlen;
 			var = "due";
@@ -921,9 +915,6 @@ char *utc_date(const time_t timeint) /* {{{ */
 	time_t cur;
 	char *timestr;
 
-	/* convert the input timeint to a string */
-	tmr = localtime(&timeint);
-
 	/* get current time */
 	time(&cur);
 	now = localtime(&cur);
@@ -931,6 +922,9 @@ char *utc_date(const time_t timeint) /* {{{ */
 	/* set time to now if 0 was the argument */
 	if (timeint==0)
 		tmr = now;
+	/* convert the input timeint to a string */
+	else
+		tmr = localtime(&timeint);
 
 	/* convert thte time to a formatted string */
 	timestr = malloc(TIMELENGTH*sizeof(char));
