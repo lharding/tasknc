@@ -94,7 +94,7 @@ funcmap funcmaps[] = {
 	{"sync",        (void *)key_tasklist_sync,        0, MODE_TASKLIST},
 	{"quit",        (void *)key_done,                 0, MODE_TASKLIST},
 	{"quit",        (void *)key_pager_close,          0, MODE_PAGER},
-	{"command",     (void *)key_command,              0, MODE_TASKLIST},
+	{"command",     (void *)key_command,              0, MODE_ANY},
 	{"stats",       (void *)view_stats,               0, MODE_TASKLIST},
 	{"help",        (void *)help_window,              0, MODE_TASKLIST},
 	{"view",        (void *)key_tasklist_view,        0, MODE_TASKLIST},
@@ -229,6 +229,7 @@ void configure(void) /* {{{ */
 	add_keybind('q',           key_pager_close,          NULL,            MODE_PAGER);
 	add_keybind(';',           key_command,              NULL,            MODE_TASKLIST);
 	add_keybind(':',           key_command,              NULL,            MODE_TASKLIST);
+	add_keybind(':',           key_command,              NULL,            MODE_PAGER);
 	add_keybind('h',           help_window,              NULL,            MODE_TASKLIST);
 	add_keybind(12,            force_redraw,             NULL,            MODE_TASKLIST);
 	add_keybind(12,            force_redraw,             NULL,            MODE_PAGER);
@@ -424,7 +425,7 @@ funcmap *find_function(const char *name, const prog_mode mode) /* {{{ */
 
 	for (i=0; i<NFUNCS; i++)
 	{
-		if (str_eq(name, funcmaps[i].name) && (mode == funcmaps[i].mode || mode == MODE_ANY))
+		if (str_eq(name, funcmaps[i].name) && (funcmaps[i].mode == MODE_ANY || mode == funcmaps[i].mode || mode == MODE_ANY))
 			return &(funcmaps[i]);
 	}
 
