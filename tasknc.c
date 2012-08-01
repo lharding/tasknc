@@ -154,8 +154,8 @@ void cleanup() /* {{{ */
 	{
 		lastbind = keybinds;
 		keybinds = keybinds->next;
-		free(lastbind);
 		check_free(lastbind->argstr);
+		free(lastbind);
 	}
 
 	/* close open files */
