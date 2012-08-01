@@ -292,7 +292,7 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 	int i, condoffset;
 	char *field = NULL, *var = NULL, *orig_fmt, *cond[4], *condseg, *condstr;
 	int fieldlen = -1, fieldwidth = -1, varlen = -1, condlen;
-	bool free_field = false, condition;
+	bool free_field = false, condition, right_align = false;
 
 	/* check if string is done */
 	if (*fmt == 0)
@@ -361,7 +361,14 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 	}
 	fmt++;
 
-	/* get field length */
+	/* check for alignment marker */
+	if (*fmt == '-')
+	{
+		right_align = true;
+		fmt++;
+	}
+
+	/* get field width if specified */
 	while (*fmt <= '9' && *fmt >= '0')
 	{
 		if (fieldwidth == -1)
@@ -472,13 +479,26 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 		if (var != (char *)-1)
 			varlen = strlen(var);
 
-		/* copy string */
-		if (field != NULL)
-			strncpy(str+position, field, fieldwidth);
+		if (right_align)
+		{
+			/* pad beginning of string */
+			for (i=fieldlen; i<fieldwidth; i++)
+				*(str+position+i-fieldlen) = ' ';
 
-		/* pad end of string */
-		for (i=fieldlen; i<fieldwidth; i++)
-			*(str+position+i) = ' ';
+			/* copy string */
+			if (field != NULL)
+				strncpy(str+position+fieldwidth-fieldlen, field, fieldwidth);
+		}
+		else
+		{
+			/* copy string */
+			if (field != NULL)
+				strncpy(str+position, field, fieldwidth);
+
+			/* pad end of string */
+			for (i=fieldlen; i<fieldwidth; i++)
+				*(str+position+i) = ' ';
+		}
 		*(str+position+fieldwidth) = 0;
 
 		/* free field */
