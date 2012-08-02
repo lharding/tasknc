@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "color.h"
 #include "common.h"
 #include "config.h"
 #include "keys.h"
@@ -528,7 +529,7 @@ void tasklist_print_task(int tasknum, task *this) /* {{{ */
 
 	/* evaluate line */
 	wmove(tasklist, 0, 0);
-	wattrset(tasklist, COLOR_PAIR(2+sel));
+	wattrset(tasklist, get_colors(OBJECT_TASK, this, sel));
 	tmp = (char *)eval_string(2*cols, cfg.formats.task, this, NULL, 0);
 	umvaddstr_align(tasklist, y, tmp);
 	free(tmp);

@@ -42,7 +42,7 @@ color_rule *color_rules = NULL;
 
 /* local functions */
 static short add_color_pair(const short, const short, const short);
-static bool eval_rules(char *, const task *, task *);
+static bool eval_rules(char *, const task *, const bool);
 static short find_add_pair(const short, const short);
 static int set_default_colors();
 
@@ -107,7 +107,7 @@ short add_color_rule(const color_object object, const char *rule, const short fg
 		return ret;
 	this = calloc(1, sizeof(color_rule));
 	this->pair = ret;
-	if (this->rule != NULL)
+	if (rule != NULL)
 		this->rule = strdup(rule);
 	else
 		this->rule = NULL;
@@ -121,19 +121,26 @@ short add_color_rule(const color_object object, const char *rule, const short fg
 	return 0;
 } /* }}} */
 
-bool eval_rules(char *rule, const task *tsk, task *selected) /* {{{ */
+bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 {
-	/* evaluate a rule for a task */
-
-	/* find selected task */
-	if (selected == NULL)
-		selected = get_task_by_position(selline);
+	/* evaluate a rule set for a task */
 
 	/* success if rules are done */
-	if (rule == NULL)
+	if (rule == NULL || *rule == 0)
 		return true;
 
+	/* skip white space */
+	if (strchr(" \t\n", *rule) != NULL)
+		return eval_rules(rule+1, tsk, selected);
+
 	/* is task selected */
+	if (str_starts_with(rule, "~S"))
+	{
+		if (selected)
+			return eval_rules(rule+3, tsk, selected);
+		else
+			return false;
+	}
 
 	/* should never get here */
 	return false;
@@ -181,7 +188,7 @@ void free_colors() /* {{{ */
 	}
 } /* }}} */
 
-int get_colors(const color_object object, const task *tsk, const task *selected) /* {{{ */
+int get_colors(const color_object object, const task *tsk, const bool selected) /* {{{ */
 {
 	/* evaluate color rules and return attrset arg */
 	short pair = 0;
@@ -202,7 +209,7 @@ int get_colors(const color_object object, const task *tsk, const task *selected)
 					done = true;
 					break;
 				case OBJECT_TASK:
-					if (eval_rules(rule->rule, tsk, (task *)selected))
+					if (eval_rules(rule->rule, tsk, selected))
 						done = true;
 					break;
 				default:
@@ -253,27 +260,10 @@ int init_colors() /* {{{ */
 
 int set_default_colors() /* {{{ */
 {
-	/* set up default colors */
-	int ret;
-	unsigned int i;
-
-	color colors[] =
-	{
-		{2, COLOR_WHITE, -1},          /* default task */
-		{3, COLOR_CYAN,  COLOR_BLACK}, /* selected task */
-	};
-
-	/* initialize color pairs */
-	for (i=0; i<sizeof(colors)/sizeof(color); i++)
-	{
-		ret = add_color_pair(colors[i].pair, colors[i].fg, colors[i].bg);
-		if (ret == -1)
-			return 4;
-	}
-
 	/* create initial color rules */
 	add_color_rule(OBJECT_HEADER, NULL, COLOR_BLUE, COLOR_BLACK);
-	add_color_rule(OBJECT_TASK, NULL, COLOR_CYAN, COLOR_BLACK);
+	add_color_rule(OBJECT_TASK, "~S", COLOR_CYAN, COLOR_BLACK);
+	add_color_rule(OBJECT_TASK, NULL, -1, -1);
 	add_color_rule(OBJECT_ERROR, NULL, COLOR_RED, -1);
 
 	return 0;
