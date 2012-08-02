@@ -27,7 +27,39 @@ bool colors_initialized = false;
 bool *pairs_used = NULL;
 
 /* local functions */
+static short add_color_pair(const short, const short, const short);
 static int set_default_colors();
+
+short add_color_pair(short askpair, short fg, short bg) /* {{{ */
+{
+	/* initialize a color pair and return its pair number */
+	short pair = 0;
+
+	/* pick a color number if none is specified */
+	if (askpair<=0)
+	{
+		while (pairs_used[pair] && pair<COLOR_PAIRS)
+			pair++;
+		if (pair == COLOR_PAIRS)
+			return -1;
+	}
+
+	/* check if pair requested is being used */
+	else
+	{
+		if (pairs_used[askpair])
+			return -1;
+		pair = askpair;
+	}
+
+	/* initialize pair */
+	if (init_pair(pair, fg, bg) == ERR)
+		return -1;
+
+	/* mark pair as used and exit */
+	pairs_used[pair] = true;
+	return pair;
+} /* }}} */
 
 void free_colors() /* {{{ */
 {
@@ -83,11 +115,9 @@ int set_default_colors() /* {{{ */
 	/* initialize color pairs */
 	for (i=0; i<sizeof(colors)/sizeof(color); i++)
 	{
-		ret = init_pair(colors[i].pair, colors[i].fg, colors[i].bg);
-		if (ret == ERR)
+		ret = add_color_pair(colors[i].pair, colors[i].fg, colors[i].bg);
+		if (ret == -1)
 			return 4;
-		else
-			pairs_used[colors[i].pair] = true;
 	}
 
 	return 0;
