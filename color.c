@@ -26,6 +26,7 @@ typedef struct _color_rule
 {
 	short pair;
 	char *rule;
+	char *object;
 	struct _color_rule *next;
 } color_rule;
 
@@ -37,6 +38,7 @@ color_rule *color_rules = NULL;
 
 /* local functions */
 static short add_color_pair(const short, const short, const short);
+static short find_add_pair(const short, const short);
 static int set_default_colors();
 
 short add_color_pair(short askpair, short fg, short bg) /* {{{ */
@@ -68,6 +70,31 @@ short add_color_pair(short askpair, short fg, short bg) /* {{{ */
 	/* mark pair as used and exit */
 	pairs_used[pair] = true;
 	return pair;
+} /* }}} */
+
+short find_add_pair(const short fg, const short bg) /* {{{ */
+{
+	/* find a color pair with specified content or create a new one */
+	short *tmpfg = 0, *tmpbg = 0, pair, free_pair = 0;
+	int ret;
+
+	/* look for an existing pair */
+	for (pair=0; pair<COLOR_PAIRS; pair++)
+	{
+		if (pairs_used[pair])
+		{
+			ret = pair_content(pair, tmpfg, tmpbg);
+			if (ret == ERR)
+				continue;
+			if (*tmpfg == fg && *tmpbg == bg)
+				return pair;
+		}
+		else if (free_pair==0)
+			free_pair = pair;
+	}
+
+	/* return a new pair */
+	return add_color_pair(free_pair, fg, bg);
 } /* }}} */
 
 void free_colors() /* {{{ */
