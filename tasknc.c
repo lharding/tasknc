@@ -545,6 +545,7 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
 			cur = head;
 			selline = 0;
 			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "search wrapped");
+			statusbar_message(cfg.statusbar_timeout, "search wrapped to top");
 		}
 
 		else
