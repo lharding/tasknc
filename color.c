@@ -21,10 +21,19 @@ typedef struct _color
 	short bg;
 } color;
 
+/* color rule structure */
+typedef struct _color_rule
+{
+	short pair;
+	char *rule;
+	struct _color_rule *next;
+} color_rule;
+
 /* global variables */
 bool use_colors;
 bool colors_initialized = false;
 bool *pairs_used = NULL;
+color_rule *color_rules = NULL;
 
 /* local functions */
 static short add_color_pair(const short, const short, const short);
