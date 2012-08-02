@@ -101,7 +101,6 @@ void key_tasklist_filter(const char *arg) /* {{{ */
 		active_filter = strdup(arg);
 
 	statusbar_message(cfg.statusbar_timeout, "filter applied");
-	selline = 0;
 	reload = true;
 } /* }}} */
 
@@ -337,6 +336,9 @@ void tasklist_check_curs_pos() /* {{{ */
 {
 	/* check if the cursor is in a valid position */
 	const int onscreentasks = getmaxy(tasklist);
+
+	/* log starting cursor position */
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "cursor_check(init) - selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, rows-3);
 
 	/* check 0<=selline<taskcount */
 	if (selline<0)
