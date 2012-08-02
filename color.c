@@ -124,7 +124,7 @@ short add_color_rule(const color_object object, const char *rule, const short fg
 bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 {
 	/* evaluate a rule set for a task */
-	char *regex, pattern;
+	char *regex, pattern, *tmp;
 	int ret, move;
 	bool go = false;
 
@@ -171,6 +171,16 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 					return false;
 				else
 					tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: tag match - '%s' '%s'", tsk->tags, regex);
+				break;
+			case 'r':
+				tmp = calloc(2, sizeof(char));
+				*tmp = tsk->priority;
+				if (!match_string(tmp, regex))
+					return false;
+				else
+					tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: priority match - '%s' '%s'", tmp, regex);
+				free(tmp);
+				break;
 			default:
 				go = false;
 				break;
@@ -301,6 +311,7 @@ int set_default_colors() /* {{{ */
 	/* create initial color rules */
 	add_color_rule(OBJECT_HEADER, NULL, COLOR_BLUE, COLOR_BLACK);
 	add_color_rule(OBJECT_TASK, NULL, -1, -1);
+	add_color_rule(OBJECT_TASK, "~r '[Mm]'", COLOR_YELLOW, COLOR_BLACK); /* TODO: remove */
 	add_color_rule(OBJECT_TASK, "~d '\\?'", COLOR_GREEN, COLOR_BLACK); /* TODO: remove */
 	add_color_rule(OBJECT_TASK, "~p 'task*'", COLOR_RED, COLOR_BLACK); /* TODO: remove */
 	add_color_rule(OBJECT_TASK, "~S", COLOR_CYAN, COLOR_BLACK);
