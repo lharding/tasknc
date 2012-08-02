@@ -718,7 +718,7 @@ void task_modify(const char *argstr) /* {{{ */
 {
 	/* run a modify command on the selected task */
 	task *cur;
-	char *cmd;
+	char *cmd, *uuid;
 	int arglen;
 
 	if (argstr!=NULL)
@@ -735,7 +735,10 @@ void task_modify(const char *argstr) /* {{{ */
 
 	task_background_command(cmd);
 
+	uuid = strdup(cur->uuid);
 	reload_task(cur);
+	selline = get_task_position_by_uuid(uuid);
+	free(uuid);
 
 	free(cmd);
 } /* }}} */
