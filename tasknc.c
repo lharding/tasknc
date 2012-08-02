@@ -443,7 +443,7 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 		}
 		else if (str_starts_with(fmt, "index"))
 		{
-			asprintf(&field, "%d", this->index+1);
+			asprintf(&field, "%d", this->index);
 			if (fieldwidth == -1)
 				fieldwidth = strlen(field);
 			var = "index";

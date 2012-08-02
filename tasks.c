@@ -229,7 +229,6 @@ task *get_tasks(char *uuid) /* {{{ */
 			return NULL;
 
 		/* set pointers */
-		this->index = counter;
 		this->prev = last;
 
 		if (counter==0)
@@ -348,6 +347,7 @@ task *parse_task(char *line) /* {{{ */
 			endchar = ']';
 		else if (str_eq(field, "id"))
 		{
+			sscanf(content-1, "%hd", &(tsk->index));
 			token = strtok(NULL, ",");
 			continue;
 		}
