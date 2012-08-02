@@ -10,6 +10,7 @@
 #define _COMMON_H
 
 #include <stdbool.h>
+#include <time.h>
 
 /* ncurses settings */
 typedef enum {
