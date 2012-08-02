@@ -7,8 +7,19 @@
  */
 
 #include <curses.h>
+#include <stdio.h>
+#include "color.h"
 #include "common.h"
 #include "log.h"
+
+/* color structure */
+typedef struct _color
+{
+	short pair;
+	short fg;
+	short bg;
+	bool initialized;
+} color;
 
 /* global variables */
 bool use_colors;
@@ -34,7 +45,7 @@ int init_colors() /* {{{ */
 		return 2;
 
 	/* check if terminal has color capabilities */
-	use_colors = has_colors() && can_change_color();
+	use_colors = has_colors();
 	colors_initialized = true;
 	if (use_colors)
 		return set_default_colors();
@@ -46,19 +57,25 @@ int set_default_colors() /* {{{ */
 {
 	/* set up default colors */
 	int ret;
+	unsigned int i;
 
-	ret = init_pair(1, COLOR_BLUE,        COLOR_BLACK);   /* title bar */
-	if (ret == ERR)
-		return 1;
-	ret = init_pair(2, COLOR_WHITE,       -1);            /* default task */
-	if (ret == ERR)
-		return 1;
-	ret = init_pair(3, COLOR_CYAN,        COLOR_BLACK);   /* selected task */
-	if (ret == ERR)
-		return 1;
-	ret = init_pair(8, COLOR_RED,         -1);            /* error message */
-	if (ret == ERR)
-		return 1;
+	color colors[] =
+	{
+		{1, COLOR_BLUE,  COLOR_BLACK, 0}, /* title bar */
+		{2, COLOR_WHITE, -1,          0}, /* default task */
+		{3, COLOR_CYAN,  COLOR_BLACK, 0}, /* selected task */
+		{8, COLOR_RED,   -1,          0}, /* error message */
+	};
+
+	/* initialize color pairs */
+	for (i=0; i<sizeof(colors)/sizeof(color); i++)
+	{
+		ret = init_pair(colors[i].pair, colors[i].fg, colors[i].bg);
+		if (ret == ERR)
+			return 4;
+		else
+			colors[i].initialized = true;
+	}
 
 	return 0;
 } /* }}} */

@@ -9,6 +9,10 @@
 #ifndef _COLOR_H
 #define _COLOR_H
 
+#include <stdio.h>
+
 int init_colors();
+
+extern FILE *logfp;
 
 #endif
