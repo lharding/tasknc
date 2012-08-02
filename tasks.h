@@ -15,6 +15,7 @@
 char free_task(task *);
 void free_tasks(task *);
 task *get_task_by_position(int);
+int get_task_position_by_uuid(const char *uuid);
 task *get_tasks(char *);
 unsigned short get_task_id(char *);
 task *malloc_task(void);

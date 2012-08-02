@@ -163,6 +163,27 @@ task *get_task_by_position(int n) /* {{{ */
 	return cur;
 } /* }}} */
 
+int get_task_position_by_uuid(const char *uuid) /* {{{ */
+{
+	/* find the task with the specified uuid 
+	 * return its line number
+	 */
+	task *cur;
+	int pos = 0;
+
+	cur = head;
+	while (cur!=NULL && !str_eq(cur->uuid, uuid))
+	{
+		cur = cur->next;
+		pos++;
+	}
+
+	if (str_eq(cur->uuid, uuid))
+		return pos;
+	else
+		return -1;
+} /* }}} */
+
 task *get_tasks(char *uuid) /* {{{ */
 {
 	FILE *cmd;
