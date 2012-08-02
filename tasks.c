@@ -16,6 +16,7 @@
 #include "common.h"
 #include "config.h"
 #include "log.h"
+#include "tasklist.h"
 #include "tasks.h"
 
 /* local function declarations {{{ */
@@ -738,7 +739,10 @@ void task_modify(const char *argstr) /* {{{ */
 	uuid = strdup(cur->uuid);
 	reload_task(cur);
 	if (cfg.follow_task)
+	{
 		selline = get_task_position_by_uuid(uuid);
+		tasklist_check_curs_pos();
+	}
 	free(uuid);
 
 	free(cmd);

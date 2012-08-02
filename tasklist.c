@@ -80,7 +80,10 @@ void key_tasklist_edit() /* {{{ */
 	uuid = strdup(cur->uuid);
 	reload_task(cur);
 	if (cfg.follow_task)
+	{
 		selline = get_task_position_by_uuid(uuid);
+		tasklist_check_curs_pos();
+	}
 	free(uuid);
 
 	if (ret)
@@ -257,6 +260,8 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 {
 	/* handle a keyboard direction to sort */
 	char m;
+	task *cur;
+	char *uuid;
 
 	/* get sort mode */
 	if (arg==NULL)
@@ -270,6 +275,9 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 	}
 	else
 		m = *arg;
+
+	/* store selected task */
+	cur = get_task_by_position(selline);
 
 	/* do sort */
 	switch (m)
@@ -292,6 +300,17 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 			statusbar_message(cfg.statusbar_timeout, "invalid sort mode");
 			break;
 	}
+
+	/* follow task */
+	if (cfg.follow_task)
+	{
+		uuid = strdup(cur->uuid);
+		selline = get_task_position_by_uuid(uuid);
+		free(uuid);
+		tasklist_check_curs_pos();
+	}
+
+	/* force redraw */
 	redraw = true;
 } /* }}} */
 
