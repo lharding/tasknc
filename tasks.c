@@ -238,10 +238,10 @@ task *get_tasks(char *uuid) /* {{{ */
 			last->next = this;
 		last = this;
 		counter++;
-		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "uuid: %s", this->uuid);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "uuid:        %s", this->uuid);
 		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "description: %s", this->description);
-		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "project: %s", this->project);
-		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "tags: %s", this->tags);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "project:     %s", this->project);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "tags:        %s", this->tags);
 
 		/* prepare a new line */
 		free(line);
@@ -374,7 +374,7 @@ task *parse_task(char *line) /* {{{ */
 		}
 
 		/* log content */
-		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "field: %s; content: %s", field, content);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "field: %-11s content: %s", field, content);
 
 		/* handle data */
 		if (str_eq(field, "uuid"))
