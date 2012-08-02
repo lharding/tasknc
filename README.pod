@@ -167,6 +167,10 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =over 4
 
+=item B<follow_task> is a boolean which dictates whether the selected line will stay selected after the task is chenaged.
+
+=item
+
 =item B<filter_string> is the string which is currently filtering the displayed task list.
 
 =item
@@ -223,7 +227,7 @@ Log levels:
 
 =item
 
-=item B<silent_shell> is a boolean integer which defines whether task command output should be printed.
+=item B<silent_shell> is a boolean which defines whether task command output should be printed.
 
 =item
 

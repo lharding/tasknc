@@ -85,6 +85,7 @@ typedef struct _config {
 	char *version;
 	char sortmode;
 	bool silent_shell;
+	bool follow_task;
 	struct {
 		char *task;
 		char *title;

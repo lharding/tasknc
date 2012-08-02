@@ -76,6 +76,7 @@ var vars[] = {
 	{"title_format",      VAR_STR,  &(cfg.formats.title)},
 	{"task_format",       VAR_STR,  &(cfg.formats.task)},
 	{"view_format",       VAR_STR,  &(cfg.formats.view)},
+	{"follow_task",       VAR_INT,  &(cfg.follow_task)},
 };
 
 funcmap funcmaps[] = {
@@ -1048,7 +1049,7 @@ int main(int argc, char **argv) /* {{{ */
 	/* declare variables */
 	int c;
 	bool debug = false;
-	char *debugopts;
+	char *debugopts = NULL;
 
 	/* open log */
 	logfp = fopen(LOGFILE, "a");

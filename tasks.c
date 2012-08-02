@@ -737,7 +737,8 @@ void task_modify(const char *argstr) /* {{{ */
 
 	uuid = strdup(cur->uuid);
 	reload_task(cur);
-	selline = get_task_position_by_uuid(uuid);
+	if (cfg.follow_task)
+		selline = get_task_position_by_uuid(uuid);
 	free(uuid);
 
 	free(cmd);
