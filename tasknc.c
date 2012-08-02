@@ -17,6 +17,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <wchar.h>
+#include "color.h"
 #include "command.h"
 #include "common.h"
 #include "config.h"
@@ -685,19 +686,6 @@ const char *name_function(void *function) /* {{{ */
 	return NULL;
 } /* }}} */
 
-void ncurses_colors(void) /* {{{ */
-{
-	if (has_colors())
-	{
-		start_color();
-		use_default_colors();
-		init_pair(1, COLOR_BLUE,        COLOR_BLACK);   /* title bar */
-		init_pair(2, COLOR_WHITE,       -1);            /* default task */
-		init_pair(3, COLOR_CYAN,        COLOR_BLACK);   /* selected task */
-		init_pair(8, COLOR_RED,         -1);            /* error message */
-	}
-} /* }}} */
-
 void ncurses_end(int sig) /* {{{ */
 {
 	/* terminate ncurses */
@@ -735,15 +723,28 @@ void ncurses_end(int sig) /* {{{ */
 void ncurses_init() /* {{{ */
 {
 	/* initialize ncurses */
-	tnc_fprintf(stdout, LOG_DEBUG, "starting ncurses...");
+	int ret;
+
+	/* register signals */
 	signal(SIGINT, ncurses_end);
 	signal(SIGKILL, ncurses_end);
 	signal(SIGSEGV, ncurses_end);
-	if ((stdscr = initscr()) == NULL ) {
+
+	/* initialize screen */
+	tnc_fprintf(stdout, LOG_DEBUG, "starting ncurses...");
+	if ((stdscr = initscr()) == NULL )
+	{
 	    fprintf(stderr, "Error initialising ncurses.\n");
 	    exit(EXIT_FAILURE);
 	}
 
+	/* start colors */
+	ret = init_colors();
+	if (ret)
+	{
+		fprintf(stderr, "Error initializing colors.\n");
+		tnc_fprintf(logfp, LOG_ERROR, "error initializing colors (%d)", ret);
+	}
 } /* }}} */
 
 void print_header() /* {{{ */
@@ -779,7 +780,6 @@ void set_curses_mode(const ncurses_mode mode) /* {{{ */
 			nonl();                 /* tell curses not to do NL->CR/NL on output */
 			cbreak();               /* take input chars one at a time, no wait for \n */
 			noecho();               /* dont echo input */
-			ncurses_colors();            /* initialize colors */
 			curs_set(0);            /* set cursor invisible */
 			wtimeout(statusbar, cfg.nc_timeout);/* timeout getch */
 			break;
@@ -788,7 +788,6 @@ void set_curses_mode(const ncurses_mode mode) /* {{{ */
 			nonl();                 /* tell curses not to do NL->CR/NL on output */
 			cbreak();               /* take input chars one at a time, no wait for \n */
 			noecho();               /* dont echo input */
-			ncurses_colors();            /* initialize colors */
 			curs_set(0);            /* set cursor invisible */
 			wtimeout(statusbar, -1);/* no timeout on getch */
 			break;
