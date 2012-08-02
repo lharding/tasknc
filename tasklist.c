@@ -263,6 +263,11 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 	task *cur;
 	char *uuid;
 
+	/* store selected task */
+	cur = get_task_by_position(selline);
+	uuid = strdup(cur->uuid);
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "sort: initial task uuid=%s", uuid);
+
 	/* get sort mode */
 	if (arg==NULL)
 	{
@@ -276,9 +281,6 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 	else
 		m = *arg;
 
-	/* store selected task */
-	cur = get_task_by_position(selline);
-
 	/* do sort */
 	switch (m)
 	{
@@ -287,28 +289,27 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 		case 'd':
 		case 'r':
 			cfg.sortmode = m;
-			sort_wrapper(head);
 			break;
 		case 'N':
 		case 'P':
 		case 'D':
 		case 'R':
 			cfg.sortmode = m+32;
-			sort_wrapper(head);
 			break;
 		default:
 			statusbar_message(cfg.statusbar_timeout, "invalid sort mode");
+			return;
 			break;
 	}
+	sort_wrapper(head);
 
 	/* follow task */
 	if (cfg.follow_task)
 	{
-		uuid = strdup(cur->uuid);
 		selline = get_task_position_by_uuid(uuid);
-		free(uuid);
 		tasklist_check_curs_pos();
 	}
+	free(uuid);
 
 	/* force redraw */
 	redraw = true;

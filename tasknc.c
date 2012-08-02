@@ -177,6 +177,7 @@ void configure(void) /* {{{ */
 	cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;      /* default time before resetting statusbar */
 	cfg.sortmode = 'd';                                     /* determine sort algorithm */
 	cfg.silent_shell = false;                               /* determine whether shell commands should be visible */
+	cfg.follow_task = true;
 
 	/* set default formats */
 	cfg.formats.title = strdup(" $program_name ($selected_line/$task_count) $> $date");
