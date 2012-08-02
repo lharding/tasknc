@@ -213,9 +213,10 @@ task *get_tasks(char *uuid) /* {{{ */
 
 		/* remove escapes */
 		remove_char(line, '\\');
-		remove_char(line, '\n');
 
 		/* log line */
+		tmp = strchr(line, '\n');
+		*tmp = 0;
 		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, line);
 
 		/* parse line */
