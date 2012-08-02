@@ -6,9 +6,12 @@
  * by mjheagle
  */
 
+#define _GNU_SOURCE
+
 #include <curses.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "color.h"
 #include "common.h"
 #include "log.h"
@@ -26,7 +29,7 @@ typedef struct _color_rule
 {
 	short pair;
 	char *rule;
-	char *object;
+	color_object object;
 	struct _color_rule *next;
 } color_rule;
 
@@ -72,6 +75,46 @@ short add_color_pair(short askpair, short fg, short bg) /* {{{ */
 	return pair;
 } /* }}} */
 
+short add_color_rule(const color_object object, const char *rule, const short fg, const short bg) /* {{{ */
+{
+	/* add or overwrite a color rule for the provided conditions */
+	color_rule *last, *this;
+	short ret;
+
+	/* look for existing rule and overwrite colors */
+	this = color_rules;
+	last = color_rules;
+	while (this != NULL)
+	{
+		if (this->object == object && strcmp(this->rule, rule) == 0)
+		{
+			ret = find_add_pair(fg, bg);
+			if (ret<0)
+				return ret;
+			this->pair = ret;
+			return 0;
+		}
+		last = this;
+		this = this->next;
+	}
+
+	/* or create a new rule */
+	ret = add_color_pair(-1, fg, bg);
+	if (ret<0)
+		return ret;
+	this = calloc(1, sizeof(color_rule));
+	this->pair = ret;
+	this->rule = strdup(rule);
+	this->object = object;
+	this->next = NULL;
+	if (last != NULL)
+		last->next = this;
+	else
+		color_rules = this;
+
+	return 0;
+} /* }}} */
+
 short find_add_pair(const short fg, const short bg) /* {{{ */
 {
 	/* find a color pair with specified content or create a new one */
@@ -100,7 +143,18 @@ short find_add_pair(const short fg, const short bg) /* {{{ */
 void free_colors() /* {{{ */
 {
 	/* clean up memory allocated for colors */
+	color_rule *this, *last;
+
 	check_free(pairs_used);
+
+	this = color_rules;
+	while (this != NULL)
+	{
+		last = this;
+		this = this->next;
+		check_free(last->rule);
+		free(this);
+	}
 } /* }}} */
 
 int init_colors() /* {{{ */

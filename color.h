@@ -17,6 +17,7 @@ typedef enum
 	OBJECT_HEADER,
 } color_object;
 
+short add_color_rule(const color_object, const char *, const short, const short);
 void free_colors();
 int init_colors();
 
