@@ -127,7 +127,7 @@ void check_screen_size() /* {{{ */
 				wipe_statusbar();
 				wipe_tasklist();
 			}
-			wattrset(stdscr, get_colors(OBJECT_ERROR, NULL));
+			wattrset(stdscr, get_colors(OBJECT_ERROR, NULL, NULL));
 			mvaddstr(0, 0, "screen dimensions too small");
 			wrefresh(stdscr);
 			wattrset(stdscr, COLOR_PAIR(0));
@@ -755,7 +755,7 @@ void print_header() /* {{{ */
 
 	/* wipe bar and print bg color */
 	wmove(header, 0, 0);
-	wattrset(header, get_colors(OBJECT_HEADER, NULL));
+	wattrset(header, get_colors(OBJECT_HEADER, NULL, NULL));
 
 	/* evaluate title string */
 	tmp0 = (char *)eval_string(2*cols, cfg.formats.title, NULL, NULL, 0);

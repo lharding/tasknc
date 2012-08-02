@@ -21,7 +21,7 @@ typedef enum
 
 short add_color_rule(const color_object, const char *, const short, const short);
 void free_colors();
-int get_colors(const color_object, const task *);
+int get_colors(const color_object, const task *, const task *);
 int init_colors();
 
 extern FILE *logfp;

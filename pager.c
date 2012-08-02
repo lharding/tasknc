@@ -199,7 +199,7 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 		tnc_fprintf(logfp, LOG_DEBUG, "offset:%d height:%d lines:%d", offset, height, linecount);
 
 		/* print title */
-		wattrset(pager, get_colors(OBJECT_HEADER, NULL));
+		wattrset(pager, get_colors(OBJECT_HEADER, NULL, NULL));
 		mvwhline(pager, 0, 0, ' ', cols);
 		umvaddstr_align(pager, 0, title);
 

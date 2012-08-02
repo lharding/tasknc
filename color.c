@@ -15,6 +15,7 @@
 #include "color.h"
 #include "common.h"
 #include "log.h"
+#include "tasks.h"
 
 /* color structure */
 typedef struct _color
@@ -41,6 +42,7 @@ color_rule *color_rules = NULL;
 
 /* local functions */
 static short add_color_pair(const short, const short, const short);
+static bool eval_rules(char *, const task *, task *);
 static short find_add_pair(const short, const short);
 static int set_default_colors();
 
@@ -119,6 +121,24 @@ short add_color_rule(const color_object object, const char *rule, const short fg
 	return 0;
 } /* }}} */
 
+bool eval_rules(char *rule, const task *tsk, task *selected) /* {{{ */
+{
+	/* evaluate a rule for a task */
+
+	/* find selected task */
+	if (selected == NULL)
+		selected = get_task_by_position(selline);
+
+	/* success if rules are done */
+	if (rule == NULL)
+		return true;
+
+	/* is task selected */
+
+	/* should never get here */
+	return false;
+} /* }}} */
+
 short find_add_pair(const short fg, const short bg) /* {{{ */
 {
 	/* find a color pair with specified content or create a new one */
@@ -161,7 +181,7 @@ void free_colors() /* {{{ */
 	}
 } /* }}} */
 
-int get_colors(const color_object object, const task *tsk) /* {{{ */
+int get_colors(const color_object object, const task *tsk, const task *selected) /* {{{ */
 {
 	/* evaluate color rules and return attrset arg */
 	short pair = 0;
@@ -182,6 +202,9 @@ int get_colors(const color_object object, const task *tsk) /* {{{ */
 					done = true;
 					break;
 				case OBJECT_TASK:
+					if (eval_rules(rule->rule, tsk, (task *)selected))
+						done = true;
+					break;
 				default:
 					break;
 			}
