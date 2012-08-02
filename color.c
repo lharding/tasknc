@@ -152,11 +152,23 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 		move = strlen(regex)+3;
 		switch (pattern)
 		{
-			case 'P':
+			case 'p':
 				if (!match_string(tsk->project, regex))
 					return false;
 				else
-					tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: project match: '%s' '%s'", tsk->project, regex);
+					tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: project match - '%s' '%s'", tsk->project, regex);
+				break;
+			case 'd':
+				if (!match_string(tsk->description, regex))
+					return false;
+				else
+					tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: description match - '%s' '%s'", tsk->description, regex);
+				break;
+			case 't':
+				if (!match_string(tsk->tags, regex))
+					return false;
+				else
+					tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: tag match - '%s' '%s'", tsk->tags, regex);
 			default:
 				break;
 		}
