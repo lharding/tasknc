@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 
+void free_colors();
 int init_colors();
 
 extern FILE *logfp;

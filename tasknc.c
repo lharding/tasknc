@@ -160,6 +160,7 @@ void cleanup() /* {{{ */
 		check_free(lastbind->argstr);
 		free(lastbind);
 	}
+	free_colors();
 
 	/* close open files */
 	fflush(logfp);

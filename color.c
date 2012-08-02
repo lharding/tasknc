@@ -8,6 +8,7 @@
 
 #include <curses.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "color.h"
 #include "common.h"
 #include "log.h"
@@ -18,15 +19,21 @@ typedef struct _color
 	short pair;
 	short fg;
 	short bg;
-	bool initialized;
 } color;
 
 /* global variables */
 bool use_colors;
 bool colors_initialized = false;
+bool *pairs_used = NULL;
 
 /* local functions */
 static int set_default_colors();
+
+void free_colors() /* {{{ */
+{
+	/* clean up memory allocated for colors */
+	check_free(pairs_used);
+} /* }}} */
 
 int init_colors() /* {{{ */
 {
@@ -48,7 +55,13 @@ int init_colors() /* {{{ */
 	use_colors = has_colors();
 	colors_initialized = true;
 	if (use_colors)
+	{
+		/* allocate pairs_used */
+		pairs_used = calloc(COLOR_PAIRS, sizeof(bool));
+		pairs_used[0] = true;
+
 		return set_default_colors();
+	}
 	else
 		return 3;
 } /* }}} */
@@ -61,10 +74,10 @@ int set_default_colors() /* {{{ */
 
 	color colors[] =
 	{
-		{1, COLOR_BLUE,  COLOR_BLACK, 0}, /* title bar */
-		{2, COLOR_WHITE, -1,          0}, /* default task */
-		{3, COLOR_CYAN,  COLOR_BLACK, 0}, /* selected task */
-		{8, COLOR_RED,   -1,          0}, /* error message */
+		{1, COLOR_BLUE,  COLOR_BLACK}, /* title bar */
+		{2, COLOR_WHITE, -1},          /* default task */
+		{3, COLOR_CYAN,  COLOR_BLACK}, /* selected task */
+		{8, COLOR_RED,   -1},          /* error message */
 	};
 
 	/* initialize color pairs */
@@ -74,7 +87,7 @@ int set_default_colors() /* {{{ */
 		if (ret == ERR)
 			return 4;
 		else
-			colors[i].initialized = true;
+			pairs_used[colors[i].pair] = true;
 	}
 
 	return 0;
