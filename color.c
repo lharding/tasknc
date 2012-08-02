@@ -126,6 +126,7 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 	/* evaluate a rule set for a task */
 	char *regex, pattern;
 	int ret, move;
+	bool go = false;
 
 	/* success if rules are done */
 	if (rule == NULL || *rule == 0)
@@ -150,6 +151,7 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 	{
 		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: got regex match pattern - '%c' '%s'", pattern, regex);
 		move = strlen(regex)+3;
+		go = true;
 		switch (pattern)
 		{
 			case 'p':
@@ -170,10 +172,12 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 				else
 					tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: tag match - '%s' '%s'", tsk->tags, regex);
 			default:
+				go = false;
 				break;
 		}
 		free(regex);
-		return eval_rules(rule+move, tsk, selected);
+		if (go)
+			return eval_rules(rule+move, tsk, selected);
 	}
 
 	/* should never get here */
@@ -297,7 +301,8 @@ int set_default_colors() /* {{{ */
 	/* create initial color rules */
 	add_color_rule(OBJECT_HEADER, NULL, COLOR_BLUE, COLOR_BLACK);
 	add_color_rule(OBJECT_TASK, NULL, -1, -1);
-	add_color_rule(OBJECT_TASK, "~P 'task*'", COLOR_RED, COLOR_BLACK); /* TODO: remove */
+	add_color_rule(OBJECT_TASK, "~d '\\?'", COLOR_GREEN, COLOR_BLACK); /* TODO: remove */
+	add_color_rule(OBJECT_TASK, "~p 'task*'", COLOR_RED, COLOR_BLACK); /* TODO: remove */
 	add_color_rule(OBJECT_TASK, "~S", COLOR_CYAN, COLOR_BLACK);
 	add_color_rule(OBJECT_ERROR, NULL, COLOR_RED, -1);
 
