@@ -124,22 +124,44 @@ short add_color_rule(const color_object object, const char *rule, const short fg
 bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 {
 	/* evaluate a rule set for a task */
+	char *regex, pattern;
+	int ret, move;
 
 	/* success if rules are done */
 	if (rule == NULL || *rule == 0)
 		return true;
 
-	/* skip white space */
-	if (strchr(" \t\n", *rule) != NULL)
+	/* skip non-patterns */
+	if (*rule != '~')
 		return eval_rules(rule+1, tsk, selected);
 
 	/* is task selected */
 	if (str_starts_with(rule, "~S"))
 	{
 		if (selected)
-			return eval_rules(rule+3, tsk, selected);
+			return eval_rules(rule+2, tsk, selected);
 		else
 			return false;
+	}
+
+	/* regex match */
+	ret = sscanf(rule, "~%c '%m[^\']'", &pattern, &regex);
+	if (ret == 2)
+	{
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: got regex match pattern - '%c' '%s'", pattern, regex);
+		move = strlen(regex)+3;
+		switch (pattern)
+		{
+			case 'P':
+				if (!match_string(tsk->project, regex))
+					return false;
+				else
+					tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: project match: '%s' '%s'", tsk->project, regex);
+			default:
+				break;
+		}
+		free(regex);
+		return eval_rules(rule+move, tsk, selected);
 	}
 
 	/* should never get here */
@@ -210,7 +232,7 @@ int get_colors(const color_object object, const task *tsk, const bool selected) 
 					break;
 				case OBJECT_TASK:
 					if (eval_rules(rule->rule, tsk, selected))
-						done = true;
+						pair = rule->pair;
 					break;
 				default:
 					break;
@@ -262,8 +284,9 @@ int set_default_colors() /* {{{ */
 {
 	/* create initial color rules */
 	add_color_rule(OBJECT_HEADER, NULL, COLOR_BLUE, COLOR_BLACK);
-	add_color_rule(OBJECT_TASK, "~S", COLOR_CYAN, COLOR_BLACK);
 	add_color_rule(OBJECT_TASK, NULL, -1, -1);
+	add_color_rule(OBJECT_TASK, "~P 'task*'", COLOR_RED, COLOR_BLACK); /* TODO: remove */
+	add_color_rule(OBJECT_TASK, "~S", COLOR_CYAN, COLOR_BLACK);
 	add_color_rule(OBJECT_ERROR, NULL, COLOR_RED, -1);
 
 	return 0;
