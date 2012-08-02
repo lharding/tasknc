@@ -72,6 +72,7 @@ short add_color_pair(short askpair, short fg, short bg) /* {{{ */
 
 	/* mark pair as used and exit */
 	pairs_used[pair] = true;
+	tnc_fprintf(logfp, LOG_DEBUG, "assigned color pair %hd to (%hd, %hd)", pair, fg, bg);
 	return pair;
 } /* }}} */
 
@@ -86,7 +87,7 @@ short add_color_rule(const color_object object, const char *rule, const short fg
 	last = color_rules;
 	while (this != NULL)
 	{
-		if (this->object == object && strcmp(this->rule, rule) == 0)
+		if (this->object == object && (this->rule == rule || (this->rule != NULL && rule != NULL && strcmp(this->rule, rule) == 0)))
 		{
 			ret = find_add_pair(fg, bg);
 			if (ret<0)
@@ -99,12 +100,15 @@ short add_color_rule(const color_object object, const char *rule, const short fg
 	}
 
 	/* or create a new rule */
-	ret = add_color_pair(-1, fg, bg);
+	ret = find_add_pair(fg, bg);
 	if (ret<0)
 		return ret;
 	this = calloc(1, sizeof(color_rule));
 	this->pair = ret;
-	this->rule = strdup(rule);
+	if (this->rule != NULL)
+		this->rule = strdup(rule);
+	else
+		this->rule = NULL;
 	this->object = object;
 	this->next = NULL;
 	if (last != NULL)
@@ -118,21 +122,21 @@ short add_color_rule(const color_object object, const char *rule, const short fg
 short find_add_pair(const short fg, const short bg) /* {{{ */
 {
 	/* find a color pair with specified content or create a new one */
-	short *tmpfg = 0, *tmpbg = 0, pair, free_pair = 0;
+	short tmpfg, tmpbg, pair, free_pair = -1;
 	int ret;
 
 	/* look for an existing pair */
-	for (pair=0; pair<COLOR_PAIRS; pair++)
+	for (pair=1; pair<COLOR_PAIRS; pair++)
 	{
 		if (pairs_used[pair])
 		{
-			ret = pair_content(pair, tmpfg, tmpbg);
+			ret = pair_content(pair, &tmpfg, &tmpbg);
 			if (ret == ERR)
 				continue;
-			if (*tmpfg == fg && *tmpbg == bg)
+			if (tmpfg == fg && tmpbg == bg)
 				return pair;
 		}
-		else if (free_pair==0)
+		else if (free_pair==-1)
 			free_pair = pair;
 	}
 
@@ -232,10 +236,8 @@ int set_default_colors() /* {{{ */
 
 	color colors[] =
 	{
-		{1, COLOR_BLUE,  COLOR_BLACK}, /* title bar */
 		{2, COLOR_WHITE, -1},          /* default task */
 		{3, COLOR_CYAN,  COLOR_BLACK}, /* selected task */
-		{8, COLOR_RED,   -1},          /* error message */
 	};
 
 	/* initialize color pairs */
@@ -245,6 +247,11 @@ int set_default_colors() /* {{{ */
 		if (ret == -1)
 			return 4;
 	}
+
+	/* create initial color rules */
+	add_color_rule(OBJECT_HEADER, NULL, COLOR_BLUE, COLOR_BLACK);
+	add_color_rule(OBJECT_TASK, NULL, COLOR_CYAN, COLOR_BLACK);
+	add_color_rule(OBJECT_ERROR, NULL, COLOR_RED, -1);
 
 	return 0;
 } /* }}} */
