@@ -72,11 +72,16 @@ void key_tasklist_edit() /* {{{ */
 	/* edit selected task */
 	task *cur = get_task_by_position(selline);
 	int ret;
+	char *uuid;
 
 	statusbar_message(cfg.statusbar_timeout, "editing task");
 
 	ret = task_interactive_command("task %s edit");
+	uuid = strdup(cur->uuid);
 	reload_task(cur);
+	if (cfg.follow_task)
+		selline = get_task_position_by_uuid(uuid);
+	free(uuid);
 
 	if (ret)
 		statusbar_message(cfg.statusbar_timeout, "edit failed");
