@@ -1064,7 +1064,7 @@ int main(int argc, char **argv) /* {{{ */
 	static struct option long_options[] =
 	{
 		{"help",     no_argument,       0, 'h'},
-		{"debug",    no_argument,       0, 'd'},
+		{"debug",    required_argument, 0, 'd'},
 		{"version",  no_argument,       0, 'v'},
 		{"loglevel", required_argument, 0, 'l'},
 		{"filter",   required_argument, 0, 'f'},

@@ -1,6 +1,6 @@
 =head1 NAME
 
-tasknc - a ncurses wrapper around Taskwarrior
+tasknc - a ncurses wrapper around Taskwarrior in C
     by mjheagle
 
 =head1 SYNOPSIS
@@ -9,7 +9,7 @@ Usage: I<tasknc> [option] [value]
 
 =head1 DESCRIPTION
 
-tasknc is a simple wrapper, written in C, around the Taskwarrior task manager.  
+tasknc is a ncurses wrapper around the Taskwarrior task manager in C.
 
 =head1 INVOCATION OPTIONS
 
@@ -23,9 +23,27 @@ Print the help message
 
 Print the version of tasknc
 
-=item B<-d, --debug>
+=item B<-d, --debug> I<mode>
 
-Debug mode (no ncurses gui)
+Debug mode (no curses gui).  Modes may be specified as a list, as long as they are all in a single argument.  Modes:
+
+=over 4
+
+=item I<all>
+
+=item I<eval_string>
+
+=item I<task_count>
+
+=item I<trim>
+
+=item I<search>
+
+=item I<set_var>
+
+=item
+
+=back
 
 =item B<-f, --filter>
 
