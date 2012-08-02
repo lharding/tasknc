@@ -157,6 +157,42 @@ void free_colors() /* {{{ */
 	}
 } /* }}} */
 
+int get_colors(const color_object object, const task *tsk) /* {{{ */
+{
+	/* evaluate color rules and return attrset arg */
+	short pair = 0;
+	color_rule *rule;
+	bool done = false;
+
+	/* iterate through rules */
+	rule = color_rules;
+	while (rule != NULL)
+	{
+		/* check for matching object */
+		if (object == rule->object)
+		{
+			switch (object)
+			{
+				case OBJECT_ERROR:
+				case OBJECT_HEADER:
+					done = true;
+					break;
+				case OBJECT_TASK:
+				default:
+					break;
+			}
+		}
+		if (done)
+		{
+			pair = rule->pair;
+			break;
+		}
+		rule = rule->next;
+	}
+
+	return COLOR_PAIR(pair);
+} /* }}} */
+
 int init_colors() /* {{{ */
 {
 	/* initialize curses colors */
