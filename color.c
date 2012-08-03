@@ -137,9 +137,16 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 		return eval_rules(rule+1, tsk, selected);
 
 	/* is task selected */
-	if (str_starts_with(rule, "~S"))
+	if (str_starts_with(rule, "~s"))
 	{
 		if (selected)
+			return eval_rules(rule+2, tsk, selected);
+		else
+			return false;
+	}
+	if (str_starts_with(rule, "~S"))
+	{
+		if (!selected)
 			return eval_rules(rule+2, tsk, selected);
 		else
 			return false;
@@ -383,7 +390,7 @@ int set_default_colors() /* {{{ */
 	/* create initial color rules */
 	add_color_rule(OBJECT_HEADER, NULL, COLOR_BLUE, COLOR_BLACK);
 	add_color_rule(OBJECT_TASK, NULL, -1, -1);
-	add_color_rule(OBJECT_TASK, "~S", COLOR_CYAN, COLOR_BLACK);
+	add_color_rule(OBJECT_TASK, "~s", COLOR_CYAN, COLOR_BLACK);
 	add_color_rule(OBJECT_ERROR, NULL, COLOR_RED, -1);
 
 	return 0;
