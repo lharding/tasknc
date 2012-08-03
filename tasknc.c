@@ -1128,6 +1128,7 @@ int main(int argc, char **argv) /* {{{ */
 	else
 	{
 		configure();
+		head = get_tasks(NULL);
 		test(debugopts);
 		free(debugopts);
 	}
