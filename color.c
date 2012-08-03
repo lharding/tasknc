@@ -138,7 +138,7 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 	/* evaluate a rule set for a task */
 	char *regex, pattern, *tmp;
 	int ret, move;
-	bool go = false;
+	bool go = false, invert = false;
 
 	/* success if rules are done */
 	if (rule == NULL || *rule == 0)
@@ -148,24 +148,31 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 	if (*rule != '~')
 		return eval_rules(rule+1, tsk, selected);
 
-	/* is task selected */
-	if (str_starts_with(rule, "~s"))
-	{
-		if (selected)
-			return eval_rules(rule+2, tsk, selected);
-		else
-			return false;
-	}
-	if (str_starts_with(rule, "~S"))
-	{
-		if (!selected)
-			return eval_rules(rule+2, tsk, selected);
-		else
-			return false;
-	}
-
 	/* regex match */
 	ret = sscanf(rule, "~%c '%m[^\']'", &pattern, &regex);
+	if (ret > 0)
+	{
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: got regex match pattern - '%c' '%s'", pattern, regex);
+		if (pattern >= 'A' && pattern <= 'Z')
+		{
+			pattern += 32;
+			invert = true;
+		}
+	}
+	if (ret == 1)
+	{
+		switch (pattern)
+		{
+			case 's':
+				if (!XOR(invert, selected))
+					return false;
+				else
+					return eval_rules(rule+2, tsk, selected);
+				break;
+			default:
+				break;
+		}
+	}
 	if (ret == 2)
 	{
 		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: got regex match pattern - '%c' '%s'", pattern, regex);
@@ -210,6 +217,7 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 	}
 
 	/* should never get here */
+	tnc_fprintf(logfp, LOG_ERROR, "malformed rules - \"%s\"", rule);
 	return false;
 } /* }}} */
 
