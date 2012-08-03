@@ -174,7 +174,7 @@ cleanup:
 void run_command_unbind(char *argstr) /* {{{ */
 {
 	/* handle a keyboard instruction to unbind a key */
-	char *modestr, *keystr, *keyname;
+	char *modestr = NULL, *keystr = NULL, *keyname = NULL;
 	int ret = 0;
 
 	/* parse args */
@@ -184,7 +184,7 @@ void run_command_unbind(char *argstr) /* {{{ */
 	{
 		statusbar_message(cfg.statusbar_timeout, "syntax: unbind <mode> <key>");
 		tnc_fprintf(logfp, LOG_ERROR, "syntax: unbind <mode> <key> [%d](%s)", ret, argstr);
-		return;
+		goto cleanup;
 	}
 
 	int key = parse_key(keystr);
@@ -192,9 +192,13 @@ void run_command_unbind(char *argstr) /* {{{ */
 	remove_keybinds(key);
 	keyname = name_key(key);
 	statusbar_message(cfg.statusbar_timeout, "key unbound: %s (%d)", keyname, key);
+	goto cleanup;
+
+cleanup:
 	free(keyname);
 	free(modestr);
 	free(keystr);
+	return;
 } /* }}} */
 
 void run_command_set(char *args) /* {{{ */
