@@ -49,12 +49,12 @@ static int set_default_colors();
 short add_color_pair(short askpair, short fg, short bg) /* {{{ */
 {
 	/* initialize a color pair and return its pair number */
-	short pair = 0;
+	short pair = 1;
 
 	/* pick a color number if none is specified */
 	if (askpair<=0)
 	{
-		while (pairs_used[pair] && pair<COLOR_PAIRS)
+		while (pair<COLOR_PAIRS && pairs_used[pair])
 			pair++;
 		if (pair == COLOR_PAIRS)
 			return -1;
@@ -383,9 +383,6 @@ int set_default_colors() /* {{{ */
 	/* create initial color rules */
 	add_color_rule(OBJECT_HEADER, NULL, COLOR_BLUE, COLOR_BLACK);
 	add_color_rule(OBJECT_TASK, NULL, -1, -1);
-	add_color_rule(OBJECT_TASK, "~r '[Mm]'", COLOR_YELLOW, -1); /* TODO: remove */
-	add_color_rule(OBJECT_TASK, "~d '\\?'", COLOR_GREEN, -1); /* TODO: remove */
-	add_color_rule(OBJECT_TASK, "~p 'task*'", COLOR_RED, -1); /* TODO: remove */
 	add_color_rule(OBJECT_TASK, "~S", COLOR_CYAN, COLOR_BLACK);
 	add_color_rule(OBJECT_ERROR, NULL, COLOR_RED, -1);
 

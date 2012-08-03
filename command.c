@@ -236,6 +236,7 @@ void run_command_color(char *args) /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "applied color rule");
 	else
 		statusbar_message(cfg.statusbar_timeout, "applying color rule failed");
+	goto cleanup;
 
 cleanup:
 	check_free(object);
