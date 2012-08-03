@@ -525,6 +525,16 @@ void remove_char(char *str, char remove) /* {{{ */
 
 } /* }}} */
 
+void set_position_by_uuid(const char *uuid) /* {{{ */
+{
+	/* set the cursor position to a uuid's position */
+	int pos;
+
+	pos = get_task_position_by_uuid(uuid);
+	if (pos>0)
+		selline = pos;
+} /* }}} */
+
 void sort_wrapper(task *first) /* {{{ */
 {
 	/* a wrapper around sort_tasks that finds the last element
@@ -720,7 +730,7 @@ void task_modify(const char *argstr) /* {{{ */
 	/* run a modify command on the selected task */
 	task *cur;
 	char *cmd, *uuid;
-	int arglen, pos;
+	int arglen;
 
 	if (argstr!=NULL)
 		arglen = strlen(argstr);
@@ -740,9 +750,7 @@ void task_modify(const char *argstr) /* {{{ */
 	reload_task(cur);
 	if (cfg.follow_task)
 	{
-		pos = get_task_position_by_uuid(uuid);
-		if (pos>0)
-			selline = pos;
+		set_position_by_uuid(uuid);
 		tasklist_check_curs_pos();
 	}
 	free(uuid);
