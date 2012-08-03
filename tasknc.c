@@ -815,9 +815,10 @@ void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 	va_end(args);
 
 	/* check for active screen */
-	if (stdscr==NULL)
+	if (stdscr == NULL)
 	{
-		tnc_fprintf(stdout, LOG_INFO, message);
+		if (cfg.loglvl >= LOG_DEBUG)
+			tnc_fprintf(stdout, LOG_INFO, message);
 		tnc_fprintf(logfp, LOG_DEBUG, "(stdscr==NULL) %s", message);
 		free(message);
 		return;
