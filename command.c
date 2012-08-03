@@ -166,23 +166,17 @@ void run_command_unbind(char *argstr) /* {{{ */
 {
 	/* handle a keyboard instruction to unbind a key */
 	char *modestr, *keystr, *keyname;
+	int ret = 0;
 
-	/* split strings */
-	modestr = argstr;
-	if (modestr==NULL)
+	/* parse args */
+	if (argstr != NULL)
+		ret = sscanf(argstr, "%ms %m[^\n]", &modestr, &keystr);
+	if (ret != 2)
 	{
-		statusbar_message(cfg.statusbar_timeout, "unbind: mode required");
+		statusbar_message(cfg.statusbar_timeout, "syntax: unbind <mode> <key>");
+		tnc_fprintf(logfp, LOG_ERROR, "syntax: unbind <mode> <key> [%d](%s)", ret, argstr);
 		return;
 	}
-
-	keystr = strchr(argstr, ' ');
-	if (keystr==NULL)
-	{
-		statusbar_message(cfg.statusbar_timeout, "unbind: key required");
-		return;
-	}
-	(*keystr) = 0;
-	keystr++;
 
 	int key = parse_key(keystr);
 
@@ -190,6 +184,8 @@ void run_command_unbind(char *argstr) /* {{{ */
 	keyname = name_key(key);
 	statusbar_message(cfg.statusbar_timeout, "key unbound: %s (%d)", keyname, key);
 	free(keyname);
+	free(modestr);
+	free(keystr);
 } /* }}} */
 
 void run_command_set(char *args) /* {{{ */
@@ -205,6 +201,7 @@ void run_command_set(char *args) /* {{{ */
 	{
 		statusbar_message(cfg.statusbar_timeout, "syntax: set <variable> <value>");
 		tnc_fprintf(logfp, LOG_ERROR, "syntax: set <variable> <value> [%d](%s)", ret, args);
+		return;
 	}
 
 	/* find the variable */
