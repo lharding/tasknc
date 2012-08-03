@@ -179,7 +179,7 @@ int get_task_position_by_uuid(const char *uuid) /* {{{ */
 		pos++;
 	}
 
-	if (str_eq(cur->uuid, uuid))
+	if (cur!= NULL && str_eq(cur->uuid, uuid))
 		return pos;
 	else
 		return -1;
@@ -720,7 +720,7 @@ void task_modify(const char *argstr) /* {{{ */
 	/* run a modify command on the selected task */
 	task *cur;
 	char *cmd, *uuid;
-	int arglen;
+	int arglen, pos;
 
 	if (argstr!=NULL)
 		arglen = strlen(argstr);
@@ -740,7 +740,9 @@ void task_modify(const char *argstr) /* {{{ */
 	reload_task(cur);
 	if (cfg.follow_task)
 	{
-		selline = get_task_position_by_uuid(uuid);
+		pos = get_task_position_by_uuid(uuid);
+		if (pos>0)
+			selline = pos;
 		tasklist_check_curs_pos();
 	}
 	free(uuid);

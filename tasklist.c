@@ -71,7 +71,7 @@ void key_tasklist_edit() /* {{{ */
 {
 	/* edit selected task */
 	task *cur = get_task_by_position(selline);
-	int ret;
+	int ret, pos;
 	char *uuid;
 
 	statusbar_message(cfg.statusbar_timeout, "editing task");
@@ -81,7 +81,9 @@ void key_tasklist_edit() /* {{{ */
 	reload_task(cur);
 	if (cfg.follow_task)
 	{
-		selline = get_task_position_by_uuid(uuid);
+		pos = get_task_position_by_uuid(uuid);
+		if (pos>0)
+			selline = pos;
 		tasklist_check_curs_pos();
 	}
 	free(uuid);
@@ -263,6 +265,7 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 	char m;
 	task *cur;
 	char *uuid;
+	int pos;
 
 	/* store selected task */
 	cur = get_task_by_position(selline);
@@ -307,7 +310,9 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 	/* follow task */
 	if (cfg.follow_task)
 	{
-		selline = get_task_position_by_uuid(uuid);
+		pos = get_task_position_by_uuid(uuid);
+		if (pos>0)
+			selline = pos;
 		tasklist_check_curs_pos();
 	}
 	free(uuid);
