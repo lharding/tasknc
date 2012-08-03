@@ -181,19 +181,19 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 		switch (pattern)
 		{
 			case 'p':
-				if (!match_string(tsk->project, regex))
+				if (!XOR(invert, match_string(tsk->project, regex)))
 					return false;
 				else
 					tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: project match - '%s' '%s'", tsk->project, regex);
 				break;
 			case 'd':
-				if (!match_string(tsk->description, regex))
+				if (!XOR(invert, match_string(tsk->description, regex)))
 					return false;
 				else
 					tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: description match - '%s' '%s'", tsk->description, regex);
 				break;
 			case 't':
-				if (!match_string(tsk->tags, regex))
+				if (!XOR(invert, match_string(tsk->tags, regex)))
 					return false;
 				else
 					tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: tag match - '%s' '%s'", tsk->tags, regex);
@@ -201,7 +201,7 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 			case 'r':
 				tmp = calloc(2, sizeof(char));
 				*tmp = tsk->priority;
-				if (!match_string(tmp, regex))
+				if (!XOR(invert, match_string(tmp, regex)))
 					return false;
 				else
 					tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: priority match - '%s' '%s'", tmp, regex);
