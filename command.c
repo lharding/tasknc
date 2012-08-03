@@ -199,23 +199,13 @@ void run_command_set(char *args) /* {{{ */
 	char *message, *varname, *value;
 	int ret;
 
-	/* check for a variable */
-	if (args==NULL)
+	/* parse args */
+	ret = sscanf(args, "%ms %m[^\n]", &varname, &value);
+	if (ret != 2)
 	{
-		statusbar_message(cfg.statusbar_timeout, "no variable specified!");
-		return;
+		statusbar_message(cfg.statusbar_timeout, "syntax: set <variable> <value>");
+		tnc_fprintf(logfp, LOG_ERROR, "syntax: set <variable> <value> [%d](%s)", ret, args);
 	}
-
-	/* split the variable and value in the args */
-	varname = args;
-	value = strchr(args, ' ');
-	if (value==NULL)
-	{
-		statusbar_message(cfg.statusbar_timeout, "no value to set %s to!", varname);
-		return;
-	}
-	(*value) = 0;
-	value++;
 
 	/* find the variable */
 	this_var = (var *)find_var(varname);
@@ -237,8 +227,6 @@ void run_command_set(char *args) /* {{{ */
 		case VAR_STR:
 			if (*(char **)(this_var->ptr)!=NULL)
 				free(*(char **)(this_var->ptr));
-			while ((*value)==' ')
-				value++;
 			*(char **)(this_var->ptr) = calloc(strlen(value)+1, sizeof(char));
 			ret = NULL!=strcpy(*(char **)(this_var->ptr), value);
 			if (ret)
@@ -252,6 +240,8 @@ void run_command_set(char *args) /* {{{ */
 		tnc_fprintf(logfp, LOG_ERROR, "failed to parse value from command: set %s %s", varname, value);
 
 	/* acquire the value string and print it */
+	free(varname);
+	free(value);
 	message = var_value_message(this_var, 1);
 	statusbar_message(cfg.statusbar_timeout, message);
 	free(message);

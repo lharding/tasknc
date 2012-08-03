@@ -194,7 +194,7 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 					modestr = "tasklist - ";
 				else
 					modestr = "any - ";
-				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p %s%s", this_bind->function, modestr, name_function(this_bind->function));
+				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p %s%s(%s)", this_bind->function, modestr, name_function(this_bind->function), this_bind->argstr);
 				(*(this_bind->function))(this_bind->argstr);
 			}
 			break;
