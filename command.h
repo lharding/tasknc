@@ -14,6 +14,7 @@
 
 void handle_command(char *);
 void run_command_bind(char *);
+void run_command_color(char *);
 void run_command_unbind(char *);
 void run_command_set(char *);
 void run_command_show(const char *);

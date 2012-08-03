@@ -110,6 +110,7 @@ funcmap funcmaps[] = {
 	{"bind",        (void *)run_command_bind,         1, MODE_ANY},
 	{"unbind",      (void *)run_command_unbind,       1, MODE_ANY},
 	{"f_redraw",    (void *)force_redraw,             0, MODE_ANY},
+	{"color",       (void *)run_command_color,        1, MODE_ANY},
 };
 /* }}} */
 

@@ -306,6 +306,78 @@ int init_colors() /* {{{ */
 		return 3;
 } /* }}} */
 
+int parse_color(const char *name) /* {{{ */
+{
+	/* parse a color from a string */
+	unsigned int i;
+	int ret;
+	struct color_map
+	{
+		const int color;
+		const char *name;
+	};
+
+	/* color map */
+	static const struct color_map colors_map[] =
+	{
+		{COLOR_BLACK,   "black"},
+		{COLOR_RED,     "red"},
+		{COLOR_GREEN,   "green"},
+		{COLOR_YELLOW,  "yellow"},
+		{COLOR_BLUE,    "blue"},
+		{COLOR_MAGENTA, "magenta"},
+		{COLOR_CYAN,    "cyan"},
+		{COLOR_WHITE,   "white"},
+	};
+
+	/* try for int */
+	ret = sscanf(name, "%d", &i);
+	if (ret == 1)
+		return i;
+
+	/* try for colorNNN */
+	ret = sscanf(name, "color%3d", &i);
+	if (ret == 1)
+		return i;
+
+	/* look for mapped color */
+	for (i=0; i<sizeof(colors_map)/sizeof(struct color_map); i++)
+	{
+		if (str_eq(colors_map[i].name, name))
+			return colors_map[i].color;
+	}
+
+	return -2;
+} /* }}} */
+
+color_object parse_object(const char *name) /* {{{ */
+{
+	/* parse an object from a string */
+	unsigned int i;
+	struct color_object_map
+	{
+		const color_object object;
+		const char *name;
+	};
+
+	/* object map */
+	static const struct color_object_map color_objects_map[] =
+	{
+		{OBJECT_HEADER, "header"},
+		{OBJECT_TASK,   "task"},
+		{OBJECT_ERROR,  "error"},
+	};
+
+	/* evaluate map */
+	for (i=0; i<sizeof(color_objects_map)/sizeof(struct color_object_map); i++)
+	{
+		if (str_eq(color_objects_map[i].name, name))
+			return color_objects_map[i].object;
+	}
+
+	return OBJECT_NONE;
+} /* }}} */
+
 int set_default_colors() /* {{{ */
 {
 	/* create initial color rules */

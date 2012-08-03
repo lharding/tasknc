@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "color.h"
 #include "command.h"
 #include "common.h"
 #include "keys.h"
@@ -193,6 +194,54 @@ void run_command_bind(char *args) /* {{{ */
 	statusbar_message(cfg.statusbar_timeout, "key %s (%d) bound to %s - %s", keyname, key, modestr, name_function(func));
 	free(keyname);
 	free(aarg);
+} /* }}} */
+
+void run_command_color(char *args) /* {{{ */
+{
+	/* create or modify a color rule */
+	char *object = NULL, *fg = NULL, *bg = NULL, *rule = NULL;
+	color_object obj;
+	int ret = 0, fgc, bgc;
+
+	if (args != NULL)
+		ret = sscanf(args, "%ms %m[a-z0-9-] %m[a-z0-9-] %m[^\n]", &object, &fg, &bg, &rule);
+	if (ret < 3)
+	{
+		statusbar_message(cfg.statusbar_timeout, "syntax: color <object> <foreground> <background> <rule>");
+		tnc_fprintf(logfp, LOG_ERROR, "syntax: color <object> <foreground> <background> <rule>  [%d](%s)", ret, args);
+		goto cleanup;
+	}
+
+	/* parse object */
+	obj = parse_object(object);
+	if (obj == OBJECT_NONE)
+	{
+		statusbar_message(cfg.statusbar_timeout, "color: invalid object \"%s\"", object);
+		tnc_fprintf(logfp, LOG_ERROR, "color: invalid object \"%s\"", object);
+		goto cleanup;
+	}
+
+	/* parse colors */
+	fgc = parse_color(fg);
+	bgc = parse_color(bg);
+	if (bgc < -2 || fgc < -2)
+	{
+		statusbar_message(cfg.statusbar_timeout, "color: invalid colors \"%s\" \"%s\"", fg, bg);
+		tnc_fprintf(logfp, LOG_ERROR, "color: invalid colors %d:\"%s\" %d:\"%s\"", fgc, fg, bgc, bg);
+		goto cleanup;
+	}
+
+	/* create color rule */
+	if (add_color_rule(obj, rule, fgc, bgc)>=0)
+		statusbar_message(cfg.statusbar_timeout, "applied color rule");
+	else
+		statusbar_message(cfg.statusbar_timeout, "applying color rule failed");
+
+cleanup:
+	check_free(object);
+	check_free(fg);
+	check_free(bg);
+	check_free(rule);
 } /* }}} */
 
 void run_command_unbind(char *argstr) /* {{{ */
