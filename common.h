@@ -107,6 +107,9 @@ typedef struct _config {
 /* regex options */
 #define REGEX_OPTS REG_ICASE|REG_EXTENDED|REG_NOSUB|REG_NEWLINE
 
+/* logical xor */
+#define XOR(x, y)                       ((x || y) && !(x && y))
+
 /* functions */
 bool match_string(const char *, const char *);
 

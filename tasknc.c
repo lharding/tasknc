@@ -17,6 +17,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <wchar.h>
+#include "color.h"
 #include "command.h"
 #include "common.h"
 #include "config.h"
@@ -109,6 +110,7 @@ funcmap funcmaps[] = {
 	{"bind",        (void *)run_command_bind,         1, MODE_ANY},
 	{"unbind",      (void *)run_command_unbind,       1, MODE_ANY},
 	{"f_redraw",    (void *)force_redraw,             0, MODE_ANY},
+	{"color",       (void *)run_command_color,        1, MODE_ANY},
 };
 /* }}} */
 
@@ -126,7 +128,7 @@ void check_screen_size() /* {{{ */
 				wipe_statusbar();
 				wipe_tasklist();
 			}
-			wattrset(stdscr, COLOR_PAIR(8));
+			wattrset(stdscr, get_colors(OBJECT_ERROR, NULL, NULL));
 			mvaddstr(0, 0, "screen dimensions too small");
 			wrefresh(stdscr);
 			wattrset(stdscr, COLOR_PAIR(0));
@@ -159,6 +161,7 @@ void cleanup() /* {{{ */
 		check_free(lastbind->argstr);
 		free(lastbind);
 	}
+	free_colors();
 
 	/* close open files */
 	fflush(logfp);
@@ -685,19 +688,6 @@ const char *name_function(void *function) /* {{{ */
 	return NULL;
 } /* }}} */
 
-void ncurses_colors(void) /* {{{ */
-{
-	if (has_colors())
-	{
-		start_color();
-		use_default_colors();
-		init_pair(1, COLOR_BLUE,        COLOR_BLACK);   /* title bar */
-		init_pair(2, COLOR_WHITE,       -1);            /* default task */
-		init_pair(3, COLOR_CYAN,        COLOR_BLACK);   /* selected task */
-		init_pair(8, COLOR_RED,         -1);            /* error message */
-	}
-} /* }}} */
-
 void ncurses_end(int sig) /* {{{ */
 {
 	/* terminate ncurses */
@@ -735,15 +725,28 @@ void ncurses_end(int sig) /* {{{ */
 void ncurses_init() /* {{{ */
 {
 	/* initialize ncurses */
-	tnc_fprintf(stdout, LOG_DEBUG, "starting ncurses...");
+	int ret;
+
+	/* register signals */
 	signal(SIGINT, ncurses_end);
 	signal(SIGKILL, ncurses_end);
 	signal(SIGSEGV, ncurses_end);
-	if ((stdscr = initscr()) == NULL ) {
+
+	/* initialize screen */
+	tnc_fprintf(stdout, LOG_DEBUG, "starting ncurses...");
+	if ((stdscr = initscr()) == NULL )
+	{
 	    fprintf(stderr, "Error initialising ncurses.\n");
 	    exit(EXIT_FAILURE);
 	}
 
+	/* start colors */
+	ret = init_colors();
+	if (ret)
+	{
+		fprintf(stderr, "Error initializing colors.\n");
+		tnc_fprintf(logfp, LOG_ERROR, "error initializing colors (%d)", ret);
+	}
 } /* }}} */
 
 void print_header() /* {{{ */
@@ -753,7 +756,7 @@ void print_header() /* {{{ */
 
 	/* wipe bar and print bg color */
 	wmove(header, 0, 0);
-	wattrset(header, COLOR_PAIR(1));
+	wattrset(header, get_colors(OBJECT_HEADER, NULL, NULL));
 
 	/* evaluate title string */
 	tmp0 = (char *)eval_string(2*cols, cfg.formats.title, NULL, NULL, 0);
@@ -779,7 +782,6 @@ void set_curses_mode(const ncurses_mode mode) /* {{{ */
 			nonl();                 /* tell curses not to do NL->CR/NL on output */
 			cbreak();               /* take input chars one at a time, no wait for \n */
 			noecho();               /* dont echo input */
-			ncurses_colors();            /* initialize colors */
 			curs_set(0);            /* set cursor invisible */
 			wtimeout(statusbar, cfg.nc_timeout);/* timeout getch */
 			break;
@@ -788,7 +790,6 @@ void set_curses_mode(const ncurses_mode mode) /* {{{ */
 			nonl();                 /* tell curses not to do NL->CR/NL on output */
 			cbreak();               /* take input chars one at a time, no wait for \n */
 			noecho();               /* dont echo input */
-			ncurses_colors();            /* initialize colors */
 			curs_set(0);            /* set cursor invisible */
 			wtimeout(statusbar, -1);/* no timeout on getch */
 			break;
@@ -1101,23 +1102,25 @@ int main(int argc, char **argv) /* {{{ */
 		}
 	}
 
-	/* read config file */
-	configure();
-
-	/* build task list */
-	head = get_tasks(NULL);
-	if (head==NULL)
-	{
-		tnc_fprintf(stdout, LOG_WARN, "it appears that your task list is empty");
-		tnc_fprintf(stdout, LOG_WARN, "please add some tasks for %s to manage\n", PROGNAME);
-		return 1;
-	}
-
 	/* run ncurses */
 	if (!debug)
 	{
 		tnc_fprintf(logfp, LOG_DEBUG, "running gui");
 		ncurses_init();
+		mvwprintw(stdscr, 0, 0, "%s %s", PROGNAME, PROGVERSION);
+		mvwprintw(stdscr, 1, 0, "configuring...");
+		wrefresh(stdscr);
+		configure();
+		mvwprintw(stdscr, 1, 0, "loading tasks...");
+		wrefresh(stdscr);
+		head = get_tasks(NULL);
+		if (head==NULL)
+		{
+			ncurses_end(0);
+			tnc_fprintf(stdout, LOG_WARN, "it appears that your task list is empty");
+			tnc_fprintf(stdout, LOG_WARN, "please add some tasks for %s to manage\n", PROGNAME);
+			return 1;
+		}
 		tasklist_window();
 		ncurses_end(0);
 	}
@@ -1125,6 +1128,8 @@ int main(int argc, char **argv) /* {{{ */
 	/* debug mode */
 	else
 	{
+		configure();
+		head = get_tasks(NULL);
 		test(debugopts);
 		free(debugopts);
 	}
