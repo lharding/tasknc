@@ -22,21 +22,23 @@
 void handle_command(char *cmdstr) /* {{{ */
 {
 	/* accept a command string, determine what action to take, and execute */
-	char *pos, *args = NULL, *modestr;
-	cmdstr = str_trim(cmdstr);
+	char *command, *args, *modestr, *pos;
 	funcmap *fmap;
 	prog_mode mode;
+	int ret = 0;
 
+	/* parse args */
+	pos = strchr(cmdstr, '\n');
+	if (pos != NULL)
+		*pos = 0;
 	tnc_fprintf(logfp, LOG_DEBUG, "command received: %s", cmdstr);
-
-	/* determine command */
-	pos = strchr(cmdstr, ' ');
-
-	/* split off arguments */
-	if (pos!=NULL)
+	if (cmdstr != NULL)
+		ret = sscanf(cmdstr, "%ms %m[^\n]", &command, &args);
+	if (ret < 1)
 	{
-		(*pos) = 0;
-		args = ++pos;
+		statusbar_message(cfg.statusbar_timeout, "failed to parse command");
+		tnc_fprintf(logfp, LOG_ERROR, "failed to parse command: [%d] (%s)", ret, cmdstr);
+		return;
 	}
 
 	/* determine mode */
@@ -57,35 +59,33 @@ void handle_command(char *cmdstr) /* {{{ */
 	}
 
 	/* log command */
-	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: detected mode %s", modestr);
-	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: %s", cmdstr);
-	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: [args] %s", args);
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: %s - %s (%s)", modestr, command, args);
 
 	/* handle command & arguments */
 	/* try for exposed command */
-	fmap = find_function(cmdstr, mode);
+	fmap = find_function(command, mode);
 	if (fmap!=NULL)
 	{
 		(fmap->function)(str_trim(args));
 		return;
 	}
 	/* version: print version string */
-	if (str_eq(cmdstr, "version"))
+	if (str_eq(command, "version"))
 		statusbar_message(cfg.statusbar_timeout, "%s %s by %s\n", PROGNAME, PROGVERSION, PROGAUTHOR);
 	/* quit/exit: exit tasknc */
-	else if (str_eq(cmdstr, "quit") || str_eq(cmdstr, "exit"))
+	else if (str_eq(command, "quit") || str_eq(command, "exit"))
 		done = true;
 	/* reload: force reload of task list */
-	else if (str_eq(cmdstr, "reload"))
+	else if (str_eq(command, "reload"))
 	{
 		reload = true;
 		statusbar_message(cfg.statusbar_timeout, "task list reloaded");
 	}
 	/* redraw: force redraw of screen */
-	else if (str_eq(cmdstr, "redraw"))
+	else if (str_eq(command, "redraw"))
 		redraw = true;
 	/* dump: write all displayed tasks to log file */
-	else if (str_eq(cmdstr, "dump"))
+	else if (str_eq(command, "dump"))
 	{
 		task *this = head;
 		while (this!=NULL)
@@ -99,9 +99,13 @@ void handle_command(char *cmdstr) /* {{{ */
 	}
 	else
 	{
-		statusbar_message(cfg.statusbar_timeout, "error: command %s not found", cmdstr);
-		tnc_fprintf(logfp, LOG_ERROR, "error: command %s not found", cmdstr);
+		statusbar_message(cfg.statusbar_timeout, "error: command %s not found", command);
+		tnc_fprintf(logfp, LOG_ERROR, "error: command %s not found", command);
 	}
+
+	/* clean up */
+	free(command);
+	free(args);
 } /* }}} */
 
 void run_command_bind(char *args) /* {{{ */
