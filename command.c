@@ -107,30 +107,20 @@ void handle_command(char *cmdstr) /* {{{ */
 void run_command_bind(char *args) /* {{{ */
 {
 	/* create a new keybind */
-	int key;
-	char *function, *arg, *keystr, *modestr, *aarg, *keyname;
+	int key, ret;
+	char *function, *arg, *keystr, *modestr, *keyname;
 	void (*func)();
 	funcmap *fmap;
 	prog_mode mode;
 
-	/* make sure an argument was passed */
-	if (args==NULL)
+	/* parse command */
+	ret = sscanf(args, "%ms %ms %ms %m[^\n]", &modestr, &keystr, &function, &arg);
+	if (ret < 3)
 	{
-		tnc_fprintf(logfp, LOG_ERROR, "bind: mode must be specified (%s)", args);
+		statusbar_message(cfg.statusbar_timeout, "syntax: bind <mode> <key> <function> <args>");
+		tnc_fprintf(logfp, LOG_ERROR, "syntax: bind <mode> <key> <function> <args> [%d](%s)", ret, args);
 		return;
 	}
-
-	/* split off mode */
-	modestr = args;
-	keystr = strchr(args, ' ');
-	if (keystr==NULL)
-	{
-		tnc_fprintf(logfp, LOG_ERROR, "bind: key must be specified (%s)", args);
-		return;
-	}
-	(*keystr) = 0;
-	keystr++;
-	keystr = str_trim(keystr);
 
 	/* parse mode string */
 	if (str_eq(modestr, "tasklist"))
@@ -143,27 +133,8 @@ void run_command_bind(char *args) /* {{{ */
 		return;
 	}
 
-	/* split off key */
-	function = strchr(keystr, ' ');
-	if (function==NULL)
-	{
-		tnc_fprintf(logfp, LOG_ERROR, "bind: function must be specified (%s)", args);
-		return;
-	}
-	(*function) = 0;
-	function++;
-	str_trim(function);
-
 	/* parse key */
 	key = parse_key(keystr);
-
-	/* split function from function arg */
-	arg = strchr(function, ' ');
-	if (arg!=NULL)
-	{
-		(*arg) = 0;
-		arg = str_trim(++arg);
-	}
 
 	/* map function to function call */
 	fmap = find_function(function, mode);
@@ -181,18 +152,14 @@ void run_command_bind(char *args) /* {{{ */
 		return;
 	}
 
-	/* copy argument if necessary */
-	if (arg!=NULL)
-		aarg = strdup(arg);
-	else
-		aarg = NULL;
-
 	/* add keybind */
-	add_keybind(key, func, str_trim(aarg), mode);
+	add_keybind(key, func, arg, mode);
 	keyname = name_key(key);
 	statusbar_message(cfg.statusbar_timeout, "key %s (%d) bound to %s - %s", keyname, key, modestr, name_function(func));
 	free(keyname);
-	free(aarg);
+	free(arg);
+	free(keystr);
+	free(modestr);
 } /* }}} */
 
 void run_command_unbind(char *argstr) /* {{{ */
