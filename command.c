@@ -107,14 +107,15 @@ void handle_command(char *cmdstr) /* {{{ */
 void run_command_bind(char *args) /* {{{ */
 {
 	/* create a new keybind */
-	int key, ret;
+	int key, ret = 0;
 	char *function, *arg, *keystr, *modestr, *keyname;
 	void (*func)();
 	funcmap *fmap;
 	prog_mode mode;
 
 	/* parse command */
-	ret = sscanf(args, "%ms %ms %ms %m[^\n]", &modestr, &keystr, &function, &arg);
+	if (args != NULL)
+		ret = sscanf(args, "%ms %ms %ms %m[^\n]", &modestr, &keystr, &function, &arg);
 	if (ret < 3)
 	{
 		statusbar_message(cfg.statusbar_timeout, "syntax: bind <mode> <key> <function> <args>");
@@ -193,10 +194,11 @@ void run_command_set(char *args) /* {{{ */
 	/* set a variable in the statusbar */
 	var *this_var;
 	char *message, *varname, *value;
-	int ret;
+	int ret = 0;
 
 	/* parse args */
-	ret = sscanf(args, "%ms %m[^\n]", &varname, &value);
+	if (args != NULL)
+		ret = sscanf(args, "%ms %m[^\n]", &varname, &value);
 	if (ret != 2)
 	{
 		statusbar_message(cfg.statusbar_timeout, "syntax: set <variable> <value>");
@@ -249,9 +251,20 @@ void run_command_show(const char *arg) /* {{{ */
 	/* display a variable in the statusbar */
 	var *this_var;
 	char *message;
+	int ret = 0;
+
+	/* parse arg */
+	if (arg != NULL)
+		ret = sscanf(arg, "%m[^\n]", &message);
+	if (ret != 1)
+	{
+		statusbar_message(cfg.statusbar_timeout, "syntax: show <variable>");
+		tnc_fprintf(logfp, LOG_ERROR, "syntax: show <variable> [%d](%s)", ret, arg);
+		return;
+	}
 
 	/* check for a variable */
-	if (arg==NULL)
+	if (arg == NULL)
 	{
 		statusbar_message(cfg.statusbar_timeout, "no variable specified!");
 		return;
