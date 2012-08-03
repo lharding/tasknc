@@ -265,7 +265,7 @@ void run_command_show(const char *arg) /* {{{ */
 {
 	/* display a variable in the statusbar */
 	var *this_var;
-	char *message;
+	char *message = NULL;
 	int ret = 0;
 
 	/* parse arg */
@@ -275,14 +275,14 @@ void run_command_show(const char *arg) /* {{{ */
 	{
 		statusbar_message(cfg.statusbar_timeout, "syntax: show <variable>");
 		tnc_fprintf(logfp, LOG_ERROR, "syntax: show <variable> [%d](%s)", ret, arg);
-		return;
+		goto cleanup;
 	}
 
 	/* check for a variable */
 	if (arg == NULL)
 	{
 		statusbar_message(cfg.statusbar_timeout, "no variable specified!");
-		return;
+		goto cleanup;
 	}
 
 	/* find the variable */
@@ -290,13 +290,16 @@ void run_command_show(const char *arg) /* {{{ */
 	if (this_var==NULL)
 	{
 		statusbar_message(cfg.statusbar_timeout, "variable not found: %s", arg);
-		return;
+		goto cleanup;
 	}
 
 	/* acquire the value string and print it */
 	message = var_value_message(this_var, 1);
 	statusbar_message(cfg.statusbar_timeout, message);
+
+cleanup:
 	free(message);
+	return;
 } /* }}} */
 
 void strip_quotes(char **strptr, bool needsfree) /* {{{ */
