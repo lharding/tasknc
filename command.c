@@ -205,7 +205,7 @@ void run_command_set(char *args) /* {{{ */
 {
 	/* set a variable in the statusbar */
 	var *this_var;
-	char *message, *varname, *value;
+	char *message = NULL, *varname = NULL, *value = NULL;
 	int ret = 0;
 
 	/* parse args */
@@ -215,7 +215,7 @@ void run_command_set(char *args) /* {{{ */
 	{
 		statusbar_message(cfg.statusbar_timeout, "syntax: set <variable> <value>");
 		tnc_fprintf(logfp, LOG_ERROR, "syntax: set <variable> <value> [%d](%s)", ret, args);
-		return;
+		goto cleanup;
 	}
 
 	/* find the variable */
@@ -223,7 +223,7 @@ void run_command_set(char *args) /* {{{ */
 	if (this_var==NULL)
 	{
 		statusbar_message(cfg.statusbar_timeout, "variable not found: %s", varname);
-		return;
+		goto cleanup;
 	}
 
 	/* set the value */
@@ -251,11 +251,14 @@ void run_command_set(char *args) /* {{{ */
 		tnc_fprintf(logfp, LOG_ERROR, "failed to parse value from command: set %s %s", varname, value);
 
 	/* acquire the value string and print it */
-	free(varname);
-	free(value);
 	message = var_value_message(this_var, 1);
 	statusbar_message(cfg.statusbar_timeout, message);
+
+cleanup:
 	free(message);
+	free(varname);
+	free(value);
+	return;
 } /* }}} */
 
 void run_command_show(const char *arg) /* {{{ */
