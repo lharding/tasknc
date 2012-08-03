@@ -42,6 +42,7 @@ color_rule *color_rules = NULL;
 
 /* local functions */
 static short add_color_pair(const short, const short, const short);
+int check_color(int);
 static bool eval_rules(char *, const task *, const bool);
 static short find_add_pair(const short, const short);
 static int set_default_colors();
@@ -119,6 +120,17 @@ short add_color_rule(const color_object object, const char *rule, const short fg
 		color_rules = this;
 
 	return 0;
+} /* }}} */
+
+int check_color(int color) /* {{{ */
+{
+	/* make sure a color is valid before using it
+	 * return -1 (default) if color is not valid
+	 */
+	if (color>=COLORS || color<-2)
+		return -1;
+	else
+		return color;
 } /* }}} */
 
 bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
@@ -340,18 +352,18 @@ int parse_color(const char *name) /* {{{ */
 	/* try for int */
 	ret = sscanf(name, "%d", &i);
 	if (ret == 1)
-		return i;
+		return check_color(i);
 
 	/* try for colorNNN */
 	ret = sscanf(name, "color%3d", &i);
 	if (ret == 1)
-		return i;
+		return check_color(i);
 
 	/* look for mapped color */
 	for (i=0; i<sizeof(colors_map)/sizeof(struct color_map); i++)
 	{
 		if (str_eq(colors_map[i].name, name))
-			return colors_map[i].color;
+			return check_color(colors_map[i].color);
 	}
 
 	return -2;
