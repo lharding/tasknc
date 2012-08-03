@@ -165,6 +165,18 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =back
 
+=item Colors are specified in one of three formats:
+
+=over 4
+
+=item I<integer> - number of the color you desire, where -1 is default.
+
+=item I<colorNNN> - where NNN is the color you desire in 3 digits.
+
+=item I<color string> - where the following colors are recognized: I<black>, I<red>, I<green>, I<yellow>, I<blue>, I<magenta>, I<cyan>, and I<white>.
+
+=back
+
 =item Rules are specified in the following format: ~I<pattern> I<arg>.  Pattern is a single character; if lowercase it indicates a positive match, and if uppercase it indicates a negative match.  Regular expression arguments must be enclosed in single quotes.  The following patterns are available:
 
 =over 4
