@@ -112,7 +112,7 @@ void run_command_bind(char *args) /* {{{ */
 {
 	/* create a new keybind */
 	int key, ret = 0;
-	char *function, *arg, *keystr, *modestr, *keyname;
+	char *function = NULL, *arg = NULL, *keystr = NULL, *modestr = NULL, *keyname = NULL;
 	void (*func)();
 	funcmap *fmap;
 	prog_mode mode;
@@ -124,7 +124,7 @@ void run_command_bind(char *args) /* {{{ */
 	{
 		statusbar_message(cfg.statusbar_timeout, "syntax: bind <mode> <key> <function> <args>");
 		tnc_fprintf(logfp, LOG_ERROR, "syntax: bind <mode> <key> <function> <args> [%d](%s)", ret, args);
-		return;
+		goto cleanup;
 	}
 
 	/* parse mode string */
@@ -135,7 +135,7 @@ void run_command_bind(char *args) /* {{{ */
 	else
 	{
 		tnc_fprintf(logfp, LOG_ERROR, "bind: invalid mode (%s)", modestr);
-		return;
+		goto cleanup;
 	}
 
 	/* parse key */
@@ -146,7 +146,7 @@ void run_command_bind(char *args) /* {{{ */
 	if (fmap==NULL)
 	{
 		tnc_fprintf(logfp, LOG_ERROR, "bind: invalid function specified (%s)", args);
-		return;
+		goto cleanup;
 	}
 	func = fmap->function;
 
@@ -154,17 +154,21 @@ void run_command_bind(char *args) /* {{{ */
 	if (fmap->argn>0 && arg==NULL)
 	{
 		statusbar_message(cfg.statusbar_timeout, "bind: argument required for function %s", function);
-		return;
+		goto cleanup;
 	}
 
 	/* add keybind */
 	add_keybind(key, func, arg, mode);
 	keyname = name_key(key);
 	statusbar_message(cfg.statusbar_timeout, "key %s (%d) bound to %s - %s", keyname, key, modestr, name_function(func));
+	goto cleanup;
+
+cleanup:
 	free(keyname);
 	free(arg);
 	free(keystr);
 	free(modestr);
+	return;
 } /* }}} */
 
 void run_command_unbind(char *argstr) /* {{{ */
