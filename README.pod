@@ -135,6 +135,36 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
+=item B<color> I<object> I<foreground> I<background> I<rule> assign an I<object> to be a color when I<rule> is satisfied.  Only task I<object>s evaluate I<rule>s.  The following objects are available:
+
+=over 4
+
+=item I<error>  - error messages
+
+=item I<header> - title bar & pager title
+
+=item I<task>   - tasks in task list
+
+=back
+
+=item Rules are specified in the following format: ~I<pattern> I<arg>.  Pattern is a single character; if lowercase it indicates a positive match, and if uppercase it indicates a negative match.  Regular expression arguments must be enclosed in single quotes.  The following patterns are available:
+
+=over 4
+
+=item I<s>         - task is selected
+
+=item I<p> 'I<regex>' - project matches regex
+
+=item I<d> 'I<regex>' - description matches regex
+
+=item I<t> 'I<regex>' - tags match regex
+
+=item I<r> 'I<regex>' - priority matches regex
+
+=back
+
+=item
+
 =item B<dump> will write active task info to the log file.  This is mostly for debugging.
 
 =item
