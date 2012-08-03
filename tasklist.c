@@ -108,6 +108,7 @@ void key_tasklist_filter(const char *arg) /* {{{ */
 	else
 		active_filter = strdup(arg);
 
+	/* force reload of task list */
 	statusbar_message(cfg.statusbar_timeout, "filter applied");
 	reload = true;
 } /* }}} */
@@ -391,7 +392,11 @@ void tasklist_check_curs_pos() /* {{{ */
 void tasklist_window() /* {{{ */
 {
 	/* ncurses main function */
-	int c, oldrows, oldcols;
+	int c, oldrows, oldcols, pos;
+	task *cur;
+	char *uuid;
+
+	/* get field lengths */
 	cfg.fieldlengths.project = max_project_length();
 	cfg.fieldlengths.date = DATELENGTH;
 
@@ -457,10 +462,19 @@ void tasklist_window() /* {{{ */
 		/* reload task list */
 		if (reload)
 		{
+			cur = get_task_by_position(selline);
+			uuid = strdup(cur->uuid);
 			wipe_tasklist();
 			reload_tasks();
 			task_count();
 			redraw = true;
+			if (cfg.follow_task)
+			{
+				pos = get_task_position_by_uuid(uuid);
+				if (pos>0)
+					selline = pos;
+			}
+			free(uuid);
 			tasklist_check_curs_pos();
 		}
 		/* resize windows */
