@@ -1101,23 +1101,25 @@ int main(int argc, char **argv) /* {{{ */
 		}
 	}
 
-	/* read config file */
-	configure();
-
-	/* build task list */
-	head = get_tasks(NULL);
-	if (head==NULL)
-	{
-		tnc_fprintf(stdout, LOG_WARN, "it appears that your task list is empty");
-		tnc_fprintf(stdout, LOG_WARN, "please add some tasks for %s to manage\n", PROGNAME);
-		return 1;
-	}
-
 	/* run ncurses */
 	if (!debug)
 	{
 		tnc_fprintf(logfp, LOG_DEBUG, "running gui");
 		ncurses_init();
+		mvwprintw(stdscr, 0, 0, "%s %s", PROGNAME, PROGVERSION);
+		mvwprintw(stdscr, 1, 0, "configuring...");
+		wrefresh(stdscr);
+		configure();
+		mvwprintw(stdscr, 1, 0, "loading tasks...");
+		wrefresh(stdscr);
+		head = get_tasks(NULL);
+		if (head==NULL)
+		{
+			ncurses_end(0);
+			tnc_fprintf(stdout, LOG_WARN, "it appears that your task list is empty");
+			tnc_fprintf(stdout, LOG_WARN, "please add some tasks for %s to manage\n", PROGNAME);
+			return 1;
+		}
 		tasklist_window();
 		ncurses_end(0);
 	}
@@ -1125,6 +1127,7 @@ int main(int argc, char **argv) /* {{{ */
 	/* debug mode */
 	else
 	{
+		configure();
 		test(debugopts);
 		free(debugopts);
 	}
