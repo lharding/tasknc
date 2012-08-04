@@ -149,7 +149,11 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =over 4
 
-=item B<bind> I<mode> I<key> I<function> I<args> assign I<function> to run every time a I<key> is pressed in I<mode>.  Defining I<key>s is described in the KEYS section.  I<function>s are listed below in the FUNCTIONS section.
+=item B<add> creates a new task and opens it for editing.
+
+=item
+
+=item B<bind> I<mode> I<key> I<function> I<args> assign I<function> to run every time a I<key> is pressed in I<mode>.  Defining I<key>s is described in the KEYS section.  I<function>s are anything listed in COMMANDS.
 
 =item
 
@@ -195,7 +199,39 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
+=item B<command> I<optarg> runs the command I<optarg> or prompts the user for a command with no arg.
+
+=item
+
+=item B<complete> marks selected task as complete
+
+=item
+
+=item B<delete> deletes selected task
+
+=item
+
+=item B<edit> opens task for editing
+
+=item
+
 =item B<dump> will write active task info to the log file.  This is mostly for debugging.
+
+=item
+
+=item B<filter> applies filter string I<optarg> or prompts user for a filter string with no arg.
+
+=item
+
+=item B<f_redraw> force a redraw of theh whole screen.
+
+=item
+
+=item B<help> will open the help window, which will list keybinds.
+
+=item
+
+=item B<modify> I<optarg> runs task modify on the selected task with modifications specified in I<optarg> or gathered from a user prompt with no arg.
 
 =item
 
@@ -207,6 +243,30 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
+=item B<scroll_down> moves the cursor down
+
+=item
+
+=item B<scroll_end> moves the cursor to the end of the task list
+
+=item
+
+=item B<scroll_home> moves the cursor to the first task
+
+=item
+
+=item B<scroll_up> moves the cursor up
+
+=item
+
+=item B<search> I<optarg> searches task list for string I<optarg> or prompts user for a search string with no arg.
+
+=item
+
+=item B<search_next> goes to the next item in the task list that matches the search string.
+
+=item
+
 =item B<set> I<variable> I<value> will attempt to set I<variable> to a parsed I<value>.  A list of available I<variable>s are listed in the VARIABLES section.
 
 =item
@@ -215,7 +275,15 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
+=item B<sort> I<optarg> applies a sort defined by character I<optarg> or prompts user for sort mode wwith no arg.
+
+=item
+
 =item B<stats> will display the output of 'task stat'.
+
+=item
+
+=item B<sync> runs 'task merge && task push'.
 
 =item
 
@@ -223,7 +291,15 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
+=item B<undo> runs 'task undo'.
+
+=item
+
 =item B<version> will print the version info about tasknc to the prompt area of the ncurses window.
+
+=item
+
+=item B<view> will open the view window for the selected task.
 
 =back
 
@@ -231,11 +307,15 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =over 4
 
-=item B<follow_task> is a boolean which dictates whether the selected line will stay selected after the task is chenaged.
+=item B<curs_timeout> is an integer variable which is the number of milliseconds after which ncurses options should time out.
 
 =item
 
 =item B<filter_string> is the string which is currently filtering the displayed task list.
+
+=item
+
+=item B<follow_task> is a boolean which dictates whether the selected line will stay selected after the task is chenaged.
 
 =item
 
@@ -263,10 +343,6 @@ Log levels:
 
 =back
 
-=item B<ncurses_timeout> is an integer variable which is the number of milliseconds after which ncurses options should time out.
-
-=item
-
 =item B<program_name> is the string which defines the name of the program (tasknc).
 
 =item
@@ -276,10 +352,6 @@ Log levels:
 =item
 
 =item B<program_version> is the string which defines the version of tasknc.
-
-=item
-
-=item B<statusbar_timeout> is an integer variable which is the number of seconds after which the message in the statusbar times out.
 
 =item
 
@@ -312,6 +384,10 @@ Sort modes:
 =item
 
 =back
+
+=item B<statusbar_timeout> is an integer variable which is the number of seconds after which the message in the statusbar times out.
+
+=item
 
 =item B<task_count> is the integer number of tasks which are displayed.
 
@@ -381,89 +457,9 @@ For task formats, the following variables are available:
 
 =back
 
-=head1 FUNCTIONS
-
-=over 4
-
-=item B<scroll_down> moves the cursor down
-
-=item
-
-=item B<scroll_end> moves the cursor to the end of the task list
-
-=item
-
-=item B<scroll_home> moves the cursor to the first task
-
-=item
-
-=item B<scroll_up> moves the cursor up
-
-=item
-
-=item B<complete> marks selected task as complete
-
-=item
-
-=item B<delete> deletes selected task
-
-=item
-
-=item B<edit> opens task for editing
-
-=item
-
-=item B<reload> reloads the task list.
-
-=item
-
-=item B<undo> runs 'task undo'.
-
-=item
-
-=item B<add> creates a new task and opens it for editing.
-
-=item
-
-=item B<sort> I<optarg> applies a sort defined by character I<optarg> or prompts user for sort mode wwith no arg.
-
-=item
-
-=item B<search> I<optarg> searches task list for string I<optarg> or prompts user for a search string with no arg.
-
-=item
-
-=item B<search_next> goes to the next item in the task list that matches the search string.
-
-=item
-
-=item B<filter> applies filter string I<optarg> or prompts user for a filter string with no arg.
-
-=item
-
-=item B<modify> I<optarg> runs task modify on the selected task with modifications specified in I<optarg> or gathered from a user prompt with no arg.
-
-=item
-
-=item B<sync> runs 'task merge && task push'.
-
-=item
-
-=item B<quit> exits tasknc.
-
-=item
-
-=item B<f_redraw> force a redraw of theh whole screen.
-
-=item
-
-=item B<command> I<optarg> runs the command I<optarg> or prompts the user for a command with no arg.
-
-=back
-
 =head1 KEYS
 
-Keys may be specified as an integer or character.
+Keys may be specified as an integer or character. In addition, special key strings are recognized.  HWhen pressing an unbound key, tasknc will display its name in the statusbar message.
 
 =head1 AUTHOR
 
