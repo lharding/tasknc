@@ -530,6 +530,11 @@ void set_position_by_uuid(const char *uuid) /* {{{ */
 	/* set the cursor position to a uuid's position */
 	int pos;
 
+	/* check for null uuid */
+	if (uuid == NULL)
+		return;
+
+	/* get position & set it */
 	pos = get_task_position_by_uuid(uuid);
 	if (pos>0)
 		selline = pos;
@@ -753,7 +758,7 @@ void task_modify(const char *argstr) /* {{{ */
 		set_position_by_uuid(uuid);
 		tasklist_check_curs_pos();
 	}
-	free(uuid);
+	check_free(uuid);
 
 	free(cmd);
 } /* }}} */

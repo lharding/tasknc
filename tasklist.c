@@ -85,7 +85,7 @@ void key_tasklist_edit() /* {{{ */
 		set_position_by_uuid(uuid);
 		tasklist_check_curs_pos();
 	}
-	free(uuid);
+	check_free(uuid);
 
 	if (ret)
 		statusbar_message(cfg.statusbar_timeout, "edit failed");
@@ -263,11 +263,12 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 	/* handle a keyboard direction to sort */
 	char m;
 	task *cur;
-	char *uuid;
+	char *uuid = NULL;
 
 	/* store selected task */
 	cur = get_task_by_position(selline);
-	uuid = strdup(cur->uuid);
+	if (cur != NULL)
+		uuid = strdup(cur->uuid);
 	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "sort: initial task uuid=%s", uuid);
 
 	/* get sort mode */
@@ -311,7 +312,7 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 		set_position_by_uuid(uuid);
 		tasklist_check_curs_pos();
 	}
-	free(uuid);
+	check_free(uuid);
 
 	/* force redraw */
 	redraw = true;
@@ -395,7 +396,7 @@ void tasklist_window() /* {{{ */
 	/* ncurses main function */
 	int c, oldrows, oldcols;
 	task *cur;
-	char *uuid;
+	char *uuid = NULL;
 
 	/* get field lengths */
 	cfg.fieldlengths.project = max_project_length();
@@ -464,14 +465,16 @@ void tasklist_window() /* {{{ */
 		if (reload)
 		{
 			cur = get_task_by_position(selline);
-			uuid = strdup(cur->uuid);
+			if (cur != NULL)
+				uuid = strdup(cur->uuid);
 			wipe_tasklist();
 			reload_tasks();
 			task_count();
 			redraw = true;
 			if (cfg.follow_task)
 				set_position_by_uuid(uuid);
-			free(uuid);
+			check_free(uuid);
+			uuid = NULL;
 			tasklist_check_curs_pos();
 		}
 		/* resize windows */
