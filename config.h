@@ -24,4 +24,7 @@
 /* compile in test suite */
 #define TASKNC_INCLUDE_TESTS
 
+/* enable macros */
+#define ENABLE_MACROS
+
 #endif

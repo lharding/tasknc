@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "common.h"
+#include "config.h"
 #include "keys.h"
 #include "log.h"
 #include "tasklist.h"
@@ -180,7 +181,13 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 	/* handle a key press on the main screen */
 	keybind *this_bind;
 	char *modestr, *keyname;
+	bool match = false;
 
+	/* exit if timeout occurred */
+	if (c == ERR)
+		return;
+
+	/* iterate through keybinds */
 	this_bind = keybinds;
 	while (this_bind!=NULL)
 	{
@@ -197,11 +204,16 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p %s%s(%s)", this_bind->function, modestr, name_function(this_bind->function), this_bind->argstr);
 				(*(this_bind->function))(this_bind->argstr);
 			}
+			match = true;
+#ifndef ENABLE_MACROS
 			break;
+#endif
 		}
 		this_bind = this_bind->next;
 	}
-	if (this_bind==NULL)
+
+	/* no match found */
+	if (!match)
 	{
 		keyname = name_key(c);
 		statusbar_message(cfg.statusbar_timeout, "unhandled key: %s (%d)", keyname, c);
