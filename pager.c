@@ -223,8 +223,8 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 
 		/* print title */
 		wattrset(pager, get_colors(OBJECT_HEADER, NULL, NULL));
-		mvwhline(pager, 0, 0, ' ', cols);
-		umvaddstr_align(pager, 0, title);
+		mvwhline(pager, offset, 0, ' ', cols);
+		umvaddstr_align(pager, offset, title);
 
 		/* print lines */
 		wattrset(pager, COLOR_PAIR(0));
@@ -232,9 +232,11 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 		lineno = 1;
 		while (tmp!=NULL && lineno<=linecount && lineno-offset<=height)
 		{
-			mvwhline(pager, lineno-offset, 0, ' ', cols);
 			if (lineno>offset)
+			{
+				mvwhline(pager, lineno-offset, 0, ' ', cols);
 				umvaddstr(pager, lineno-offset, 0, tmp->str);
+			}
 
 			lineno++;
 			tmp = tmp->next;
