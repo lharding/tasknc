@@ -211,13 +211,20 @@ task *get_tasks(char *uuid) /* {{{ */
 	}
 	tnc_fprintf(logfp, LOG_DEBUG, "reloading tasks (%s)", cmdstr);
 	cmd = popen(cmdstr, "r");
+	if (cmd == NULL)
+	{
+		tnc_fprintf(logfp, LOG_ERROR, "could not execute command: (%s)", cmdstr);
+		tnc_fprintf(stdout, LOG_ERROR, "could not execute command: (%s)", cmdstr);
+		free(cmdstr);
+		return NULL;
+	}
 	free(cmdstr);
 
 	/* parse output */
 	last = NULL;
 	new_head = NULL;
 	line = calloc(linelen, sizeof(char));
-	while (fgets(line, linelen-1, cmd) != NULL)
+	while (fgets(line, linelen-1, cmd) != NULL || !feof(cmd))
 	{
 		task *this;
 
