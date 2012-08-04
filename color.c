@@ -262,7 +262,7 @@ void free_colors() /* {{{ */
 		last = this;
 		this = this->next;
 		check_free(last->rule);
-		free(this);
+		free(last);
 	}
 } /* }}} */
 

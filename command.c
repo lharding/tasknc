@@ -68,7 +68,7 @@ void handle_command(char *cmdstr) /* {{{ */
 	if (fmap!=NULL)
 	{
 		(fmap->function)(str_trim(args));
-		return;
+		goto cleanup;
 	}
 	/* version: print version string */
 	if (str_eq(command, "version"))
@@ -103,7 +103,9 @@ void handle_command(char *cmdstr) /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "error: command %s not found", command);
 		tnc_fprintf(logfp, LOG_ERROR, "error: command %s not found", command);
 	}
+	goto cleanup;
 
+cleanup:
 	/* clean up */
 	free(command);
 	free(args);
@@ -165,10 +167,11 @@ void run_command_bind(char *args) /* {{{ */
 	goto cleanup;
 
 cleanup:
-	free(keyname);
+	free(function);
 	free(arg);
 	free(keystr);
 	free(modestr);
+	free(keyname);
 	return;
 } /* }}} */
 

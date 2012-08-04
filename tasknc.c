@@ -173,7 +173,7 @@ void configure(void) /* {{{ */
 	/* parse config file to get runtime options */
 	FILE *cmd, *config;
 	char line[TOTALLENGTH], *filepath, *xdg_config_home, *home;
-	int ret;
+	int ret = 0;
 
 	/* set default settings */
 	cfg.nc_timeout = NCURSES_WAIT;                          /* time getch will wait */
@@ -191,17 +191,10 @@ void configure(void) /* {{{ */
 	active_filter = strdup("status:pending");
 
 	/* get task version */
-	cmd = popen("task version rc._forcecolor=no", "r");
-	while (fgets(line, sizeof(line)-1, cmd) != NULL)
-	{
-		cfg.version = calloc(8, sizeof(char));
-		ret = sscanf(line, "task %[^ ]* ", cfg.version);
-		if (ret>0)
-		{
-			tnc_fprintf(logfp, LOG_DEBUG, "task version: %s", cfg.version);
-			break;
-		}
-	}
+	cmd = popen("task --version", "r");
+	while (ret != 1)
+		ret = fscanf(cmd, "%m[0-9.-] ", &(cfg.version));
+	tnc_fprintf(logfp, LOG_DEBUG, "task version: %s", cfg.version);
 	pclose(cmd);
 
 	/* default keybinds */
@@ -352,17 +345,21 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 
 		/* copy field */
 		fieldwidth = strlen(field);
-		strncpy(str+position, field, fieldwidth);
 
 		/* move along */
-		return eval_string(maxlen, fmt+varlen, this, str, position+fieldwidth);
+		goto done;
 	}
 
 	/* check if this is a variable */
 	if (strchr("$?", *fmt) == NULL)
 	{
-		str[position] = *fmt;
-		return eval_string(maxlen, fmt+1, this, str, position+1);
+		field = calloc(2, sizeof(char));
+		*field = *fmt;
+		free_field = true;
+		fieldlen = 1;
+		fieldwidth = 1;
+		varlen = 1;
+		goto done;
 	}
 	fmt++;
 
@@ -395,6 +392,7 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 			fieldwidth = fieldlen;
 		free_field = true;
 		var = "date";
+		goto done;
 	}
 
 	/* try for a variable relative to the current task */
@@ -451,8 +449,11 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 			asprintf(&field, "%d", this->index);
 			if (fieldwidth == -1)
 				fieldwidth = strlen(field);
+			free_field = true;
 			var = "index";
 		}
+		if (var != NULL)
+			goto done;
 	}
 
 	/* try for an exposed variable */
@@ -467,56 +468,56 @@ const char *eval_string(const int maxlen, char *fmt, const task *this, char *str
 				fieldwidth = strlen(field);
 			var = vars[i].name;
 			free_field = true;
+			goto done;
 			break;
 		}
 	}
 
-	if (var != NULL)
-	{
-		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "appending \"%s\" to \"%s\" var=\"%s\" fieldlen=%d fieldwidth=%d varlen=%d", field, str, var, fieldlen, fieldwidth, varlen);
-		fflush(logfp);
-
-		/* compute lengths */
-		if (field == NULL)
-			fieldlen = 0;
-		if (fieldlen == -1)
-			fieldlen = strlen(field);
-		if (var != (char *)-1)
-			varlen = strlen(var);
-
-		if (right_align)
-		{
-			/* pad beginning of string */
-			for (i=fieldlen; i<fieldwidth; i++)
-				*(str+position+i-fieldlen) = ' ';
-
-			/* copy string */
-			if (field != NULL)
-				strncpy(str+position+fieldwidth-fieldlen, field, fieldwidth);
-		}
-		else
-		{
-			/* copy string */
-			if (field != NULL)
-				strncpy(str+position, field, fieldwidth);
-
-			/* pad end of string */
-			for (i=fieldlen; i<fieldwidth; i++)
-				*(str+position+i) = ' ';
-		}
-		*(str+position+fieldwidth) = 0;
-
-		/* free field */
-		if (free_field)
-			free(field);
-
-		return eval_string(maxlen, fmt+varlen, this, str, position+fieldwidth);
-	}
-
 	/* print uninterpreted */
+	field = calloc(2, sizeof(char));
 	fmt = orig_fmt;
-	str[position] = *fmt;
-	return eval_string(maxlen, fmt+1, this, str, position+1);
+	*field = *fmt;
+	free_field = true;
+	varlen = 1;
+	fieldwidth = 1;
+	goto done;
+
+done:
+	/* compute lengths */
+	if (field == NULL)
+		fieldlen = 0;
+	if (fieldlen == -1)
+		fieldlen = strlen(field);
+	if (varlen == -1 && var != (char *)-1)
+		varlen = strlen(var);
+
+	if (right_align)
+	{
+		/* pad beginning of string */
+		for (i=fieldlen; i<fieldwidth; i++)
+			*(str+position+i-fieldlen) = ' ';
+
+		/* copy string */
+		if (field != NULL)
+			strncpy(str+position+fieldwidth-fieldlen, field, fieldwidth);
+	}
+	else
+	{
+		/* copy string */
+		if (field != NULL)
+			strncpy(str+position, field, fieldwidth);
+
+		/* pad end of string */
+		for (i=fieldlen; i<fieldwidth; i++)
+			*(str+position+i) = ' ';
+	}
+	*(str+position+fieldwidth) = 0;
+
+	/* free field */
+	if (free_field)
+		free(field);
+
+	return eval_string(maxlen, fmt+varlen, this, str, position+fieldwidth);
 } /* }}} */
 
 funcmap *find_function(const char *name, const prog_mode mode) /* {{{ */

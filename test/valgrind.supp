@@ -4,6 +4,11 @@
    fun:__wcslen_sse2
 }
 {
+   wcslen-false-alarm
+   Memcheck:Addr8
+   fun:wcslen
+}
+{
    ncurses-memleak
    Memcheck:Leak
    fun:calloc
@@ -24,6 +29,7 @@
    fun:_nc_mvcur_init
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
 }
 {
@@ -33,6 +39,7 @@
    fun:_nc_setupscreen
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
 }
 {
@@ -80,6 +87,7 @@
    fun:_nc_mvcur_init
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
 }
 {
@@ -99,6 +107,7 @@
    fun:_nc_setupscreen
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
 }
 {
@@ -156,6 +165,7 @@
    fun:_nc_setupscreen
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
 }
 {
@@ -167,6 +177,7 @@
    fun:_nc_setupscreen
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
 }
 {
@@ -208,6 +219,7 @@
    fun:_nc_setupscreen
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
 }
 {
@@ -219,6 +231,7 @@
    fun:_nc_setupscreen
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
 }
 {
@@ -228,6 +241,7 @@
    fun:_nc_setupscreen
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
 }
 {
@@ -246,6 +260,7 @@
    fun:_nc_setupscreen
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
 }
 {
@@ -279,6 +294,7 @@
    fun:_nc_setupscreen
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
 }
 {
@@ -289,6 +305,7 @@
    fun:_nc_setupscreen
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
 }
 {
@@ -312,6 +329,7 @@
    fun:_nc_setupscreen
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
 }
 {
@@ -322,5 +340,205 @@
    fun:_nc_setupscreen
    fun:newterm
    fun:initscr
+   fun:ncurses_init
    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:start_color
+    fun:init_colors
+    fun:ncurses_init
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:malloc
+    fun:_nc_printf_string
+    fun:vwprintw
+    fun:mvwprintw
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:malloc
+    fun:_nc_hash_map
+    fun:_nc_scroll_optimize
+    fun:doupdate
+    fun:wrefresh
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:malloc
+    fun:vasprintf
+    fun:asprintf
+    fun:eval_string
+    fun:tasklist_print_task
+    fun:tasklist_print_task_list
+    fun:tasklist_window
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:_nc_add_to_try
+    fun:_nc_init_keytry
+    fun:_nc_keypad
+    fun:set_curses_mod
+    fun:tasklist_window
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:_nc_hash_map
+    fun:_nc_scroll_optimize
+    fun:doupdate
+    fun:wrefresh
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:_nc_add_to_try
+    fun:_nc_init_keytry
+    fun:_nc_keypad
+    fun:set_curses_mod
+    fun:tasklist_window
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:_nc_hash_map
+    fun:_nc_scroll_optimize
+    fun:doupdate
+    fun:tasklist_window
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:_nc_hash_map
+    fun:_nc_scroll_optimize
+    fun:doupdate
+    fun:tasklist_window
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:_nc_add_to_try
+    fun:_nc_init_keytry
+    fun:_nc_keypad
+    fun:set_curses_mod
+    fun:tasklist_window
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:malloc
+    fun:strdup
+    fun:_nc_setupterm
+    fun:newterm
+    fun:initscr
+    fun:ncurses_init
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:_nc_add_to_try
+    fun:_nc_init_keytry
+    fun:_nc_keypad
+    fun:set_curses_mod
+    fun:tasklist_window
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:_nc_add_to_try
+    fun:_nc_init_keytry
+    fun:_nc_keypad
+    fun:set_curses_mod
+    fun:tasklist_window
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:malloc
+    fun:_nc_scroll_optimize
+    fun:doupdate
+    fun:wrefresh
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:_nc_setupterm
+    fun:newterm
+    fun:initscr
+    fun:ncurses_init
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:_nc_add_to_try
+    fun:_nc_init_keytry
+    fun:_nc_keypad
+    fun:set_curses_mod
+    fun:tasklist_window
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:_nc_add_to_try
+    fun:_nc_init_keytry
+    fun:_nc_keypad
+    fun:set_curses_mod
+    fun:tasklist_window
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:_nc_add_to_try
+    fun:_nc_init_keytry
+    fun:_nc_keypad
+    fun:set_curses_mod
+    fun:tasklist_window
+    fun:main
+}
+{
+    ncurses-memleak
+    Memcheck:Leak
+    fun:calloc
+    fun:_nc_add_to_try
+    fun:_nc_init_keytry
+    fun:_nc_keypad
+    fun:set_curses_mod
+    fun:tasklist_window
+    fun:main
 }
