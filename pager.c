@@ -114,14 +114,16 @@ void pager_command(const char *cmdstr, const char *title, const bool fullscreen,
 	str = calloc(TOTALLENGTH, sizeof(char));
 	while (fgets(str, TOTALLENGTH, cmd) != NULL)
 	{
+		/* determine max width */
 		len = strlen(str);
-
 		if (len>maxlen)
 			maxlen = len;
 
+		/* create line */
 		cur = calloc(1, sizeof(line));
 		cur->str = str;
 
+		/* place line in list */
 		if (count == head_skip)
 			head = cur;
 		else if (count < head_skip)
@@ -132,6 +134,7 @@ void pager_command(const char *cmdstr, const char *title, const bool fullscreen,
 		else if (last != NULL)
 			last->next = cur;
 
+		/* move to next line */
 		str = calloc(256, sizeof(char));
 		count++;
 		last = cur;
@@ -154,6 +157,9 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 	line *tmp;
 	offset = 0;
 	WINDOW *last_pager = NULL;
+	const int orig_offset = offset;
+	const int orig_height = height;
+	const int orig_linecount = linecount;
 
 	/* store previous pager window if necessary */
 	if (pager != NULL)
@@ -244,6 +250,11 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 		tasklist_print_task_list();
 		pager = last_pager;
 	}
+
+	/* reset original values */
+	offset    = orig_offset;
+	height    = orig_height;
+	linecount = orig_linecount;
 } /* }}} */
 
 void view_stats() /* {{{ */
