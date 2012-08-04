@@ -215,6 +215,10 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
+=item B<stats> will display the output of 'task stat'.
+
+=item
+
 =item B<unbind> I<mode> will remove all keybindings from a specific key in I<mode>.
 
 =item
