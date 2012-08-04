@@ -38,6 +38,8 @@ void force_redraw();
 void handle_resize();
 void help(void);
 void key_command(const char *);
+void key_task_background_command(const char *);
+void key_task_interactive_command(const char *);
 void key_done();
 char max_project_length();
 const char *name_function(void *);

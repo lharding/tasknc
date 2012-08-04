@@ -271,6 +271,14 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
+=item B<shell> I<command> will run an interactive command.  A %s will be replaced with the active task's uuid.  The task list will be reloaded after.
+
+=item
+
+=item B<shell_bg> I<command> will run a background command.  A %s will be replaced with the active task's uuid.  The task list will be reloaded after.
+
+=item
+
 =item B<show> I<variable> will print the formatted contents of I<variable> to either stdout or the prompt area of the ncurses window.
 
 =item
