@@ -116,6 +116,32 @@ funcmap funcmaps[] = {
 };
 /* }}} */
 
+void check_resize() /* {{{ */
+{
+	/* check for a screen resize and handle it */
+	static int oldheight = 0;
+	static int oldwidth = 0;
+	int height, width;
+
+	/* first run */
+	if (oldheight == 0)
+		oldheight = getmaxy(stdscr);
+	if (oldwidth == 0)
+		oldwidth  = getmaxx(stdscr);
+
+	/* get current dimensions */
+	height = getmaxy(stdscr);
+	width  = getmaxx(stdscr);
+
+	/* check for resize */
+	if (oldheight != height || oldwidth != width)
+		handle_resize();
+
+	/* save position */
+	oldheight = height;
+	oldwidth = width;
+} /* }}} */
+
 void check_screen_size() /* {{{ */
 {
 	/* check for a screen thats too small */
@@ -202,6 +228,7 @@ void configure(void) /* {{{ */
 	/* default keybinds */
 	add_keybind(ERR,           NULL,                     NULL,            MODE_TASKLIST);
 	add_keybind(ERR,           NULL,                     NULL,            MODE_PAGER);
+	add_keybind(KEY_RESIZE,    handle_resize,            NULL,            MODE_ANY);
 	add_keybind('k',           key_tasklist_scroll_up,   NULL,            MODE_TASKLIST);
 	add_keybind('k',           key_pager_scroll_up,      NULL,            MODE_PAGER);
 	add_keybind(KEY_UP,        key_tasklist_scroll_up,   NULL,            MODE_TASKLIST);
@@ -613,6 +640,27 @@ void force_redraw() /* {{{ */
 	print_header();
 	tasklist_print_task_list();
 	statusbar_message(cfg.statusbar_timeout, "redrawn");
+} /* }}} */
+
+void handle_resize() /* {{{ */
+{
+	/* handle a change in screen size */
+	/* resize windows */
+	wresize(header, 1, cols);
+	wresize(tasklist, rows-2, cols);
+	wresize(statusbar, 1, cols);
+
+	/* move to proper positions */
+	mvwin(header, 0, 0);
+	mvwin(tasklist, 1, 0);
+	mvwin(statusbar, rows-1, 0);
+
+	/* redraw windows */
+	redraw = true;
+
+	/* message about resize */
+	tnc_fprintf(logfp, LOG_DEBUG, "window resized to y=%d x=%d", rows, cols);
+	statusbar_message(cfg.statusbar_timeout, "window resized to y=%d x=%d", rows, cols);
 } /* }}} */
 
 void help(void) /* {{{ */

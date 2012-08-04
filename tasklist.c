@@ -440,14 +440,7 @@ void tasklist_window() /* {{{ */
 		check_screen_size();
 
 		/* check for size changes */
-		if (cols!=oldcols || rows!=oldrows)
-		{
-			resize = true;
-			redraw = true;
-			wipe_statusbar();
-		}
-		oldcols = cols;
-		oldrows = rows;
+		check_resize();
 
 		/* apply staged window updates */
 		doupdate();
@@ -476,16 +469,6 @@ void tasklist_window() /* {{{ */
 			check_free(uuid);
 			uuid = NULL;
 			tasklist_check_curs_pos();
-		}
-		/* resize windows */
-		if (resize)
-		{
-			wresize(header, 1, cols);
-			wresize(tasklist, rows-2, cols);
-			wresize(statusbar, 1, cols);
-			mvwin(header, 0, 0);
-			mvwin(tasklist, 1, 0);
-			mvwin(statusbar, rows-1, 0);
 		}
 		/* redraw all windows */
 		if (redraw)
