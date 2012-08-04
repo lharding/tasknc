@@ -170,7 +170,7 @@ void pager_command(const char *cmdstr, const char *title, const bool fullscreen,
 void pager_window(line *head, const bool fullscreen, int nlines, char *title) /* {{{ */
 {
 	/* page through a series of lines */
-	int startx, starty, lineno, c;
+	int startx, starty, lineno, c, taskheight;
 	line *tmp;
 	offset = 0;
 	WINDOW *last_pager = NULL;
@@ -201,20 +201,32 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 	linecount = nlines;
 
 	/* determine screen dimensions and create window */
+	taskheight = getmaxy(tasklist);
 	if (fullscreen)
 	{
-		height = LINES-2;
+		height = taskheight;
 		starty = 1;
 		startx = 0;
 	}
 	else
 	{
-		height = linecount+1;
+		if (linecount+1<taskheight)
+			height = linecount+1;
+		else
+			height = taskheight;
 		starty = rows-height-1;
 		startx = 0;
 	}
 	tnc_fprintf(logfp, LOG_DEBUG, "pager: h=%d w=%d y=%d x=%d", height, cols, starty, startx);
 	pager = newwin(height, cols, starty, startx);
+
+	/* check if pager was created */
+	if (pager == NULL)
+	{
+		statusbar_message(cfg.statusbar_timeout, "failed to create pager window");
+		tnc_fprintf(logfp, LOG_ERROR, "failed to create pager window");
+		return;
+	}
 
 	pager_done = false;
 	while (1)
