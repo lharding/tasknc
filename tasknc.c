@@ -674,6 +674,7 @@ void handle_resize() /* {{{ */
 
 	/* redraw windows */
 	tasklist_print_task_list();
+	print_header();
 
 	/* message about resize */
 	tnc_fprintf(logfp, LOG_DEBUG, "window resized to y=%d x=%d", rows, cols);
