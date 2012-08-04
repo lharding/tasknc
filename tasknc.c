@@ -98,7 +98,9 @@ funcmap funcmaps[] = {
 	{"scroll_down", (void *)key_tasklist_scroll_down, 0, MODE_TASKLIST},
 	{"scroll_down", (void *)key_pager_scroll_down,    0, MODE_PAGER},
 	{"scroll_end",  (void *)key_tasklist_scroll_end,  0, MODE_TASKLIST},
+	{"scroll_end",  (void *)key_pager_scroll_end,     0, MODE_PAGER},
 	{"scroll_home", (void *)key_tasklist_scroll_home, 0, MODE_TASKLIST},
+	{"scroll_home", (void *)key_pager_scroll_home,    0, MODE_PAGER},
 	{"scroll_up",   (void *)key_tasklist_scroll_up,   0, MODE_TASKLIST},
 	{"scroll_up",   (void *)key_pager_scroll_up,      0, MODE_PAGER},
 	{"search",      (void *)key_tasklist_search,      0, MODE_TASKLIST},
@@ -203,13 +205,19 @@ void configure(void) /* {{{ */
 	add_keybind('k',           key_tasklist_scroll_up,   NULL,            MODE_TASKLIST);
 	add_keybind('k',           key_pager_scroll_up,      NULL,            MODE_PAGER);
 	add_keybind(KEY_UP,        key_tasklist_scroll_up,   NULL,            MODE_TASKLIST);
+	add_keybind(KEY_UP,        key_pager_scroll_up,      NULL,            MODE_PAGER);
 	add_keybind('j',           key_tasklist_scroll_down, NULL,            MODE_TASKLIST);
 	add_keybind('j',           key_pager_scroll_down,    NULL,            MODE_PAGER);
 	add_keybind(KEY_DOWN,      key_tasklist_scroll_down, NULL,            MODE_TASKLIST);
-	add_keybind(KEY_HOME,      key_tasklist_scroll_home, NULL,            MODE_TASKLIST);
+	add_keybind(KEY_DOWN,      key_pager_scroll_down,    NULL,            MODE_PAGER);
 	add_keybind('g',           key_tasklist_scroll_home, NULL,            MODE_TASKLIST);
-	add_keybind(KEY_END,       key_tasklist_scroll_end,  NULL,            MODE_TASKLIST);
+	add_keybind(KEY_HOME,      key_tasklist_scroll_home, NULL,            MODE_TASKLIST);
+	add_keybind('g',           key_pager_scroll_home,    NULL,            MODE_PAGER);
+	add_keybind(KEY_HOME,      key_pager_scroll_home,    NULL,            MODE_PAGER);
+	add_keybind('G',           key_pager_scroll_end,     NULL,            MODE_PAGER);
+	add_keybind(KEY_END,       key_pager_scroll_end,     NULL,            MODE_PAGER);
 	add_keybind('G',           key_tasklist_scroll_end,  NULL,            MODE_TASKLIST);
+	add_keybind(KEY_END,       key_tasklist_scroll_end,  NULL,            MODE_TASKLIST);
 	add_keybind('e',           key_tasklist_edit,        NULL,            MODE_ANY);
 	add_keybind('r',           key_tasklist_reload,      NULL,            MODE_TASKLIST);
 	add_keybind('u',           key_tasklist_undo,        NULL,            MODE_TASKLIST);

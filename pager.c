@@ -85,20 +85,37 @@ void key_pager_close() /* {{{ */
 	pager_done = true;
 } /* }}} */
 
-void key_pager_scroll_up() /* {{{ */
-{
-	if (offset>0)
-		offset--;
-	else
-		statusbar_message(cfg.statusbar_timeout, "already at top");
-} /* }}} */
-
 void key_pager_scroll_down() /* {{{ */
 {
+	/* scroll down a line in pager */
 	if (offset<linecount+1-height)
 		offset++;
 	else
 		statusbar_message(cfg.statusbar_timeout, "already at bottom");
+} /* }}} */
+
+void key_pager_scroll_end() /* {{{ */
+{
+	/* scroll to end of pager */
+	if (linecount>height)
+		offset = linecount-height+1;
+	else
+		offset = 0;
+} /* }}} */
+
+void key_pager_scroll_home() /* {{{ */
+{
+	/* scroll to beginning of pager */
+	offset = 0;
+} /* }}} */
+
+void key_pager_scroll_up() /* {{{ */
+{
+	/* scroll up a line in pager */
+	if (offset>0)
+		offset--;
+	else
+		statusbar_message(cfg.statusbar_timeout, "already at top");
 } /* }}} */
 
 void pager_command(const char *cmdstr, const char *title, const bool fullscreen, const int head_skip, const int tail_skip) /* {{{ */
