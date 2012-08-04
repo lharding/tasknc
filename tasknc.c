@@ -803,7 +803,7 @@ void set_curses_mode(const ncurses_mode mode) /* {{{ */
 			wtimeout(statusbar, -1);/* no timeout on getch */
 			break;
 		case NCURSES_MODE_STRING:
-			curs_set(2);            /* set cursor visible */
+			curs_set(1);            /* set cursor visible */
 			nocbreak();             /* wait for \n */
 			echo();                 /* echo input */
 			wtimeout(statusbar, -1);/* no timeout on getch */
