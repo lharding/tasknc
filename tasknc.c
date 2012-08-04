@@ -48,7 +48,6 @@ keybind *keybinds = NULL;
 
 /* runtime status */
 bool redraw;
-bool resize;
 bool reload;
 bool done;
 
@@ -645,6 +644,12 @@ void force_redraw() /* {{{ */
 void handle_resize() /* {{{ */
 {
 	/* handle a change in screen size */
+	int pagerheight;
+
+	/* make sure rows and cols are set correctly */
+	rows = getmaxy(stdscr);
+	cols = getmaxx(stdscr);
+
 	/* resize windows */
 	wresize(header, 1, cols);
 	wresize(tasklist, rows-2, cols);
@@ -655,8 +660,18 @@ void handle_resize() /* {{{ */
 	mvwin(tasklist, 1, 0);
 	mvwin(statusbar, rows-1, 0);
 
+	/* handle pager */
+	if (pager != NULL)
+	{
+		pagerheight = getmaxy(pager);
+		if (pagerheight > rows-2)
+			pagerheight = rows-2;
+		wresize(pager, pagerheight, cols);
+		mvwin(pager, rows-pagerheight-1, 0);
+	}
+
 	/* redraw windows */
-	redraw = true;
+	tasklist_print_task_list();
 
 	/* message about resize */
 	tnc_fprintf(logfp, LOG_DEBUG, "window resized to y=%d x=%d", rows, cols);

@@ -39,7 +39,6 @@ void tasklist_window();
 
 extern bool reload;
 extern bool redraw;
-extern bool resize;
 extern bool done;
 extern char *active_filter;
 extern char *searchstring;

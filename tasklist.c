@@ -394,7 +394,7 @@ void tasklist_check_curs_pos() /* {{{ */
 void tasklist_window() /* {{{ */
 {
 	/* ncurses main function */
-	int c, oldrows, oldcols;
+	int c;
 	task *cur;
 	char *uuid = NULL;
 
@@ -417,9 +417,7 @@ void tasklist_window() /* {{{ */
 
 	/* print task list */
 	check_screen_size();
-	oldrows = LINES;
-	oldcols = COLS;
-	cfg.fieldlengths.description = oldcols-cfg.fieldlengths.project-1-cfg.fieldlengths.date;
+	cfg.fieldlengths.description = COLS-cfg.fieldlengths.project-1-cfg.fieldlengths.date;
 	task_count();
 	print_header();
 	tasklist_print_task_list();
