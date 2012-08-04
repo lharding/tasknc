@@ -278,7 +278,7 @@ int parse_key(const char *keystr) /* {{{ */
 	return (int)(*keystr);
 } /* }}} */
 
-int remove_keybinds(const int key) /* {{{ */
+int remove_keybinds(const int key, const prog_mode mode) /* {{{ */
 {
 	/* remove all keybinds to key */
 	int counter = 0;
@@ -288,7 +288,7 @@ int remove_keybinds(const int key) /* {{{ */
 	while (this!=NULL)
 	{
 		next = this->next;
-		if (this->key == (int)key)
+		if (this->key == (int)key && this->mode == mode)
 		{
 			if (last!=NULL)
 				last->next = next;

@@ -228,6 +228,7 @@ void run_command_unbind(char *argstr) /* {{{ */
 {
 	/* handle a keyboard instruction to unbind a key */
 	char *modestr = NULL, *keystr = NULL, *keyname = NULL;
+	prog_mode mode;
 	int ret = 0;
 
 	/* parse args */
@@ -240,9 +241,17 @@ void run_command_unbind(char *argstr) /* {{{ */
 		goto cleanup;
 	}
 
+	/* parse mode */
+	if (str_eq(modestr, "pager"))
+		mode = MODE_PAGER;
+	else if (str_eq(modestr, "tasklist"))
+		mode = MODE_TASKLIST;
+	else
+		mode = MODE_ANY;
+
 	int key = parse_key(keystr);
 
-	remove_keybinds(key);
+	remove_keybinds(key, mode);
 	keyname = name_key(key);
 	statusbar_message(cfg.statusbar_timeout, "key unbound: %s (%d)", keyname, key);
 	goto cleanup;
