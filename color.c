@@ -136,7 +136,7 @@ int check_color(int color) /* {{{ */
 bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 {
 	/* evaluate a rule set for a task */
-	char *regex, pattern, *tmp;
+	char *regex = NULL, pattern, *tmp;
 	int ret, move;
 	bool go = false, invert = false;
 
@@ -152,7 +152,10 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 	ret = sscanf(rule, "~%c '%m[^\']'", &pattern, &regex);
 	if (ret > 0)
 	{
-		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: got regex match pattern - '%c' '%s'", pattern, regex);
+		if (ret == 1)
+			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: got regex match pattern - '%c' '(null)'", pattern);
+		else if (ret == 2)
+			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: got regex match pattern - '%c' '%s'", pattern, regex);
 		if (pattern >= 'A' && pattern <= 'Z')
 		{
 			pattern += 32;
