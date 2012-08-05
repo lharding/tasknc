@@ -194,8 +194,15 @@ void key_tasklist_scroll(const int direction) /* {{{ */
 		redraw = true;
 	else
 	{
-		tasklist_print_task(oldsel, NULL, 1);
-		tasklist_print_task(selline, NULL, 1);
+		if (oldsel-selline == 1)
+			tasklist_print_task(selline, NULL, 2);
+		else if (selline-oldsel == 1)
+			tasklist_print_task(oldsel, NULL, 2);
+		else
+		{
+			tasklist_print_task(oldsel, NULL, 1);
+			tasklist_print_task(selline, NULL, 1);
+		}
 	}
 	print_header();
 	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "selline:%d offset:%d tasks:%d", selline, pageoffset, taskcount);
@@ -494,7 +501,7 @@ void tasklist_print_task(const int tasknum, const task *this, const int count) /
 	/* print a task specified by number */
 	bool sel = false;
 	char *tmp;
-	int x, y, i;
+	int x, y;
 
 	/* determine position to print */
 	y = tasknum-pageoffset;
