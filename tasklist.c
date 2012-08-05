@@ -26,6 +26,9 @@
 #include "tasks.h"
 #include "pager.h"
 
+/* local functions */
+void tasklist_command_message(const int, const char *, const char *);
+
 void key_tasklist_add() /* {{{ */
 {
 	/* handle a keyboard direction to add new task */
@@ -45,10 +48,7 @@ void key_tasklist_complete() /* {{{ */
 	ret = task_background_command("task %s done");
 	tasklist_remove_task(cur);
 
-	if (ret)
-		statusbar_message(cfg.statusbar_timeout, "complete failed");
-	else
-		statusbar_message(cfg.statusbar_timeout, "complete successful");
+	tasklist_command_message(ret, "complete failed (%s)", "complete successful");
 } /* }}} */
 
 void key_tasklist_delete() /* {{{ */
@@ -62,10 +62,7 @@ void key_tasklist_delete() /* {{{ */
 	ret = task_background_command("task %s delete");
 	tasklist_remove_task(cur);
 
-	if (ret)
-		statusbar_message(cfg.statusbar_timeout, "delete failed");
-	else
-		statusbar_message(cfg.statusbar_timeout, "delete successful");
+	tasklist_command_message(ret, "delete failed (%s)", "delete successful");
 } /* }}} */
 
 void key_tasklist_edit() /* {{{ */
@@ -87,10 +84,7 @@ void key_tasklist_edit() /* {{{ */
 	}
 	check_free(uuid);
 
-	if (ret)
-		statusbar_message(cfg.statusbar_timeout, "edit failed");
-	else
-		statusbar_message(cfg.statusbar_timeout, "edit successful");
+	tasklist_command_message(ret, "edit failed (%s)", "edit succesful");
 } /* }}} */
 
 void key_tasklist_filter(const char *arg) /* {{{ */
@@ -396,6 +390,15 @@ void tasklist_check_curs_pos() /* {{{ */
 
 	/* log cursor position */
 	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "cursor_check - selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, rows-3);
+} /* }}} */
+
+void tasklist_command_message(const int ret, const char *fail, const char *success) /* {{{ */
+{
+	/* print a message depending on the return of a command */
+	if (ret!=0)
+		statusbar_message(cfg.statusbar_timeout, fail, ret);
+	else
+		statusbar_message(cfg.statusbar_timeout, success);
 } /* }}} */
 
 void tasklist_window() /* {{{ */
