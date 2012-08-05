@@ -20,18 +20,18 @@
 #include "tasks.h"
 
 /* local function declarations {{{ */
-static char compare_tasks(const task *, const task *, const char);
+static bool compare_tasks(const task *, const task *, const char);
 static void sort_tasks(task *, task *);
 static time_t strtotime(const char *);
 static void swap_tasks(task *, task*);
 /* }}} */
 
-char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
+bool compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 {
 	/* compare two tasks to determine order
 	 * a return of 1 means that the tasks should be swapped (b comes before a)
 	 */
-	char ret = 0;
+	bool ret = false;
 	int tmp;
 
 	/* determine sort algorithm and apply it */
@@ -39,21 +39,21 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 	{
 		case 'n':       // sort by index
 			if (a->index<b->index)
-				ret = 1;
+				ret = true;
 			break;
 		default:
 		case 'p':       // sort by project name => uuid
 			if (a->project == NULL)
 			{
 				if (b->project != NULL)
-					ret = 1;
+					ret = true;
 				break;
 			}
 			if (b->project == NULL)
 				break;
 			tmp = strcmp(a->project, b->project);
 			if (tmp<0)
-				ret = 1;
+				ret = true;
 			if (tmp==0)
 				ret = compare_tasks(a, b, 'u');
 			break;
@@ -66,11 +66,11 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 			}
 			if (b->due == 0)
 			{
-				ret = 1;
+				ret = true;
 				break;
 			}
 			if (a->due<b->due)
-				ret = 1;
+				ret = true;
 			break;
 		case 'r':       // sort by priority => project => uuid
 			if (a->priority == 0)
@@ -81,7 +81,7 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 			}
 			if (b->priority == 0)
 			{
-				ret = 1;
+				ret = true;
 				break;
 			}
 			if (a->priority == b->priority)
@@ -96,17 +96,17 @@ char compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 					break;
 				case 'M':
 					if (a->priority=='H')
-						ret = 1;
+						ret = true;
 					break;
 				case 'L':
 					if (a->priority=='M' || a->priority=='H')
-						ret = 1;
+						ret = true;
 					break;
 			}
 			break;
 		case 'u':       // sort by uuid
 			if (strcmp(a->uuid, b->uuid)<0)
-				ret = 1;
+				ret = true;
 			break;
 	}
 
@@ -579,7 +579,7 @@ void sort_tasks(task *first, task *last) /* {{{ */
 	/* iterate through to right end, sorting as we go */
 	while (1)
 	{
-		if (compare_tasks(start, cur, cfg.sortmode)==1)
+		if (compare_tasks(start, cur, cfg.sortmode))
 			swap_tasks(start, cur);
 		if (cur==last)
 			break;
