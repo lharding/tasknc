@@ -5,3 +5,5 @@ tasknc.1
 *.o
 CMakeFiles
 CMakeCache.txt
+Makefile
+*.cmake
