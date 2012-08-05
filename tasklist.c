@@ -194,8 +194,8 @@ void key_tasklist_scroll(const int direction) /* {{{ */
 		redraw = true;
 	else
 	{
-		tasklist_print_task(oldsel, NULL);
-		tasklist_print_task(selline, NULL);
+		tasklist_print_task(oldsel, NULL, 1);
+		tasklist_print_task(selline, NULL, 1);
 	}
 	print_header();
 	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "selline:%d offset:%d tasks:%d", selline, pageoffset, taskcount);
@@ -489,12 +489,12 @@ void tasklist_window() /* {{{ */
 	}
 } /* }}} */
 
-void tasklist_print_task(int tasknum, task *this) /* {{{ */
+void tasklist_print_task(const int tasknum, const task *this, const int count) /* {{{ */
 {
 	/* print a task specified by number */
 	bool sel = false;
 	char *tmp;
-	int x, y;
+	int x, y, i;
 
 	/* determine position to print */
 	y = tasknum-pageoffset;
@@ -528,7 +528,11 @@ void tasklist_print_task(int tasknum, task *this) /* {{{ */
 	umvaddstr_align(tasklist, y, tmp);
 	free(tmp);
 
-	wnoutrefresh(tasklist);
+	/* print next task if requested */
+	if (count>1)
+		tasklist_print_task(tasknum+1, this->next, count-1);
+	else
+		wnoutrefresh(tasklist);
 } /* }}} */
 
 void tasklist_print_task_list() /* {{{ */
@@ -540,7 +544,7 @@ void tasklist_print_task_list() /* {{{ */
 	cur = head;
 	while (cur!=NULL)
 	{
-		tasklist_print_task(counter, cur);
+		tasklist_print_task(counter, cur, 1);
 
 		/* move to next item */
 		counter++;

@@ -31,7 +31,7 @@ void key_tasklist_sync();
 void key_tasklist_undo();
 void key_tasklist_view();
 void tasklist_check_curs_pos();
-void tasklist_print_task(int tasknum, task *this);
+void tasklist_print_task(const int, const task *, const int);
 void tasklist_print_task_list();
 void tasklist_remove_task(task *);
 void tasklist_task_add();
