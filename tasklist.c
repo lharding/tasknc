@@ -8,6 +8,7 @@
 
 #define _XOPEN_SOURCE
 #define _BSD_SOURCE
+#define _GNU_SOURCE
 
 #include <curses.h>
 #include <signal.h>
@@ -579,45 +580,44 @@ void tasklist_remove_task(task *this) /* {{{ */
 	redraw = true;
 } /* }}} */
 
-void tasklist_task_add(void) /* {{{ */
+void tasklist_task_add() /* {{{ */
 {
 	/* create a new task by adding a generic task
 	 * then letting the user edit it
 	 */
 	FILE *cmdout;
-	char *cmd, line[TOTALLENGTH], *redir;
-	const char addstr[] = "Created task ";
+	char *cmd, line[TOTALLENGTH], *failmsg;
 	unsigned short tasknum;
-
-	/* determine whether stdio should be used */
-	if (cfg.silent_shell)
-	{
-		statusbar_message(cfg.statusbar_timeout, "running task add");
-		redir = "> /dev/null";
-	}
-	else
-		redir = "";
+	int ret = 0;
 
 	/* add new task */
-	cmd = malloc(128*sizeof(char));
-	sprintf(cmd, "task add new task %s", redir);
+	cmd = strdup("task add new task");
 	tnc_fprintf(logfp, LOG_DEBUG, "running: %s", cmd);
-	cmdout = popen("task add new task", "r");
+	cmdout = popen(cmd, "r");
 	while (fgets(line, sizeof(line)-1, cmdout) != NULL)
 	{
-		if (strncmp(line, addstr, strlen(addstr))==0)
-			if (sscanf(line, "Created task %hu.", &tasknum))
-				break;
+		if (sscanf(line, "Created task %hu.", &tasknum))
+			break;
 	}
-	pclose(cmdout);
+	ret = WEXITSTATUS(pclose(cmdout));
 	free(cmd);
+	if (ret != 0)
+	{
+		failmsg = strdup("task add failed (%s)");
+		goto done;
+	}
 
 	/* edit task */
-	cmd = malloc(128*sizeof(char));
 	if (cfg.version[0]<'2')
-		sprintf(cmd, "task edit %d", tasknum);
+		asprintf(&cmd, "task edit %d", tasknum);
 	else
-		sprintf(cmd, "task %d edit", tasknum);
-	task_interactive_command(cmd);
+		asprintf(&cmd, "task %d edit", tasknum);
+	ret = task_interactive_command(cmd);
 	free(cmd);
+	failmsg = strdup("task edit failed (%s)");
+	goto done;
+
+done:
+	tasklist_command_message(ret, failmsg, "task add succeeded");
+	free(failmsg);
 } /* }}} */
