@@ -13,10 +13,21 @@ set (src_files color.c
                tasks.c
                test.c)
 
-find_package (Ncurses)
-if (NCURSES_FOUND)
-    message ("-- ncurses found")
-endif (NCURSES_FOUND)
+find_package (Curses)
+message ("-- looking for curses")
+set (CURSES_NEED_NCURSES)
+set (CURSES_NEED_WIDE)
+if (CURSES_FOUND)
+    message ("-- curses found")
+    message ("-- curses headers: ${CURSES_HEADERS}")
+    message ("-- curses library: ${CURSES_LIBRARY}")
+    message ("-- ncurses headers: ${NCURSES_HEADERS}")
+    message ("-- ncurses library: ${NCURSES_LIBRARY}")
+    message ("-- ncurses wide headers: ${NCURSESW_HEADERS}")
+    message ("-- ncurses wide library: ${NCURSESW_LIBRARY}")
+else (CURSES_FOUND)
+    message ("-- curses not found!")
+endif (CURSES_FOUND)
 
 # if (NCURSES_FOUND)
 #   check_include_files ("ncursesw/ncurses.h" NCURSESW_HEADERS)
@@ -30,8 +41,8 @@ endif (NCURSES_FOUND)
 #   endif (NCURSESW_HEADERS)
 # endif (NCURSES_FOUND)
 
-# target_link_libraries (${NCURSES_LIBRARY})
+target_link_libraries (${CURSES_LIBRARY})
 
-add_definitions (-Wall -g -Wextra -std=c99 -lncursesw)
+add_definitions (-Wall -g -Wextra -std=c99)
 
 add_executable (tasknc tasknc.c)
