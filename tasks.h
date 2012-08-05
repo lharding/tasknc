@@ -24,7 +24,6 @@ void reload_task(task *);
 void reload_tasks();
 void remove_char(char *, char);
 void set_position_by_uuid(const char *uuid);
-void sort_wrapper(task *);
 int task_background_command(const char *);
 void task_count();
 int task_interactive_command(const char *);
