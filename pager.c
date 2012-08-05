@@ -97,10 +97,7 @@ void key_pager_scroll_down() /* {{{ */
 void key_pager_scroll_end() /* {{{ */
 {
 	/* scroll to end of pager */
-	if (linecount>height)
-		offset = linecount-height+1;
-	else
-		offset = 0;
+	offset = linecount>height ? linecount-height+1 : 0;
 } /* }}} */
 
 void key_pager_scroll_home() /* {{{ */
@@ -210,10 +207,7 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 	}
 	else
 	{
-		if (linecount+1<taskheight)
-			height = linecount+1;
-		else
-			height = taskheight;
+		height = linecount+1<taskheight ? linecount+1 : taskheight;
 		starty = rows-height-1;
 		startx = 0;
 	}

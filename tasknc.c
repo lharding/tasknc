@@ -1061,12 +1061,8 @@ char *utc_date(const time_t timeint) /* {{{ */
 	time(&cur);
 	now = localtime(&cur);
 
-	/* set time to now if 0 was the argument */
-	if (timeint==0)
-		tmr = now;
-	/* convert the input timeint to a string */
-	else
-		tmr = localtime(&timeint);
+	/* set time to either now or the specified time */
+	tmr = timeint == 0  ?  now : localtime(&timeint);
 
 	/* convert thte time to a formatted string */
 	timestr = malloc(TIMELENGTH*sizeof(char));
