@@ -3,34 +3,40 @@
 ########
 
 # time for ncurses cmds (getch) to expire (in ms)
-set nc_timeout 200
+set curs_timeout 200
 
 # time for statusbar messages to expire (in s)
 set statusbar_timeout 2
 
-# default sort mode
-# d: due date
-# n: index
-# p: project
-# r: priority
-set sort_mode d
+# formats
+set title_format "$program_name ($selected_line/$task_count) ?$filter_string?filter=$filter_string?? $> $date"
+set task_format  "$-3index $project $description $> ?$due?$due?     $priority?"
 
-# show shell commands
-# warning: no confirm should be set in your taskrc before setting this
-set silent_shell 1
-
-# clear filters
-bind tasklist F filter status:pending
-# sorts
-bind tasklist N sort n
-bind tasklist P sort p
-bind tasklist D sort d
-# modifications
+# priority modifications
 bind tasklist L modify pri:L
 bind tasklist M modify pri:M
 bind tasklist H modify pri:H
 bind tasklist C modify pri:
 
-bind tasklist t filter status:pending pro:tasknc
+# question mark for help
+  bind tasklist  ?  help
+  bind pager     ?  help
 
-bind tasklist S stats
+# sort with o like mutt
+  bind tasklist  o  sort
+  bind tasklist  O  sort drpu
+unbind tasklist  s
+
+# predefined sorts
+  bind tasklist  N  sort n
+  bind tasklist  P  sort pu
+  bind tasklist  D  sort drpu
+
+# stats with S
+  bind tasklist  S  stats
+
+# clear filters
+  bind tasklist  F  filter status:pending
+
+# show only tasknc
+  bind tasklist  t  filter status:pending pro:tasknc
