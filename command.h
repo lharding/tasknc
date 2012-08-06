@@ -18,6 +18,7 @@ void run_command_color(char *);
 void run_command_unbind(char *);
 void run_command_set(char *);
 void run_command_show(const char *);
+void run_command_source(const char *filepath);
 void strip_quotes(char **, bool);
 
 extern bool done;

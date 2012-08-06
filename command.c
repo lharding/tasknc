@@ -16,6 +16,7 @@
 #include "color.h"
 #include "command.h"
 #include "common.h"
+#include "config.h"
 #include "keys.h"
 #include "log.h"
 #include "tasknc.h"
@@ -362,6 +363,53 @@ void run_command_show(const char *arg) /* {{{ */
 cleanup:
 	free(message);
 	return;
+} /* }}} */
+
+void run_command_source(const char *filepath) /* {{{ */
+{
+	/* open config file */
+	FILE *config = NULL;
+	char *line;
+
+	config = fopen(filepath, "r");
+	tnc_fprintf(logfp, LOG_DEBUG, "source: file \"%s\"", filepath);
+
+	/* check for a valid fd */
+	if (config == NULL)
+	{
+		tnc_fprintf(logfp, LOG_ERROR, "source: file \"%s\" could not be opened", filepath);
+		statusbar_message(cfg.statusbar_timeout, "source: file \"%s\" could not be opened", filepath);
+		return;
+	}
+
+	/* read config file */
+	line = calloc(TOTALLENGTH, sizeof(char));
+	while (fgets(line, TOTALLENGTH, config))
+	{
+		char *val;
+
+		/* discard comment lines or blank lines */
+		if (line[0]=='#' || line[0]=='\n')
+			continue;
+
+		/* handle comments that are mid-line */
+		if((val = strchr(line, '#')))
+			*val = '\0';
+
+		/* handle config commands */
+		else
+			handle_command(line);
+
+		/* get memory for a new line */
+		free(line);
+		line = calloc(TOTALLENGTH, sizeof(char));
+	}
+	free(line);
+
+	/* close config file */
+	fclose(config);
+	tnc_fprintf(logfp, LOG_DEBUG, "source complete: \"%s\"", filepath);
+	statusbar_message(cfg.statusbar_timeout, "source complete: \"%s\"", filepath);
 } /* }}} */
 
 void strip_quotes(char **strptr, bool needsfree) /* {{{ */

@@ -108,6 +108,7 @@ funcmap funcmaps[] = {
 	{"shell_bg",    (void *)key_task_background_command,  1, MODE_ANY},
 	{"show",        (void *)run_command_show,             1, MODE_ANY},
 	{"sort",        (void *)key_tasklist_sort,            0, MODE_TASKLIST},
+	{"source",      (void *)run_command_source,           1, MODE_ANY},
 	{"stats",       (void *)view_stats,                   0, MODE_ANY},
 	{"sync",        (void *)key_tasklist_sync,            0, MODE_TASKLIST},
 	{"unbind",      (void *)run_command_unbind,           1, MODE_ANY},
@@ -199,8 +200,8 @@ void cleanup() /* {{{ */
 void configure(void) /* {{{ */
 {
 	/* parse config file to get runtime options */
-	FILE *cmd, *config;
-	char line[TOTALLENGTH], *filepath, *xdg_config_home, *home;
+	FILE *cmd;
+	char *filepath, *xdg_config_home, *home;
 	int ret = 0;
 
 	/* set default settings */
@@ -279,43 +280,8 @@ void configure(void) /* {{{ */
 		filepath = malloc((strlen(xdg_config_home)+16)*sizeof(char));
 		sprintf(filepath, "%s/tasknc/config", xdg_config_home);
 	}
-
-	/* open config file */
-	config = fopen(filepath, "r");
-	tnc_fprintf(logfp, LOG_DEBUG, "config file: %s", filepath);
-
-	/* free filepath */
+	run_command_source(filepath);
 	free(filepath);
-
-	/* check for a valid fd */
-	if (config == NULL)
-	{
-		tnc_fprintf(stdout, LOG_ERROR, "config file could not be opened");
-		tnc_fprintf(logfp, LOG_ERROR, "config file could not be opened");
-		return;
-	}
-
-	/* read config file */
-	tnc_fprintf(logfp, LOG_DEBUG, "reading config file");
-	while (fgets(line, TOTALLENGTH, config))
-	{
-		char *val;
-
-		/* discard comment lines or blank lines */
-		if (line[0]=='#' || line[0]=='\n')
-			continue;
-
-		/* handle comments that are mid-line */
-		if((val = strchr(line, '#')))
-			*val = '\0';
-
-		/* handle config commands */
-		else
-			handle_command(line);
-	}
-
-	/* close config file */
-	fclose(config);
 } /* }}} */
 
 const char *eval_string(const int maxlen, char *fmt, const task *this, char *str, int position) /* {{{ */
