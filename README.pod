@@ -101,7 +101,7 @@ run task info on selected task
 
 =item B<s>
 
-resort list (prompted for sort algorithm)
+resort list (prompted for sort order)
 
 =item B<y>
 
@@ -283,7 +283,21 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
-=item B<sort> I<optarg> applies a sort defined by character I<optarg> or prompts user for sort mode wwith no arg.
+=item B<sort> I<optarg> applies a sort defined by string I<optarg> or prompts user for sort mode wwith no arg.  The sort string defines the priority of each sort component.  Tasks will first be compared by the first character's order, if they are equal, the next characters sort order will be evaluated.  The default sort order is due, priority, project, uuid (notated drpu).  The following characters are valid sorts:
+
+=over 4
+
+=item I<d> due
+
+=item I<n> index
+
+=item I<p> project
+
+=item I<r> priority
+
+=item I<u> uuid
+
+=back
 
 =item
 
