@@ -58,6 +58,11 @@ void help_window() /* {{{ */
 	this = keybinds;
 	while (this!=NULL)
 	{
+		if (this->key == ERR || this->key == KEY_RESIZE)
+		{
+			this = this->next;
+			continue;
+		}
 		cur = calloc(1, sizeof(line));
 		last->next = cur;
 		if (this->mode == MODE_TASKLIST)
@@ -68,9 +73,9 @@ void help_window() /* {{{ */
 			modestr = "unknown ";
 		keyname = name_key(this->key);
 		if (this->argstr == NULL)
-			asprintf(&(cur->str), "%8s\t%3d\t%s\t%s", keyname, this->key, modestr, name_function(this->function));
+			asprintf(&(cur->str), "%8s    %-8s    %s", keyname, modestr, name_function(this->function));
 		else
-			asprintf(&(cur->str), "%8s\t%3d\t%s\t%s %s", keyname, this->key, modestr, name_function(this->function), this->argstr);
+			asprintf(&(cur->str), "%8s    %-8s    %s %s", keyname, modestr, name_function(this->function), this->argstr);
 		free(keyname);
 		this = this->next;
 		last = cur;
