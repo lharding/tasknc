@@ -84,7 +84,7 @@ typedef struct _config {
 	int statusbar_timeout;
 	log_mode loglvl;
 	char *version;
-	char sortmode;
+	char *sortmode;
 	bool silent_shell;
 	bool follow_task;
 	struct {

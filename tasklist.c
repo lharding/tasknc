@@ -21,6 +21,7 @@
 #include "config.h"
 #include "keys.h"
 #include "log.h"
+#include "sort.h"
 #include "string.h"
 #include "tasklist.h"
 #include "tasknc.h"
@@ -263,7 +264,6 @@ void key_tasklist_search_next() /* {{{ */
 void key_tasklist_sort(const char *arg) /* {{{ */
 {
 	/* handle a keyboard direction to sort */
-	char m;
 	task *cur;
 	char *uuid = NULL;
 
@@ -273,42 +273,25 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 		uuid = strdup(cur->uuid);
 	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "sort: initial task uuid=%s", uuid);
 
-	/* get sort mode */
+	check_free(cfg.sortmode);
 	if (arg==NULL)
 	{
-		statusbar_message(cfg.statusbar_timeout, "enter sort mode: iNdex, Project, Due, pRiority");
-		set_curses_mode(NCURSES_MODE_STD_BLOCKING);
-		wrefresh(statusbar);
+		statusbar_message(-1, "sort order: ");
+		set_curses_mode(NCURSES_MODE_STRING);
 
-		m = wgetch(statusbar);
+		/* store search string  */
+		cfg.sortmode = calloc(cols, sizeof(char));
+		wgetstr(statusbar, cfg.sortmode);
+		sb_timeout = time(NULL) + 3;
 		set_curses_mode(NCURSES_MODE_STD);
 	}
 	else
-		m = *arg;
+		cfg.sortmode = strdup(arg);
 
-	/* do sort */
-	switch (m)
-	{
-		case 'n':
-		case 'p':
-		case 'd':
-		case 'r':
-			cfg.sortmode = m;
-			break;
-		case 'N':
-		case 'P':
-		case 'D':
-		case 'R':
-			cfg.sortmode = m+32;
-			break;
-		default:
-			statusbar_message(cfg.statusbar_timeout, "invalid sort mode");
-			return;
-			break;
-	}
+	/* run sort */
 	sort_wrapper(head);
 
-	/* follow task */
+	/* follow original task */
 	if (cfg.follow_task)
 	{
 		set_position_by_uuid(uuid);

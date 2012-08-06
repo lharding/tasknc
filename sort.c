@@ -11,17 +11,20 @@
 #include "sort.h"
 
 /* local functions */
-static bool compare_tasks(const task *, const task *, const char);
+static bool compare_tasks(const task *, const task *, const char *);
 static void sort_tasks(task *, task *);
 static void swap_tasks(task *, task*);
 
-bool compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
+bool compare_tasks(const task *a, const task *b, const char *mode_queue) /* {{{ */
 {
 	/* compare two tasks to determine order
 	 * a return of 1 means that the tasks should be swapped (b comes before a)
 	 */
 	bool ret = false;
 	int tmp;
+
+	/* done if mode is null */
+	const char sort_mode = *mode_queue;
 
 	/* determine sort algorithm and apply it */
 	switch (sort_mode)
@@ -30,7 +33,6 @@ bool compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 			if (a->index<b->index)
 				ret = true;
 			break;
-		default:
 		case 'p':       // sort by project name => uuid
 			if (a->project == NULL)
 			{
@@ -44,13 +46,13 @@ bool compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 			if (tmp<0)
 				ret = true;
 			if (tmp==0)
-				ret = compare_tasks(a, b, 'u');
+				ret = compare_tasks(a, b, mode_queue+1);
 			break;
 		case 'd':       // sort by due date => priority => project => uuid
 			if (a->due == 0)
 			{
 				if (b->due == 0)
-					ret = compare_tasks(a, b, 'r');
+					ret = compare_tasks(a, b, mode_queue+1);
 				break;
 			}
 			if (b->due == 0)
@@ -65,7 +67,7 @@ bool compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 			if (a->priority == 0)
 			{
 				if (b->priority == 0)
-					ret = compare_tasks(a, b, 'p');
+					ret = compare_tasks(a, b, mode_queue+1);
 				break;
 			}
 			if (b->priority == 0)
@@ -75,7 +77,7 @@ bool compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 			}
 			if (a->priority == b->priority)
 			{
-				ret = compare_tasks(a, b, 'p');
+				ret = compare_tasks(a, b, mode_queue+1);
 				break;
 			}
 			switch (b->priority)
@@ -96,6 +98,10 @@ bool compare_tasks(const task *a, const task *b, const char sort_mode) /* {{{ */
 		case 'u':       // sort by uuid
 			if (strcmp(a->uuid, b->uuid)<0)
 				ret = true;
+			break;
+		case 0:
+		default:
+			return false;
 			break;
 	}
 

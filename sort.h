@@ -6,8 +6,10 @@
  * by mjheagle
  */
 
+#include <stdio.h>
 #include "common.h"
 
 void sort_wrapper(task *);
 
 extern config cfg;
+extern FILE *logfp;

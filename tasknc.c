@@ -70,7 +70,7 @@ var vars[] = {
 	{"search_string",     VAR_STR,  &searchstring},
 	{"selected_line",     VAR_INT,  &selline},
 	{"silent_shell",      VAR_CHAR, &(cfg.silent_shell)},
-	{"sort_mode",         VAR_CHAR, &(cfg.sortmode)},
+	{"sort_mode",         VAR_STR,  &(cfg.sortmode)},
 	{"statusbar_timeout", VAR_INT,  &(cfg.statusbar_timeout)},
 	{"task_count",        VAR_INT,  &taskcount},
 	{"task_format",       VAR_STR,  &(cfg.formats.task)},
@@ -207,7 +207,7 @@ void configure(void) /* {{{ */
 	/* set default settings */
 	cfg.nc_timeout = NCURSES_WAIT;                          /* time getch will wait */
 	cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;      /* default time before resetting statusbar */
-	cfg.sortmode = 'd';                                     /* determine sort algorithm */
+	cfg.sortmode = strdup("drpu");                          /* determine sort algorithm */
 	cfg.silent_shell = false;                               /* determine whether shell commands should be visible */
 	cfg.follow_task = true;
 
