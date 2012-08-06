@@ -12,6 +12,7 @@
 
 /* local functions */
 static bool compare_tasks(const task *, const task *, const char *);
+static int priority_to_int(const char);
 static void sort_tasks(task *, task *);
 static void swap_tasks(task *, task*);
 
@@ -21,19 +22,25 @@ bool compare_tasks(const task *a, const task *b, const char *mode_queue) /* {{{ 
 	 * a return of 1 means that the tasks should be swapped (b comes before a)
 	 */
 	bool ret = false;
-	int tmp;
+	int tmp, pri0, pri1;
+	char sort_mode = *mode_queue;
+	bool invert = false;
 
-	/* done if mode is null */
-	const char sort_mode = *mode_queue;
+	/* check for inverted order */
+	if (sort_mode >= 'A' && sort_mode <= 'Z')
+	{
+		sort_mode += 32;
+		invert = true;
+	}
 
 	/* determine sort algorithm and apply it */
 	switch (sort_mode)
 	{
 		case 'n':       // sort by index
-			if (a->index<b->index)
+			if (XOR(invert, a->index<b->index))
 				ret = true;
 			break;
-		case 'p':       // sort by project name => uuid
+		case 'p':       // sort by project name
 			if (a->project == NULL)
 			{
 				if (b->project != NULL)
@@ -43,60 +50,36 @@ bool compare_tasks(const task *a, const task *b, const char *mode_queue) /* {{{ 
 			if (b->project == NULL)
 				break;
 			tmp = strcmp(a->project, b->project);
-			if (tmp<0)
+			if (XOR(invert, tmp<0))
 				ret = true;
 			if (tmp==0)
 				ret = compare_tasks(a, b, mode_queue+1);
 			break;
-		case 'd':       // sort by due date => priority => project => uuid
+		case 'd':       // sort by due date
 			if (a->due == 0)
 			{
 				if (b->due == 0)
 					ret = compare_tasks(a, b, mode_queue+1);
 				break;
 			}
-			if (b->due == 0)
+			else if (b->due == 0)
 			{
 				ret = true;
 				break;
 			}
-			if (a->due<b->due)
+			else if (XOR(invert, a->due<b->due))
 				ret = true;
 			break;
-		case 'r':       // sort by priority => project => uuid
-			if (a->priority == 0)
-			{
-				if (b->priority == 0)
-					ret = compare_tasks(a, b, mode_queue+1);
-				break;
-			}
-			if (b->priority == 0)
-			{
-				ret = true;
-				break;
-			}
-			if (a->priority == b->priority)
-			{
+		case 'r':       // sort by priority
+			pri0 = priority_to_int(a->priority);
+			pri1 = priority_to_int(b->priority);
+			if (pri0 == pri1)
 				ret = compare_tasks(a, b, mode_queue+1);
-				break;
-			}
-			switch (b->priority)
-			{
-				case 'H':
-				default:
-					break;
-				case 'M':
-					if (a->priority=='H')
-						ret = true;
-					break;
-				case 'L':
-					if (a->priority=='M' || a->priority=='H')
-						ret = true;
-					break;
-			}
+			else
+				ret = XOR(invert, pri0>pri1);
 			break;
 		case 'u':       // sort by uuid
-			if (strcmp(a->uuid, b->uuid)<0)
+			if (XOR(invert, strcmp(a->uuid, b->uuid)<0))
 				ret = true;
 			break;
 		case 0:
@@ -106,6 +89,27 @@ bool compare_tasks(const task *a, const task *b, const char *mode_queue) /* {{{ 
 	}
 
 	return ret;
+} /* }}} */
+
+int priority_to_int(const char pri) /* {{{ */
+{
+	/* map a priority to a number */
+	switch (pri)
+	{
+		case 'H':
+			return 3;
+			break;
+		case 'M':
+			return 2;
+			break;
+		case 'L':
+			return 1;
+			break;
+		default:
+		case 0:
+			return 0;
+			break;
+	}
 } /* }}} */
 
 void sort_wrapper(task *first) /* {{{ */
