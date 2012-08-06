@@ -21,6 +21,9 @@
 #include "log.h"
 #include "tasknc.h"
 
+/* local functions */
+static void source_fp(const FILE *);
+
 void handle_command(char *cmdstr) /* {{{ */
 {
 	/* accept a command string, determine what action to take, and execute */
@@ -369,7 +372,6 @@ void run_command_source(const char *filepath) /* {{{ */
 {
 	/* open config file */
 	FILE *config = NULL;
-	char *line;
 
 	config = fopen(filepath, "r");
 	tnc_fprintf(logfp, LOG_DEBUG, "source: file \"%s\"", filepath);
@@ -383,8 +385,22 @@ void run_command_source(const char *filepath) /* {{{ */
 	}
 
 	/* read config file */
+	source_fp(config);
+
+	/* close config file */
+	fclose(config);
+	tnc_fprintf(logfp, LOG_DEBUG, "source complete: \"%s\"", filepath);
+	statusbar_message(cfg.statusbar_timeout, "source complete: \"%s\"", filepath);
+} /* }}} */
+
+void source_fp(const FILE *fp) /* {{{ */
+{
+	/* given an open file handle, run the commands read from it */
+	char *line;
+
+	/* read file */
 	line = calloc(TOTALLENGTH, sizeof(char));
-	while (fgets(line, TOTALLENGTH, config))
+	while (fgets(line, TOTALLENGTH, (FILE *)fp))
 	{
 		char *val;
 
@@ -396,7 +412,7 @@ void run_command_source(const char *filepath) /* {{{ */
 		if((val = strchr(line, '#')))
 			*val = '\0';
 
-		/* handle config commands */
+		/* handle commands */
 		else
 			handle_command(line);
 
@@ -405,11 +421,6 @@ void run_command_source(const char *filepath) /* {{{ */
 		line = calloc(TOTALLENGTH, sizeof(char));
 	}
 	free(line);
-
-	/* close config file */
-	fclose(config);
-	tnc_fprintf(logfp, LOG_DEBUG, "source complete: \"%s\"", filepath);
-	statusbar_message(cfg.statusbar_timeout, "source complete: \"%s\"", filepath);
 } /* }}} */
 
 void strip_quotes(char **strptr, bool needsfree) /* {{{ */
