@@ -85,7 +85,6 @@ typedef struct _config {
 	log_mode loglvl;
 	char *version;
 	char *sortmode;
-	bool silent_shell;
 	bool follow_task;
 	struct {
 		char *task;

@@ -385,10 +385,6 @@ Log levels:
 
 =item
 
-=item B<silent_shell> is a boolean which defines whether task command output should be printed.
-
-=item
-
 =item B<sort_mode> is a character which defines the sort mode.
 
 Sort modes:
