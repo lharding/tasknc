@@ -321,6 +321,45 @@ void key_tasklist_sync() /* {{{ */
 		statusbar_message(cfg.statusbar_timeout, "task syncronization failed");
 } /* }}} */
 
+void key_tasklist_toggle_started() /* {{{ */
+{
+	/* toggle whether a task is started */
+	bool started;
+	time_t now;
+	task *cur = get_task_by_position(selline);
+	char *cmdstr, *action, *actionpast, *reply;
+	FILE *cmdout;
+	int ret;
+
+	/* check whether task is started */
+	started = cur->start>0;
+
+	/* generate command */
+	cmdstr = calloc(UUIDLENGTH+16, sizeof(char));
+	strcpy(cmdstr, "task ");
+	strcat(cmdstr, cur->uuid);
+	action = started ? " stop" : " start";
+	strcat(cmdstr, action);
+
+	/* run command */
+	cmdout = popen(cmdstr, "r");
+	free(cmdstr);
+	ret = pclose(cmdout);
+
+	/* check return value */
+	if (WEXITSTATUS(ret)==0)
+	{
+		time(&now);
+		cur->start = started ? 0 : now;
+		actionpast = started ? "stopped" : "started";
+		asprintf(&reply, "task %s", actionpast);
+	}
+	else
+		asprintf(&reply, "task%s failed (%d)", action, WEXITSTATUS(ret));
+	statusbar_message(cfg.statusbar_timeout, reply);
+	free(reply);
+} /* }}} */
+
 void key_tasklist_undo() /* {{{ */
 {
 	/* handle a keyboard direction to run an undo */

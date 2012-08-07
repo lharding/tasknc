@@ -311,6 +311,10 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
+=item B<toggle_start> toggles the task's status as started or stopped.
+
+=item
+
 =item B<unbind> I<mode> I<key> will remove all keybindings from a specific I<key> in I<mode>.
 
 =item

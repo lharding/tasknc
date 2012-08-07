@@ -28,6 +28,7 @@ void key_tasklist_search(const char *arg);
 void key_tasklist_search_next();
 void key_tasklist_sort(const char *arg);
 void key_tasklist_sync();
+void key_tasklist_toggle_started();
 void key_tasklist_undo();
 void key_tasklist_view();
 void tasklist_check_curs_pos();
