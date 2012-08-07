@@ -109,7 +109,7 @@ synchronize (run task merge and task push)
 
 =item B<q>
 
-exit tasknc
+exit tasknc/pager window
 
 =item B</>
 
