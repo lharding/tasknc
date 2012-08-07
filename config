@@ -40,3 +40,6 @@ unbind tasklist  s
 
 # show only tasknc
   bind tasklist  t  filter status:pending pro:tasknc
+
+# color rules
+color task -1 1 ~t ~S

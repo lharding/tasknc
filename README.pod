@@ -187,6 +187,8 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item I<s>         - task is selected
 
+=item I<t>         - task is started
+
 =item I<p> 'I<regex>' - project matches regex
 
 =item I<d> 'I<regex>' - description matches regex

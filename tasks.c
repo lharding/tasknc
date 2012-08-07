@@ -326,6 +326,8 @@ task *parse_task(char *line) /* {{{ */
 			tsk->priority = content[0];
 		else if (str_eq(field, "due"))
 			tsk->due = strtotime(content);
+		else if (str_eq(field, "start"))
+			tsk->start = strtotime(content);
 		else if (str_eq(field, "tags"))
 			tsk->tags = strdup(content);
 

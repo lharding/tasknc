@@ -172,6 +172,12 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 				else
 					return eval_rules(rule+2, tsk, selected);
 				break;
+			case 't':
+				if (!XOR(invert, tsk->start>0))
+					return false;
+				else
+					return eval_rules(rule+2, tsk, selected);
+				break;
 			default:
 				break;
 		}
