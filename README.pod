@@ -347,7 +347,7 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
-=item B<log_level> is an integer variable which defines which log messages should be printed.  All messages at or below the log level are printed and written to file.  (default: 3)
+=item B<log_level> is an integer variable which defines which log messages should be printed.  All messages at or below the log level are printed and written to file.  (default: 1)
 
 =item
 
@@ -357,11 +357,11 @@ Log levels:
 
 =item I<0> Default messages
 
-=item I<1> Informative messages
+=item I<1> Error messages
 
 =item I<2> Warning messages
 
-=item I<3> Error messages
+=item I<3> Informative messages
 
 =item I<4> Debug messages
 
