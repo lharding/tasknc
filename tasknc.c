@@ -212,7 +212,7 @@ void configure(void) /* {{{ */
 
 	/* set default formats */
 	cfg.formats.title = strdup(" $program_name ($selected_line/$task_count) $> $date");
-	cfg.formats.task = strdup(" $project $description $> ?$due?$due?     $priority?");
+	cfg.formats.task = strdup(" $project $description $> ?$due?$due?$-6priority?");
 	cfg.formats.view = strdup(" task info");
 
 	/* set initial filter */

@@ -331,19 +331,19 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =over 4
 
-=item B<curs_timeout> is an integer variable which is the number of milliseconds after which ncurses options should time out.
+=item B<curs_timeout> is an integer variable which is the number of milliseconds after which ncurses options should time out.  (default: 500)
 
 =item
 
-=item B<filter_string> is the string which is currently filtering the displayed task list.
+=item B<filter_string> is the string which is currently filtering the displayed task list.  (default: status:pending)
 
 =item
 
-=item B<follow_task> is a boolean which dictates whether the selected line will stay selected after the task is chenaged.
+=item B<follow_task> is a boolean which dictates whether the selected line will stay selected after the task is chenaged.  (default: 1)
 
 =item
 
-=item B<log_level> is an integer variable which defines which log messages should be printed.  All messages at or below the log level are printed and written to file.
+=item B<log_level> is an integer variable which defines which log messages should be printed.  All messages at or below the log level are printed and written to file.  (default: 3)
 
 =item
 
@@ -367,7 +367,7 @@ Log levels:
 
 =back
 
-=item B<program_name> is the string which defines the name of the program (tasknc).
+=item B<program_name> is the string which defines the name of the program.
 
 =item
 
@@ -379,7 +379,7 @@ Log levels:
 
 =item
 
-=item B<search_string> is the string that is currently being searched for.
+=item B<search_string> is the string that is currently being searched for.  (default: NULL)
 
 =item
 
@@ -387,7 +387,7 @@ Log levels:
 
 =item
 
-=item B<sort_mode> is a character which defines the sort mode.
+=item B<sort_mode> is a character which defines the sort mode.  (default: drpu)
 
 Sort modes:
 
@@ -405,7 +405,7 @@ Sort modes:
 
 =back
 
-=item B<statusbar_timeout> is an integer variable which is the number of seconds after which the message in the statusbar times out.
+=item B<statusbar_timeout> is an integer variable which is the number of seconds after which the message in the statusbar times out.  (default: 3)
 
 =item
 
@@ -413,7 +413,7 @@ Sort modes:
 
 =item
 
-=item B<task_format> is the string which defines the format of a displayed task.  See FORMATS for more information.
+=item B<task_format> is the string which defines the format of a displayed task.  See FORMATS for more information.  (default: " $project $description $> ?$due?$due?$-6priority?")
 
 =item
 
@@ -421,11 +421,11 @@ Sort modes:
 
 =item
 
-=item B<title_format> is the string which defines the format of the title bar.  See FORMATS for more information.
+=item B<title_format> is the string which defines the format of the title bar.  See FORMATS for more information.  (default: " $program_name ($selected_line/$task_count) $> $date")
 
 =item
 
-=item B<view_format> is the string which defines the format of the title bar of the pager when viewing a task.  See FORMATS for more information.
+=item B<view_format> is the string which defines the format of the title bar of the pager when viewing a task.  See FORMATS for more information.  (default: " task info")
 
 =item
 

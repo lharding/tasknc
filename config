@@ -10,7 +10,7 @@ set statusbar_timeout 2
 
 # formats
 set title_format "$program_name ($selected_line/$task_count) ?$filter_string?filter=$filter_string?? $> $date"
-set task_format  "$-3index $project $description $> ?$due?$due?     $priority?"
+set task_format  "$-3index $project $description $> ?$due?$due?$-6priority?"
 
 # priority modifications
   bind tasklist  L  modify pri:L
