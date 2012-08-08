@@ -1191,6 +1191,8 @@ int main(int argc, char **argv) /* {{{ */
 			tnc_fprintf(stdout, LOG_WARN, "please add some tasks for %s to manage\n", PROGNAME);
 			return 1;
 		}
+		mvwhline(stdscr, 0, 0, ' ', COLS);
+		mvwhline(stdscr, 1, 0, ' ', COLS);
 		tasklist_window();
 		ncurses_end(0);
 	}
