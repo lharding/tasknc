@@ -23,87 +23,69 @@ typedef struct _prompt_index
 {
 	char *prompt;
 	int index;
+	char **history;
 	struct _prompt_index *next;
 } prompt_index;
-
-/* history entry */
-typedef struct _prompt_hist
-{
-	char *entry;
-	int p_index;
-	struct _prompt_hist *prev;
-} prompt_hist;
 
 /* global variables */
 time_t sb_timeout = 0;                  /* when statusbar should be cleared */
 prompt_index *prompt_number = NULL;     /* prompt index mapping head */
-prompt_hist *prompt_history = NULL;     /* prompt history */
 
 /* local functions */
 static void add_to_history(const int, const char *);
 static int get_prompt_index(const char *);
-static void free_history();
 static char *get_history(const int, const int);
 static int replace_entry(char *, const int, const char *);
 
 void add_to_history(const int index, const char *entry) /* {{{ */
 {
 	/* add an entry to history */
-	prompt_hist *new;
+	int i;
+	prompt_index *cur = prompt_number;
 
-	new = calloc(1, sizeof(prompt_hist));
-	new->p_index = index;
-	new->entry = strdup(entry);
-	new->prev = prompt_history;
-	prompt_history = new;
-} /* }}} */
+	/* find prompt_index */
+	while (cur->index != index)
+		cur = cur->next;
 
-void free_history() /* {{{ */
-{
-	/* free prompt data */
-	prompt_hist *last, *cur = prompt_history;
+	/* rotate history */
+	for (i = cfg.history_max-1; i >= 1; i--)
+		cur->history[i] = cur->history[i-1];
 
-	while (cur != NULL)
-	{
-		last = cur;
-		cur = cur->prev;
-		free(last->entry);
-		free(last);
-	}
+	/* add new entry */
+	cur->history[0] = strdup(entry);
 } /* }}} */
 
 void free_prompts() /* {{{ */
 {
 	/* free prompt data */
 	prompt_index *last, *cur = prompt_number;
+	int p;
 
 	while (cur != NULL)
 	{
 		last = cur;
 		cur = cur->next;
+		for (p = 0; p < cfg.history_max && last->history[p] != NULL; p++)
+			free(last->history[p]);
+		free(last->history);
 		free(last->prompt);
 		free(last);
 	}
-
-	/* handle history */
-	free_history();
 } /* }}} */
 
 char *get_history(const int pindex, const int count) /* {{{ */
 {
 	/* get an item out of history */
-	prompt_hist *cur = prompt_history;
-	int counter = 0;
+	prompt_index *cur;
 
-	while (cur != NULL)
+	/* check for bad index */
+	if (count >= cfg.history_max || count < 0)
+		return NULL;
+
+	for (cur = prompt_number; cur != NULL; cur = cur->next)
 	{
-		if (cur->p_index == pindex)
-		{
-			if (counter>=count)
-				return cur->entry;
-			counter++;
-		}
-		cur = cur->prev;
+		if (cur->index == pindex)
+			return cur->history[count];
 	}
 
 	return NULL;
@@ -129,6 +111,7 @@ int get_prompt_index(const char *prompt) /* {{{ */
 	cur = calloc(1, sizeof(prompt_index));
 	cur->prompt = strdup(prompt);
 	cur->index = ind;
+	cur->history = calloc(cfg.history_max, sizeof(char *));
 	cur->next = NULL;
 
 	/* position new prompt_index */

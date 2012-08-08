@@ -347,7 +347,7 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
-=item B<history_max> is an integer variable which defines the maximum number of history entries for a given prompt.  (default: 50)
+=item B<history_max> is an integer variable which defines the maximum number of history entries for a given prompt.  This variable should not be set from the interactive command line.  (default: 50)
 
 =item
 
