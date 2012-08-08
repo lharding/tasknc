@@ -347,6 +347,10 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
+=item B<history_max> is an integer variable which defines the maximum number of history entries for a given prompt.  (default: 50)
+
+=item
+
 =item B<log_level> is an integer variable which defines which log messages should be printed.  All messages at or below the log level are printed and written to file.  (default: 1)
 
 =item

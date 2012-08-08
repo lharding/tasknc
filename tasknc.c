@@ -63,6 +63,7 @@ var vars[] = {
 	{"curs_timeout",      VAR_INT,  &(cfg.nc_timeout)},
 	{"filter_string",     VAR_STR,  &active_filter},
 	{"follow_task",       VAR_INT,  &(cfg.follow_task)},
+	{"history_max",       VAR_INT,  &(cfg.history_max)},
 	{"log_level",         VAR_INT,  &(cfg.loglvl)},
 	{"program_author",    VAR_STR,  &progauthor},
 	{"program_name",      VAR_STR,  &progname},
@@ -192,6 +193,7 @@ void configure(void) /* {{{ */
 	cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;      /* default time before resetting statusbar */
 	cfg.sortmode = strdup("drpu");                          /* determine sort order */
 	cfg.follow_task = true;                                 /* follow task after it is moved */
+	cfg.history_max = 50;
 
 	/* set default formats */
 	cfg.formats.title = strdup(" $program_name ($selected_line/$task_count) $> $date");
