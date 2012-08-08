@@ -34,6 +34,7 @@ prompt_index *prompt_number = NULL;     /* prompt index mapping head */
 static void add_to_history(prompt_index *, const char *);
 static prompt_index *get_prompt_index(const char *);
 static char *get_history(const prompt_index *, const int);
+static void remove_first_char(char *);
 static int replace_entry(char *, const int, const char *);
 
 void add_to_history(prompt_index *pindex, const char *entry) /* {{{ */
@@ -105,6 +106,16 @@ prompt_index *get_prompt_index(const char *prompt) /* {{{ */
 		prompt_number = cur;
 
 	return cur;
+} /* }}} */
+
+void remove_first_char(char *str) /* {{{ */
+{
+	/* remove the first character from a string, shift the remainder */
+	while (*str != 0)
+	{
+		*str = *(str+1);
+		str++;
+	}
 } /* }}} */
 
 int replace_entry(char *str, const int len, const char *tmp) /* {{{ */
@@ -179,11 +190,16 @@ int statusbar_getstr(char *str, const char *msg) /* {{{ */
 				str_len = str_len>=0 ? str_len : 0;
 				break;
 			case KEY_BACKSPACE:
-			case KEY_DC:
 			case 127:
-				position = position>0 ? position-1 : 0;
+				if (position <= 0)
+					break;
+				position--;
+				remove_first_char(str+position);
 				str_len = str_len>0 ? str_len-1 : 0;
-				str[position] = 0;
+				break;
+			case KEY_DC:
+				remove_first_char(str+position);
+				str_len = str_len>0 ? str_len-1 : 0;
 				break;
 			case KEY_LEFT:
 				position = position>0 ? position-1 : 0;
