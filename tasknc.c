@@ -27,6 +27,7 @@
 #include "log.h"
 #include "keys.h"
 #include "pager.h"
+#include "statusbar.h"
 #include "test.h"
 
 /* global variables {{{ */
@@ -36,7 +37,6 @@ const char *progversion = PROGVERSION;
 
 config cfg;                             /* runtime config struct */
 short pageoffset = 0;                   /* number of tasks page is offset */
-time_t sb_timeout = 0;                  /* when statusbar should be cleared */
 char *searchstring = NULL;              /* currently active search string */
 int selline = 0;                        /* selected line number */
 int rows, cols;                         /* size of the ncurses window */
@@ -857,54 +857,6 @@ void set_curses_mode(const ncurses_mode mode) /* {{{ */
 			break;
 		default:
 			break;
-	}
-} /* }}} */
-
-void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
-{
-	/* print a message in the statusbar */
-	va_list args;
-	char *message;
-
-	/* format message */
-	va_start(args, format);
-	vasprintf(&message, format, args);
-	va_end(args);
-
-	/* check for active screen */
-	if (stdscr == NULL)
-	{
-		if (cfg.loglvl >= LOG_DEBUG)
-			tnc_fprintf(stdout, LOG_INFO, message);
-		tnc_fprintf(logfp, LOG_DEBUG, "(stdscr==NULL) %s", message);
-		free(message);
-		return;
-	}
-
-	wipe_statusbar();
-
-	/* print message */
-	umvaddstr(statusbar, 0, 0, message);
-	free(message);
-
-	/* set timeout */
-	if (dtmout>=0)
-		sb_timeout = time(NULL) + dtmout;
-
-	/* refresh now or at next doupdate depending on time */
-	if (dtmout<0)
-		wrefresh(statusbar);
-	else
-		wnoutrefresh(statusbar);
-} /* }}} */
-
-void statusbar_timeout() /* {{{ */
-{
-	/* timeout statusbar */
-	if (sb_timeout>0 && sb_timeout<time(NULL))
-	{
-		sb_timeout = 0;
-		wipe_statusbar();
 	}
 } /* }}} */
 
