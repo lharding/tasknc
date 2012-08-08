@@ -22,7 +22,7 @@
 #include "keys.h"
 #include "log.h"
 #include "sort.h"
-#include "string.h"
+#include "statusbar.h"
 #include "tasklist.h"
 #include "tasknc.h"
 #include "tasks.h"

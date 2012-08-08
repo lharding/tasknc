@@ -19,6 +19,7 @@
 #include "keys.h"
 #include "log.h"
 #include "pager.h"
+#include "statusbar.h"
 #include "tasklist.h"
 #include "tasknc.h"
 
