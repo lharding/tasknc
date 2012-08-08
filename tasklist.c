@@ -94,8 +94,7 @@ void key_tasklist_filter(const char *arg) /* {{{ */
 	check_free(active_filter);
 	if (arg==NULL)
 	{
-		active_filter = calloc(2*cols, sizeof(char));
-		statusbar_getstr(active_filter, "filter by: ");
+		statusbar_getstr(&active_filter, "filter by: ");
 		wipe_statusbar();
 	}
 	else
@@ -113,8 +112,7 @@ void key_tasklist_modify(const char *arg) /* {{{ */
 
 	if (arg==NULL)
 	{
-		argstr = calloc(2*cols, sizeof(char));
-		statusbar_getstr(argstr, "modify: ");
+		statusbar_getstr(&argstr, "modify: ");
 		wipe_statusbar();
 	}
 	else
@@ -224,8 +222,7 @@ void key_tasklist_search(const char *arg) /* {{{ */
 	if (arg==NULL)
 	{
 		/* store search string  */
-		searchstring = calloc(cols, sizeof(char));
-		statusbar_getstr(searchstring, "/");
+		statusbar_getstr(&searchstring, "/");
 		wipe_statusbar();
 	}
 	else
@@ -267,7 +264,7 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 	{
 		/* store sort string  */
 		cfg.sortmode = calloc(cols, sizeof(char));
-		statusbar_getstr(cfg.sortmode, "sort by: ");
+		statusbar_getstr(&(cfg.sortmode), "sort by: ");
 		sb_timeout = time(NULL) + 3;
 	}
 	else

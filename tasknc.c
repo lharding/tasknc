@@ -672,8 +672,7 @@ void key_command(const char *arg) /* {{{ */
 		set_curses_mode(NCURSES_MODE_STRING);
 
 		/* get input */
-		cmdstr = calloc(cols, sizeof(char));
-		statusbar_getstr(cmdstr, ":");
+		statusbar_getstr(&cmdstr, ":");
 		wipe_statusbar();
 
 		/* reset */
