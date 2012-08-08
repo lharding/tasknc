@@ -150,17 +150,10 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 
 	/* regex match */
 	ret = sscanf(rule, "~%c '%m[^\']'", &pattern, &regex);
-	if (ret > 0)
+	if (ret > 0 && pattern >= 'A' && pattern <= 'Z')
 	{
-		if (ret == 1)
-			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: got regex match pattern - '%c' '(null)'", pattern);
-		else if (ret == 2)
-			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: got regex match pattern - '%c' '%s'", pattern, regex);
-		if (pattern >= 'A' && pattern <= 'Z')
-		{
-			pattern += 32;
-			invert = true;
-		}
+		pattern += 32;
+		invert = true;
 	}
 	if (ret == 1)
 	{
@@ -184,7 +177,6 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 	}
 	if (ret == 2)
 	{
-		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: got regex match pattern - '%c' '%s'", pattern, regex);
 		move = strlen(regex)+3;
 		go = true;
 		switch (pattern)
