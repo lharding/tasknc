@@ -43,7 +43,7 @@ prompt_hist *prompt_history = NULL;     /* prompt history */
 static void add_to_history(const int, const char *);
 static int get_prompt_index(const char *);
 static void free_history();
-static char *get_history(const int);
+static char *get_history(const int, const int);
 
 void add_to_history(const int index, const char *entry) /* {{{ */
 {
@@ -54,9 +54,7 @@ void add_to_history(const int index, const char *entry) /* {{{ */
 	new->p_index = index;
 	new->entry = strdup(entry);
 	new->prev = prompt_history;
-
-	if (prompt_history == NULL)
-		prompt_history = new;
+	prompt_history = new;
 } /* }}} */
 
 void free_history() /* {{{ */
@@ -90,15 +88,20 @@ void free_prompts() /* {{{ */
 	free_history();
 } /* }}} */
 
-char *get_history(const int pindex) /* {{{ */
+char *get_history(const int pindex, const int count) /* {{{ */
 {
 	/* get an item out of history */
 	prompt_hist *cur = prompt_history;
+	int counter = 0;
 
 	while (cur != NULL)
 	{
 		if (cur->p_index == pindex)
-			return cur->entry;
+		{
+			if (counter>=count)
+				return cur->entry;
+			counter++;
+		}
 		cur = cur->prev;
 	}
 
@@ -139,7 +142,7 @@ int get_prompt_index(const char *prompt) /* {{{ */
 int statusbar_getstr(char *str, const char *msg) /* {{{ */
 {
 	/* get a string from the user */
-	int position = 0, c, histindex = -1, tmppos;
+	int position = 0, c, histindex = -1, tmppos, str_len = 0, tmp_len;
 	bool done = false;
 	const int msglen = strlen(msg);
 	const int pindex = get_prompt_index(msg);
@@ -172,18 +175,22 @@ int statusbar_getstr(char *str, const char *msg) /* {{{ */
 				{
 					str[position] = 0;
 					position--;
+					str_len--;
 				}
 				while (position>=0 && str[position] != ' ')
 				{
 					str[position] = 0;
 					position--;
+					str_len--;
 				}
 				position = position>=0 ? position : 0;
+				str_len = str_len>=0 ? str_len : 0;
 				break;
 			case KEY_BACKSPACE:
 			case KEY_DC:
 			case 127:
 				position = position>0 ? position-1 : 0;
+				str_len = str_len>0 ? str_len-1 : 0;
 				str[position] = 0;
 				break;
 			case KEY_LEFT:
@@ -193,7 +200,30 @@ int statusbar_getstr(char *str, const char *msg) /* {{{ */
 				position = str[position] != 0 ? position+1 : position;
 				break;
 			case KEY_UP:
-				tmp = get_history(pindex);
+				histindex++;
+				tmp = get_history(pindex, histindex);
+				if (tmp == NULL)
+				{
+					histindex = 0;
+					break;
+				}
+				tmppos = 0;
+				while (tmp[tmppos] != 0)
+				{
+					str[tmppos] = tmp[tmppos];
+					tmppos++;
+				}
+				tmp_len = tmppos;
+				while (tmppos<str_len)
+				{
+					str[tmppos] = 0;
+					tmppos++;
+				}
+				str_len = tmp_len;
+				break;
+			case KEY_DOWN:
+				histindex = histindex > 0 ? histindex-1 : 0;
+				tmp = get_history(pindex, histindex);
 				if (tmp == NULL)
 					break;
 				tmppos = 0;
@@ -202,15 +232,18 @@ int statusbar_getstr(char *str, const char *msg) /* {{{ */
 					str[tmppos] = tmp[tmppos];
 					tmppos++;
 				}
-				while (tmppos<position)
+				tmp_len = tmppos;
+				while (tmppos<str_len)
 				{
 					str[tmppos] = 0;
 					tmppos++;
 				}
+				str_len = tmp_len;
 				break;
 			default:
 				str[position] = c;
 				position++;
+				str_len++;
 				break;
 		}
 	}
