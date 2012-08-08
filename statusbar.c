@@ -219,6 +219,12 @@ int statusbar_getstr(char *str, const char *msg) /* {{{ */
 				tmp = get_history(pindex, histindex);
 				str_len = replace_entry(str, str_len, tmp);
 				break;
+			case KEY_HOME:
+				position = 0;
+				break;
+			case KEY_END:
+				position = str_len;
+				break;
 			default:
 				str[position] = c;
 				position++;
