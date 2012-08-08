@@ -22,7 +22,6 @@
 typedef struct _prompt_index
 {
 	char *prompt;
-	int index;
 	char **history;
 	struct _prompt_index *next;
 } prompt_index;
@@ -32,27 +31,22 @@ time_t sb_timeout = 0;                  /* when statusbar should be cleared */
 prompt_index *prompt_number = NULL;     /* prompt index mapping head */
 
 /* local functions */
-static void add_to_history(const int, const char *);
-static int get_prompt_index(const char *);
-static char *get_history(const int, const int);
+static void add_to_history(prompt_index *, const char *);
+static prompt_index *get_prompt_index(const char *);
+static char *get_history(const prompt_index *, const int);
 static int replace_entry(char *, const int, const char *);
 
-void add_to_history(const int index, const char *entry) /* {{{ */
+void add_to_history(prompt_index *pindex, const char *entry) /* {{{ */
 {
 	/* add an entry to history */
 	int i;
-	prompt_index *cur = prompt_number;
-
-	/* find prompt_index */
-	while (cur->index != index)
-		cur = cur->next;
 
 	/* rotate history */
 	for (i = cfg.history_max-1; i >= 1; i--)
-		cur->history[i] = cur->history[i-1];
+		pindex->history[i] = pindex->history[i-1];
 
 	/* add new entry */
-	cur->history[0] = strdup(entry);
+	pindex->history[0] = strdup(entry);
 } /* }}} */
 
 void free_prompts() /* {{{ */
@@ -73,36 +67,27 @@ void free_prompts() /* {{{ */
 	}
 } /* }}} */
 
-char *get_history(const int pindex, const int count) /* {{{ */
+char *get_history(const prompt_index *pindex, const int count) /* {{{ */
 {
 	/* get an item out of history */
-	prompt_index *cur;
 
 	/* check for bad index */
 	if (count >= cfg.history_max || count < 0)
 		return NULL;
 
-	for (cur = prompt_number; cur != NULL; cur = cur->next)
-	{
-		if (cur->index == pindex)
-			return cur->history[count];
-	}
-
-	return NULL;
+	return pindex->history[count];
 } /* }}} */
 
-int get_prompt_index(const char *prompt) /* {{{ */
+prompt_index *get_prompt_index(const char *prompt) /* {{{ */
 {
 	/* find the index of a specified prompt, creating it if necessary */
 	prompt_index *cur = prompt_number, *last = NULL;
-	int ind = 0;
 
 	/* iterate through prompt indices */
 	while (cur != NULL)
 	{
 		if (str_eq(prompt, cur->prompt))
-			return cur->index;
-		ind++;
+			return cur;
 		last = cur;
 		cur = cur->next;
 	}
@@ -110,7 +95,6 @@ int get_prompt_index(const char *prompt) /* {{{ */
 	/* create a new prompt_index */
 	cur = calloc(1, sizeof(prompt_index));
 	cur->prompt = strdup(prompt);
-	cur->index = ind;
 	cur->history = calloc(cfg.history_max, sizeof(char *));
 	cur->next = NULL;
 
@@ -120,7 +104,7 @@ int get_prompt_index(const char *prompt) /* {{{ */
 	else
 		prompt_number = cur;
 
-	return ind;
+	return cur;
 } /* }}} */
 
 int replace_entry(char *str, const int len, const char *tmp) /* {{{ */
@@ -153,7 +137,7 @@ int statusbar_getstr(char *str, const char *msg) /* {{{ */
 	int position = 0, c, histindex = -1, str_len = 0;
 	bool done = false;
 	const int msglen = strlen(msg);
-	const int pindex = get_prompt_index(msg);
+	const prompt_index *pindex = get_prompt_index(msg);
 	char *tmp;
 
 	/* set up curses */
@@ -231,7 +215,7 @@ int statusbar_getstr(char *str, const char *msg) /* {{{ */
 	set_curses_mode(NCURSES_MODE_STD);
 
 	/* add to history */
-	add_to_history(pindex, str);
+	add_to_history((prompt_index *)pindex, str);
 
 	return position;
 } /* }}} */
