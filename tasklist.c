@@ -36,7 +36,6 @@ void key_tasklist_add() /* {{{ */
 	/* handle a keyboard direction to add new task */
 	tasklist_task_add();
 	reload = 1;
-	statusbar_message(cfg.statusbar_timeout, "task added");
 } /* }}} */
 
 void key_tasklist_complete() /* {{{ */
