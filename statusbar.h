@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include "common.h"
 
+int statusbar_getstr(char *, const char *);
 void statusbar_message(const int, const char *, ...) __attribute__((format(printf,2,3)));
 void statusbar_timeout();
 

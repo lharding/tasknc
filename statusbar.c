@@ -10,6 +10,7 @@
 
 #include <curses.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include "common.h"
 #include "log.h"
@@ -18,6 +19,64 @@
 
 /* global variables */
 time_t sb_timeout = 0;                  /* when statusbar should be cleared */
+
+int statusbar_getstr(char *str, const char *msg) /* {{{ */
+{
+	/* get a string from the user */
+	int position = 0, c;
+	bool done = false;
+
+	/* set up curses */
+	set_curses_mode(NCURSES_MODE_STD);
+	curs_set(1);            /* set cursor visible */
+
+	/* get keys and buffer them */
+	while (!done)
+	{
+		wipe_statusbar();
+		umvaddstr(statusbar, 0, 0, "%s%s", msg, str);
+		wrefresh(statusbar);
+
+		c = wgetch(statusbar);
+		switch (c)
+		{
+			case ERR:
+				break;
+			case '\r':
+			case '\n':
+				done = true;
+				break;
+			case 23: /* C-w */
+				while (position>=0 && str[position] == ' ')
+				{
+					str[position] = 0;
+					position--;
+				}
+				while (position>=0 && str[position] != ' ')
+				{
+					str[position] = 0;
+					position--;
+				}
+				position = position>=0 ? position : 0;
+				break;
+			case KEY_BACKSPACE:
+			case KEY_DC:
+			case 127:
+				str[position] = 0;
+				position--;
+				break;
+			default:
+				str[position] = c;
+				position++;
+				break;
+		}
+	}
+
+	/* reset curses */
+	set_curses_mode(NCURSES_MODE_STD);
+
+	return position;
+} /* }}} */
 
 void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 {

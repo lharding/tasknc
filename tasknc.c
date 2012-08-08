@@ -670,7 +670,7 @@ void key_command(const char *arg) /* {{{ */
 
 		/* get input */
 		cmdstr = calloc(cols, sizeof(char));
-		wgetstr(statusbar, cmdstr);
+		statusbar_getstr(cmdstr, ":");
 		wipe_statusbar();
 
 		/* reset */
