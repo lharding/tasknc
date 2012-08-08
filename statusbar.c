@@ -44,6 +44,7 @@ static void add_to_history(const int, const char *);
 static int get_prompt_index(const char *);
 static void free_history();
 static char *get_history(const int, const int);
+static int replace_entry(char *, const int, const char *);
 
 void add_to_history(const int index, const char *entry) /* {{{ */
 {
@@ -139,10 +140,34 @@ int get_prompt_index(const char *prompt) /* {{{ */
 	return ind;
 } /* }}} */
 
+int replace_entry(char *str, const int len, const char *tmp) /* {{{ */
+{
+	/* replace a string with another and return the new length */
+	int ret, i;
+
+	/* empty new string */
+	if (tmp == NULL)
+	{
+		ret = 0;
+		goto done;
+	}
+
+	/* rotate in new chars */
+	for (i=0; tmp[i] != 0; i++)
+		str[i] = tmp[i];
+	ret = i;
+	goto done;
+
+done:
+	for (i=ret; i<len; i++)
+		str[i] = 0;
+	return ret;
+} /* }}} */
+
 int statusbar_getstr(char *str, const char *msg) /* {{{ */
 {
 	/* get a string from the user */
-	int position = 0, c, histindex = -1, tmppos, str_len = 0, tmp_len;
+	int position = 0, c, histindex = -1, str_len = 0;
 	bool done = false;
 	const int msglen = strlen(msg);
 	const int pindex = get_prompt_index(msg);
@@ -203,42 +228,13 @@ int statusbar_getstr(char *str, const char *msg) /* {{{ */
 				histindex++;
 				tmp = get_history(pindex, histindex);
 				if (tmp == NULL)
-				{
-					histindex = 0;
-					break;
-				}
-				tmppos = 0;
-				while (tmp[tmppos] != 0)
-				{
-					str[tmppos] = tmp[tmppos];
-					tmppos++;
-				}
-				tmp_len = tmppos;
-				while (tmppos<str_len)
-				{
-					str[tmppos] = 0;
-					tmppos++;
-				}
-				str_len = tmp_len;
+					histindex = -1;
+				str_len = replace_entry(str, str_len, tmp);
 				break;
 			case KEY_DOWN:
 				histindex = histindex > 0 ? histindex-1 : 0;
 				tmp = get_history(pindex, histindex);
-				if (tmp == NULL)
-					break;
-				tmppos = 0;
-				while (tmp[tmppos] != 0)
-				{
-					str[tmppos] = tmp[tmppos];
-					tmppos++;
-				}
-				tmp_len = tmppos;
-				while (tmppos<str_len)
-				{
-					str[tmppos] = 0;
-					tmppos++;
-				}
-				str_len = tmp_len;
+				str_len = replace_entry(str, str_len, tmp);
 				break;
 			default:
 				str[position] = c;
