@@ -173,6 +173,7 @@ void cleanup() /* {{{ */
 		free(lastbind);
 	}
 	free_colors();
+	free_prompts();
 
 	/* close open files */
 	fflush(logfp);

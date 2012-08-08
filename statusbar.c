@@ -18,8 +18,65 @@
 #include "statusbar.h"
 #include "tasknc.h"
 
+/* prompt index */
+typedef struct _prompt_index
+{
+	char *prompt;
+	int index;
+	struct _prompt_index *next;
+} prompt_index;
+
 /* global variables */
 time_t sb_timeout = 0;                  /* when statusbar should be cleared */
+prompt_index *prompt_number = NULL;     /* prompt index mapping head */
+
+/* local functions */
+int get_prompt_index(const char *);
+
+void free_prompts() /* {{{ */
+{
+	/* free prompt data */
+	prompt_index *last, *cur = prompt_number;
+
+	while (cur != NULL)
+	{
+		last = cur;
+		cur = cur->next;
+		free(last->prompt);
+		free(last);
+	}
+} /* }}} */
+
+int get_prompt_index(const char *prompt) /* {{{ */
+{
+	/* find the index of a specified prompt, creating it if necessary */
+	prompt_index *cur = prompt_number, *last = NULL;
+	int ind = 0;
+
+	/* iterate through prompt indices */
+	while (cur != NULL)
+	{
+		if (str_eq(prompt, cur->prompt))
+			return cur->index;
+		ind++;
+		last = cur;
+		cur = cur->next;
+	}
+
+	/* create a new prompt_index */
+	cur = calloc(1, sizeof(prompt_index));
+	cur->prompt = strdup(prompt);
+	cur->index = ind;
+	cur->next = NULL;
+
+	/* position new prompt_index */
+	if (last != NULL)
+		last->next = cur;
+	else
+		prompt_number = cur;
+
+	return ind;
+} /* }}} */
 
 int statusbar_getstr(char *str, const char *msg) /* {{{ */
 {
