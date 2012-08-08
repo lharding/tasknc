@@ -121,27 +121,8 @@ funcmap funcmaps[] = {
 void check_resize() /* {{{ */
 {
 	/* check for a screen resize and handle it */
-	static int oldheight = 0;
-	static int oldwidth = 0;
-	int height, width;
-
-	/* first run */
-	if (oldheight == 0)
-		oldheight = getmaxy(stdscr);
-	if (oldwidth == 0)
-		oldwidth  = getmaxx(stdscr);
-
-	/* get current dimensions */
-	height = getmaxy(stdscr);
-	width  = getmaxx(stdscr);
-
-	/* check for resize */
-	if (oldheight != height || oldwidth != width)
+	if (is_term_resized(rows, cols))
 		handle_resize();
-
-	/* save position */
-	oldheight = height;
-	oldwidth = width;
 } /* }}} */
 
 void check_screen_size() /* {{{ */
@@ -605,6 +586,10 @@ void force_redraw() /* {{{ */
 	const int nwins = sizeof(windows)/sizeof(WINDOW *);
 	int i;
 
+	/* force a resize check */
+	handle_resize();
+
+	/* wipe windows */
 	for (i=0; i<nwins; i++)
 	{
 		wattrset(windows[i], COLOR_PAIR(0));
@@ -615,6 +600,7 @@ void force_redraw() /* {{{ */
 	}
 	doupdate();
 
+	/* print messages */
 	print_header();
 	tasklist_print_task_list();
 	statusbar_message(cfg.statusbar_timeout, "redrawn");
