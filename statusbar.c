@@ -12,6 +12,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include "common.h"
 #include "log.h"
 #include "statusbar.h"
@@ -25,6 +26,7 @@ int statusbar_getstr(char *str, const char *msg) /* {{{ */
 	/* get a string from the user */
 	int position = 0, c;
 	bool done = false;
+	const int msglen = strlen(msg);
 
 	/* set up curses */
 	set_curses_mode(NCURSES_MODE_STD);
@@ -35,6 +37,7 @@ int statusbar_getstr(char *str, const char *msg) /* {{{ */
 	{
 		wipe_statusbar();
 		umvaddstr(statusbar, 0, 0, "%s%s", msg, str);
+		wmove(statusbar, 0, msglen+position);
 		wrefresh(statusbar);
 
 		c = wgetch(statusbar);
@@ -47,6 +50,7 @@ int statusbar_getstr(char *str, const char *msg) /* {{{ */
 				done = true;
 				break;
 			case 23: /* C-w */
+				position--;
 				while (position>=0 && str[position] == ' ')
 				{
 					str[position] = 0;
@@ -62,8 +66,14 @@ int statusbar_getstr(char *str, const char *msg) /* {{{ */
 			case KEY_BACKSPACE:
 			case KEY_DC:
 			case 127:
+				position = position>0 ? position-1 : 0;
 				str[position] = 0;
-				position--;
+				break;
+			case KEY_LEFT:
+				position = position>0 ? position-1 : 0;
+				break;
+			case KEY_RIGHT:
+				position = str[position] != 0 ? position+1 : position;
 				break;
 			default:
 				str[position] = c;
