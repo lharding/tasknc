@@ -176,9 +176,9 @@ void cleanup() /* {{{ */
 	keybind *lastbind;
 
 	/* free memory allocated normally */
-	if (searchstring!=NULL)
-		free(searchstring);
+	check_free(searchstring);
 	free_tasks(head);
+	check_free(cfg.sortmode);
 	free(cfg.version);
 	free(cfg.formats.task);
 	free(cfg.formats.title);
@@ -285,7 +285,7 @@ void configure(void) /* {{{ */
 	free(filepath);
 } /* }}} */
 
-const char *eval_string(const int maxlen, char *fmt, const task *this, char *str, int position) /* {{{ */
+const char *eval_string(int maxlen, char *fmt, const task *this, char *str, int position) /* {{{ */
 {
 	/* evaluate a string with format variables */
 	int i, condoffset;
@@ -491,6 +491,18 @@ done:
 		fieldlen = strlen(field);
 	if (varlen == -1 && var != (char *)-1)
 		varlen = strlen(var);
+
+	if (position+fieldwidth>=maxlen)
+	{
+		maxlen *= 2;
+		str = realloc(str, maxlen);
+		memset(str+position, 0, maxlen-position-1);
+		if (str == NULL)
+		{
+			tnc_fprintf(logfp, LOG_ERROR, "eval_string: realloc failed");
+			return strdup("realloc failed");
+		}
+	}
 
 	if (right_align)
 	{
