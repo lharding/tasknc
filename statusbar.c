@@ -24,6 +24,7 @@ typedef struct _prompt_index
 {
 	char *prompt;
 	wchar_t **history;
+	char **char_history;
 	struct _prompt_index *next;
 } prompt_index;
 
@@ -37,6 +38,7 @@ static prompt_index *get_prompt_index(const char *);
 static wchar_t *get_history(const prompt_index *, const int);
 static void remove_first_char(wchar_t *);
 static int replace_entry(wchar_t *, const int, const wchar_t *);
+static wchar_t *search_history(const prompt_index *, const wchar_t *, const int, int, int *);
 
 void add_to_history(prompt_index *pindex, const wchar_t *entry) /* {{{ */
 {
@@ -62,8 +64,12 @@ void free_prompts() /* {{{ */
 		last = cur;
 		cur = cur->next;
 		for (p = 0; p < cfg.history_max && last->history[p] != NULL; p++)
+		{
 			free(last->history[p]);
+			check_free(last->char_history[p]);
+		}
 		free(last->history);
+		free(last->char_history);
 		free(last->prompt);
 		free(last);
 	}
@@ -98,6 +104,7 @@ prompt_index *get_prompt_index(const char *prompt) /* {{{ */
 	cur = calloc(1, sizeof(prompt_index));
 	cur->prompt = strdup(prompt);
 	cur->history = calloc(cfg.history_max, sizeof(wchar_t *));
+	cur->char_history = calloc(cfg.history_max, sizeof(char *));
 	cur->next = NULL;
 
 	/* position new prompt_index */
@@ -143,6 +150,45 @@ done:
 	return ret;
 } /* }}} */
 
+wchar_t *search_history(const prompt_index *pindex, const wchar_t *regex_wide, const int start, int end, int *match_index) /* {{{ */
+{
+	/* search through the history to match a regex */
+	char *regex;
+	const int regex_len = wcstombs(NULL, regex_wide, 0) + 1;
+	int i, tmplen;
+
+	/* set end if necessary */
+	end = end <= 0 ? cfg.history_max : end;
+
+	/* convert regex to a char * */
+	regex = calloc(regex_len, sizeof(char));
+	wcstombs(regex, regex_wide, regex_len);
+
+	/* look for a match */
+	for (i = start; i < cfg.history_max; i++)
+	{
+		if (pindex->history[i] == NULL)
+			break;
+		if (pindex->char_history[i] == NULL)
+		{
+			tmplen = wcstombs(NULL, pindex->history[i], 0) + 1;
+			pindex->char_history[i] = calloc(tmplen, sizeof(char));
+			wcstombs(pindex->char_history[i], pindex->history[i], tmplen);
+		}
+		if (match_string(pindex->char_history[i], regex))
+		{
+			*match_index = i;
+			return pindex->history[i];
+		}
+	}
+
+	/* wrap search or exit */
+	if (end != cfg.history_max)
+		return NULL;
+	else
+		return search_history(pindex, regex_wide, 0, start, match_index);
+} /* }}} */
+
 int statusbar_getstr(char **str, const char *msg) /* {{{ */
 {
 	/* get a string from the user */
@@ -178,7 +224,7 @@ int statusbar_getstr(char **str, const char *msg) /* {{{ */
 			case '\n':
 				done = true;
 				break;
-			case 23: /* C-w */
+			case 23: /* C-w (delete last word) */
 				position--;
 				while (position>=0 && wstr[position] == ' ')
 				{
