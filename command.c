@@ -393,6 +393,30 @@ void run_command_source(const char *filepath) /* {{{ */
 	statusbar_message(cfg.statusbar_timeout, "source complete: \"%s\"", filepath);
 } /* }}} */
 
+void run_command_source_cmd(const char *cmdstr) /* {{{ */
+{
+	/* open config file */
+	FILE *cmd = popen(cmdstr, "r");
+
+	tnc_fprintf(logfp, LOG_DEBUG, "source: command \"%s\"", cmdstr);
+
+	/* check for a valid fd */
+	if (cmdstr == NULL)
+	{
+		tnc_fprintf(logfp, LOG_ERROR, "source: file \"%s\" could not be opened", cmdstr);
+		statusbar_message(cfg.statusbar_timeout, "source: command \"%s\" could not be opened", cmdstr);
+		return;
+	}
+
+	/* read command file */
+	source_fp(cmd);
+
+	/* close config file */
+	pclose(cmd);
+	tnc_fprintf(logfp, LOG_DEBUG, "source complete: \"%s\"", cmdstr);
+	statusbar_message(cfg.statusbar_timeout, "source complete: \"%s\"", cmdstr);
+} /* }}} */
+
 void source_fp(const FILE *fp) /* {{{ */
 {
 	/* given an open file handle, run the commands read from it */

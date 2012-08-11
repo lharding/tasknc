@@ -109,6 +109,7 @@ funcmap funcmaps[] = {
 	{"show",         (void *)run_command_show,             1, MODE_ANY},
 	{"sort",         (void *)key_tasklist_sort,            0, MODE_TASKLIST},
 	{"source",       (void *)run_command_source,           1, MODE_ANY},
+	{"source_cmd",   (void *)run_command_source_cmd,       1, MODE_ANY},
 	{"stats",        (void *)view_stats,                   0, MODE_ANY},
 	{"sync",         (void *)key_tasklist_sync,            0, MODE_TASKLIST},
 	{"toggle_start", (void *)key_tasklist_toggle_started,  0, MODE_ANY},

@@ -1,5 +1,5 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
+* vim: noet ts=4 sw=4 sts=4
  *
  * command.h
  * by mjheagle
@@ -18,7 +18,8 @@ void run_command_color(char *);
 void run_command_unbind(char *);
 void run_command_set(char *);
 void run_command_show(const char *);
-void run_command_source(const char *filepath);
+void run_command_source(const char *);
+void run_command_source_cmd(const char *);
 void strip_quotes(char **, bool);
 
 extern bool done;

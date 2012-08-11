@@ -303,6 +303,14 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
+=item B<source> I<file> read configuration file and run commands that are contained in it.
+
+=item
+
+=item B<source_cmd> I<command> run a command and read commands from its output.
+
+=item
+
 =item B<stats> will display the output of 'task stat'.
 
 =item
