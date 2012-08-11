@@ -352,6 +352,9 @@ void key_tasklist_toggle_started() /* {{{ */
 		cur->start = started ? 0 : now;
 		actionpast = started ? "stopped" : "started";
 		asprintf(&reply, "task %s", actionpast);
+		/* reset cached colors */
+		cur->pair = -1;
+		cur->selpair = -1;
 	}
 	else
 		asprintf(&reply, "task%s failed (%d)", action, WEXITSTATUS(ret));
@@ -555,7 +558,7 @@ void tasklist_print_task(const int tasknum, const task *this, const int count) /
 
 	/* evaluate line */
 	wmove(tasklist, 0, 0);
-	wattrset(tasklist, get_colors(OBJECT_TASK, this, sel));
+	wattrset(tasklist, get_colors(OBJECT_TASK, (task *)this, sel));
 	tmp = (char *)eval_string(2*cols, cfg.formats.task, this, NULL, 0);
 	umvaddstr_align(tasklist, y, tmp);
 	free(tmp);
