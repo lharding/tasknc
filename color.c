@@ -17,14 +17,6 @@
 #include "log.h"
 #include "tasks.h"
 
-/* color structure */
-typedef struct _color
-{
-	short pair;
-	short fg;
-	short bg;
-} color;
-
 /* color rule structure */
 typedef struct _color_rule
 {
@@ -34,17 +26,29 @@ typedef struct _color_rule
 	struct _color_rule *next;
 } color_rule;
 
+/* color cache */
+typedef struct _color_cache
+{
+	char *uuid;
+	int selpair;
+	int pair;
+	struct _color_cache *next;
+} color_cache;
+
 /* global variables */
 bool use_colors;
 bool colors_initialized = false;
 bool *pairs_used = NULL;
 color_rule *color_rules = NULL;
+color_cache *color_cache_head = NULL;
 
 /* local functions */
 static short add_color_pair(const short, const short, const short);
-int check_color(int);
+static int check_cache(const task *, const bool);
+static int check_color(int);
 static bool eval_rules(char *, const task *, const bool);
 static short find_add_pair(const short, const short);
+static void free_cache();
 static int set_default_colors();
 
 short add_color_pair(short askpair, short fg, short bg) /* {{{ */
@@ -119,7 +123,62 @@ short add_color_rule(const color_object object, const char *rule, const short fg
 	else
 		color_rules = this;
 
+	/* reset the cache */
+	free_cache();
+
 	return 0;
+} /* }}} */
+
+int check_cache(const task *tsk, const bool selected) /* {{{ */
+{
+	/* check the color cache or add a new cache */
+	color_cache *cur, *last = NULL;
+	color_rule *rule;
+
+	/* check cache */
+	cur = color_cache_head;
+	while (cur != NULL)
+	{
+		if (str_eq(cur->uuid, tsk->uuid))
+		{
+			if (selected)
+				return COLOR_PAIR(cur->selpair);
+			else
+				return COLOR_PAIR(cur->pair);
+		}
+		last = cur;
+		cur = cur->next;
+	}
+
+	/* add a new element to cache */
+	cur = calloc(1, sizeof(color_cache));
+	if (last != NULL)
+		last->next = cur;
+	else
+		color_cache_head = cur;
+	cur->uuid = strdup(tsk->uuid);
+
+	/* evaluate rules for new cache item */
+	rule = color_rules;
+	while (rule != NULL)
+	{
+		if (rule->object != OBJECT_TASK)
+		{
+			rule = rule->next;
+			continue;
+		}
+		if (eval_rules(rule->rule, tsk, true))
+			cur->selpair = rule->pair;
+		if (eval_rules(rule->rule, tsk, false))
+			cur->pair = rule->pair;
+		rule = rule->next;
+	}
+
+	/* return correct color */
+	if (selected)
+		return COLOR_PAIR(cur->selpair);
+	else
+		return COLOR_PAIR(cur->pair);
 } /* }}} */
 
 int check_color(int color) /* {{{ */
@@ -247,6 +306,22 @@ short find_add_pair(const short fg, const short bg) /* {{{ */
 	return add_color_pair(free_pair, fg, bg);
 } /* }}} */
 
+void free_cache() /* {{{ */
+{
+	/* free the cache items */
+	color_cache *last, *cur = color_cache_head;
+
+	while (cur != NULL)
+	{
+		last = cur;
+		cur = cur->next;
+		free(last->uuid);
+		free(last);
+	}
+
+	color_cache_head = NULL;
+} /* }}} */
+
 void free_colors() /* {{{ */
 {
 	/* clean up memory allocated for colors */
@@ -262,6 +337,8 @@ void free_colors() /* {{{ */
 		check_free(last->rule);
 		free(last);
 	}
+
+	free_cache();
 } /* }}} */
 
 int get_colors(const color_object object, const task *tsk, const bool selected) /* {{{ */
@@ -269,7 +346,10 @@ int get_colors(const color_object object, const task *tsk, const bool selected) 
 	/* evaluate color rules and return attrset arg */
 	short pair = 0;
 	color_rule *rule;
-	bool done = false;
+
+	/* check cache for task rules */
+	if (object == OBJECT_TASK)
+		return check_cache(tsk, selected);
 
 	/* iterate through rules */
 	rule = color_rules;
@@ -277,22 +357,6 @@ int get_colors(const color_object object, const task *tsk, const bool selected) 
 	{
 		/* check for matching object */
 		if (object == rule->object)
-		{
-			switch (object)
-			{
-				case OBJECT_ERROR:
-				case OBJECT_HEADER:
-					done = true;
-					break;
-				case OBJECT_TASK:
-					if (eval_rules(rule->rule, tsk, selected))
-						pair = rule->pair;
-					break;
-				default:
-					break;
-			}
-		}
-		if (done)
 		{
 			pair = rule->pair;
 			break;
