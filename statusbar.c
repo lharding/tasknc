@@ -261,6 +261,7 @@ int statusbar_getstr(char **str, const char *msg) /* {{{ */
 				break;
 			case KEY_UP:
 				histindex++;
+				position = 0;
 				tmp = get_history(pindex, histindex);
 				if (tmp == NULL)
 					histindex = -1;
@@ -268,6 +269,7 @@ int statusbar_getstr(char **str, const char *msg) /* {{{ */
 				break;
 			case KEY_DOWN:
 				histindex = histindex > 0 ? histindex-1 : 0;
+				position = 0;
 				tmp = get_history(pindex, histindex);
 				str_len = replace_entry(wstr, str_len, tmp);
 				break;
