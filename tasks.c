@@ -245,6 +245,8 @@ task *malloc_task(void) /* {{{ */
 	tsk->description = NULL;
 	tsk->next = NULL;
 	tsk->prev = NULL;
+	tsk->pair = -1;
+	tsk->selpair = -1;
 
 	return tsk;
 } /* }}} */

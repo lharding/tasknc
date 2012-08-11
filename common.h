@@ -38,6 +38,7 @@ typedef struct _var
 /* task definition */
 typedef struct _task
 {
+	/* taskwarrior data */
 	unsigned short index;
 	char *uuid;
 	char *tags;
@@ -48,6 +49,10 @@ typedef struct _task
 	char *project;
 	char priority;
 	char *description;
+	/* color caching */
+	int selpair;
+	int pair;
+	/* linked list pointers */
 	struct _task *prev;
 	struct _task *next;
 } task;

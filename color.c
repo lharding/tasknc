@@ -84,6 +84,19 @@ short add_color_rule(const color_object object, const char *rule, const short fg
 	/* add or overwrite a color rule for the provided conditions */
 	color_rule *last, *this;
 	short ret;
+	task *tsk;
+
+	/* reset color caches if past configuration */
+	if (tasklist != NULL)
+	{
+		tsk = head;
+		while (tsk != NULL)
+		{
+			tsk->selpair = -1;
+			tsk->pair = -1;
+			tsk = tsk->next;
+		}
+	}
 
 	/* look for existing rule and overwrite colors */
 	this = color_rules;
@@ -264,12 +277,24 @@ void free_colors() /* {{{ */
 	}
 } /* }}} */
 
-int get_colors(const color_object object, const task *tsk, const bool selected) /* {{{ */
+int get_colors(const color_object object, task *tsk, const bool selected) /* {{{ */
 {
 	/* evaluate color rules and return attrset arg */
 	short pair = 0;
+	int *tskpair;
 	color_rule *rule;
 	bool done = false;
+
+	/* check for cache if task */
+	if (object == OBJECT_TASK)
+	{
+		if (selected)
+			tskpair = &(tsk->selpair);
+		else
+			tskpair = &(tsk->pair);
+		if (*tskpair >= 0)
+			return COLOR_PAIR(*tskpair);
+	}
 
 	/* iterate through rules */
 	rule = color_rules;
@@ -299,6 +324,10 @@ int get_colors(const color_object object, const task *tsk, const bool selected) 
 		}
 		rule = rule->next;
 	}
+
+	/* assign cached color if task object */
+	if (object == OBJECT_TASK)
+		*tskpair = (int)pair;
 
 	return COLOR_PAIR(pair);
 } /* }}} */
