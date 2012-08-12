@@ -38,6 +38,4 @@ typedef struct _fmt_field
 fmt_field **compile_string();
 char *eval_format(fmt_field **, task *);
 
-extern var *vars;
-
 #endif

@@ -12,6 +12,9 @@
 #include "common.h"
 #include "formats.h"
 
+/* externs */
+extern var *vars;
+
 /* local functions */
 static char *append_buffer(char *, const char, int *);
 static fmt_field **append_field(fmt_field **, fmt_field *, int *);
