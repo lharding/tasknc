@@ -68,7 +68,8 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 		[FIELD_UUID]        = "uuid",
 		[FIELD_INDEX]       = "index"
 	};
-	const int ntask_fields = sizeof(task_field_map)/sizeof(char *);
+	static const int ntask_fields = sizeof(task_field_map)/sizeof(char *);
+	static const int nvars = sizeof(vars)/sizeof(var);
 
 	/* check for an empty format string */
 	if (fmt == NULL)
@@ -110,6 +111,20 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 					this->type = FIELD_DATE;
 					fields = append_field(fields, this, &fieldcount);
 					fmt += strlen(task_field_map[i]);
+					continue;
+				}
+			}
+			/* check for a var */
+			for (i = 0; i < nvars; i++)
+			{
+				if (vars[i].name == NULL)
+					break;
+				if (str_starts_with(fmt, vars[i].name))
+				{
+					this = calloc(1, sizeof(fmt_field));
+					this->type = FIELD_VAR;
+					this->variable = &(vars[i]);
+					fmt += strlen(vars[i].name);
 					continue;
 				}
 			}
