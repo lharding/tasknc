@@ -57,8 +57,18 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 {
 	/* compile a format string */
 	fmt_field **fields = NULL, *this;
-	int fieldcount = 0, buffersize = 0;
+	int fieldcount = 0, buffersize = 0, i;
 	char *buffer = NULL;
+	static const char *task_field_map[] =
+	{
+		[FIELD_PROJECT]     = "project",
+		[FIELD_DESCRIPTION] = "description",
+		[FIELD_DUE]         = "due",
+		[FIELD_PRIORITY]    = "priority",
+		[FIELD_UUID]        = "uuid",
+		[FIELD_INDEX]       = "index"
+	};
+	const int ntask_fields = sizeof(task_field_map)/sizeof(char *);
 
 	/* check for an empty format string */
 	if (fmt == NULL)
@@ -82,12 +92,26 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 				fields = append_field(fields, this, &fieldcount);
 			}
 			fmt++;
+			/* check for date */
 			if (str_starts_with(fmt, "date"))
 			{
 				this = calloc(1, sizeof(fmt_field));
 				this->type = FIELD_DATE;
 				fields = append_field(fields, this, &fieldcount);
-				fmt += 3;
+				fmt += 4;
+				continue;
+			}
+			/* check for task field */
+			for (i = 0; i < ntask_fields; i++)
+			{
+				if (str_starts_with(fmt, task_field_map[i]))
+				{
+					this = calloc(1, sizeof(fmt_field));
+					this->type = FIELD_DATE;
+					fields = append_field(fields, this, &fieldcount);
+					fmt += strlen(task_field_map[i]);
+					continue;
+				}
 			}
 		}
 		fmt++;
