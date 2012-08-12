@@ -15,6 +15,7 @@
 #include "command.h"
 #include "common.h"
 #include "config.h"
+#include "formats.h"
 #include "log.h"
 #include "tasks.h"
 #include "tasknc.h"
@@ -22,6 +23,7 @@
 
 #ifdef TASKNC_INCLUDE_TESTS
 /* local functions {{{ */
+void test_compile_fmt();
 void test_eval_string();
 void test_result(const char *, const bool);
 void test_search();
@@ -43,6 +45,7 @@ void test(const char *args) /* {{{ */
 	};
 	struct test tests[] =
 	{
+		{"compile_fmt", test_compile_fmt},
 		{"eval_string", test_eval_string},
 		{"task_count", test_task_count},
 		{"trim", test_trim},
@@ -74,6 +77,12 @@ void test(const char *args) /* {{{ */
 	fclose(devnull);
 
 	cleanup();
+} /* }}} */
+
+void test_compile_fmt() /* {{{ */
+{
+	/* test compiling a format to a series of fields */
+	compile_string("no vars");
 } /* }}} */
 
 void test_eval_string() /* {{{ */

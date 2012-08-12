@@ -21,6 +21,7 @@
 #include "command.h"
 #include "common.h"
 #include "config.h"
+#include "formats.h"
 #include "tasknc.h"
 #include "tasklist.h"
 #include "tasks.h"
