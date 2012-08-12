@@ -6,7 +6,9 @@
  * by mjheagle
  */
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "common.h"
 #include "formats.h"
 
@@ -46,6 +48,7 @@ fmt_field *buffer_field(char *buffer, int bufferlen) /* {{{ */
 	this->field = buffer;
 	this->length = bufferlen;
 	this->width = bufferlen;
+	this->type = FIELD_STRING;
 
 	return this;
 } /* }}} */
@@ -74,7 +77,17 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 			if (buffer != NULL)
 			{
 				this = buffer_field(buffer, buffersize);
-				append_field(fields, this, &fieldcount);
+				buffer = NULL;
+				buffersize = 0;
+				fields = append_field(fields, this, &fieldcount);
+			}
+			fmt++;
+			if (str_starts_with(fmt, "date"))
+			{
+				this = calloc(1, sizeof(fmt_field));
+				this->type = FIELD_DATE;
+				fields = append_field(fields, this, &fieldcount);
+				fmt += 3;
 			}
 		}
 		fmt++;
@@ -83,8 +96,49 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 	if (buffer != NULL)
 	{
 		this = buffer_field(buffer, buffersize);
+		buffer = NULL;
+		buffersize = 0;
 		fields = append_field(fields, this, &fieldcount);
 	}
 
 	return fields;
+} /* }}} */
+
+char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
+{
+	/* evaluate a format field array */
+	int nfmts = 0, totallen = 0, i, pos = 0, tmplen;
+	char *str = NULL, *tmp;
+	fmt_field *this;
+
+	/* determine field length */
+	while (fmts[nfmts] != NULL)
+	{
+		totallen += fmts[nfmts]->width;
+		nfmts++;
+	}
+
+	/* build string */
+	str = calloc(totallen, sizeof(char));
+	for (i = 0; i < nfmts; i++)
+	{
+		this = fmts[i];
+		switch(this->type)
+		{
+			case FIELD_STRING:
+				strncpy(str+pos, this->field, this->width);
+				break;
+			case FIELD_DATE:
+				tmp = utc_date(0);
+				tmplen = strlen(tmp);
+				strncpy(str+pos, tmp, tmplen);
+				this->width = tmplen;
+				break;
+			default:
+				break;
+		}
+		pos += this->width;
+	}
+
+	return str;
 } /* }}} */

@@ -116,5 +116,6 @@ typedef struct _config {
 
 /* functions */
 bool match_string(const char *, const char *);
+char *utc_date(const time_t);
 
 #endif

@@ -1015,30 +1015,6 @@ int umvaddstr_align(WINDOW *win, const int y, char *str) /* {{{ */
 	return ret;
 } /* }}} */
 
-char *utc_date(const time_t timeint) /* {{{ */
-{
-	/* convert a utc time uint to a string */
-	struct tm *tmr, *now;
-	time_t cur;
-	char *timestr;
-
-	/* get current time */
-	time(&cur);
-	now = localtime(&cur);
-
-	/* set time to either now or the specified time */
-	tmr = timeint == 0  ?  now : localtime(&timeint);
-
-	/* convert thte time to a formatted string */
-	timestr = malloc(TIMELENGTH*sizeof(char));
-	if (now->tm_year != tmr->tm_year)
-		strftime(timestr, TIMELENGTH, "%F", tmr);
-	else
-		strftime(timestr, TIMELENGTH, "%b %d", tmr);
-
-	return timestr;
-} /* }}} */
-
 char *var_value_message(var *v, bool printname) /* {{{ */
 {
 	/* format a message containing the name and value of a variable */

@@ -82,7 +82,15 @@ void test(const char *args) /* {{{ */
 void test_compile_fmt() /* {{{ */
 {
 	/* test compiling a format to a series of fields */
-	compile_string("no vars");
+	fmt_field **fmts;
+	char *eval;
+
+	fmts = compile_string("first $date second");
+	eval = eval_format(fmts, NULL);
+	if (eval != NULL)
+		printf("%s\n", eval);
+	else
+		puts("NULL returned");
 } /* }}} */
 
 void test_eval_string() /* {{{ */
