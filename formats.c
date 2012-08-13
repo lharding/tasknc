@@ -128,6 +128,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 					this = calloc(1, sizeof(fmt_field));
 					this->type = FIELD_VAR;
 					this->variable = &(vars[i]);
+					fields = append_field(fields, this, &fieldcount);
 					fmt += strlen(vars[i].name);
 					next = true;
 					break;
@@ -178,6 +179,14 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 				tmp = utc_date(0);
 				tmplen = strlen(tmp);
 				strncpy(str+pos, tmp, tmplen);
+				free(tmp);
+				this->width = tmplen;
+				break;
+			case FIELD_VAR:
+				tmp = var_value_message(this->variable, false);
+				tmplen = strlen(tmp);
+				strncpy(str+pos, tmp, tmplen);
+				free(tmp);
 				this->width = tmplen;
 				break;
 			default:
