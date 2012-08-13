@@ -91,6 +91,14 @@ void test_compile_fmt() /* {{{ */
 		printf("%s\n", eval);
 	else
 		puts("NULL returned");
+	free(fmts);
+	fmts = compile_string("first uuid:'$uuid' pro:'$project' desc:'$description' $badvar second");
+	eval = eval_format(fmts, head);
+	if (eval != NULL)
+		printf("%s\n", eval);
+	else
+		puts("NULL returned");
+	free(fmts);
 } /* }}} */
 
 void test_eval_string() /* {{{ */

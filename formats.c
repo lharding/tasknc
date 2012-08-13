@@ -6,6 +6,7 @@
  * by mjheagle
  */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -111,7 +112,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 				if (str_starts_with(fmt, task_field_map[i]))
 				{
 					this = calloc(1, sizeof(fmt_field));
-					this->type = FIELD_DATE;
+					this->type = i;
 					fields = append_field(fields, this, &fieldcount);
 					fmt += strlen(task_field_map[i]);
 					next = true;
@@ -157,6 +158,7 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 	int nfmts = 0, totallen = 0, i, pos = 0, tmplen;
 	char *str = NULL, *tmp = NULL;
 	fmt_field *this;
+	bool free_tmp;
 
 	/* determine field length */
 	while (fmts[nfmts] != NULL)
@@ -173,6 +175,7 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 	for (i = 0; i < nfmts; i++)
 	{
 		this = fmts[i];
+		free_tmp = true;
 		switch(this->type)
 		{
 			case FIELD_STRING:
@@ -184,6 +187,31 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 			case FIELD_VAR:
 				tmp = var_value_message(this->variable, false);
 				break;
+			case FIELD_PROJECT:
+				tmp = tsk->project;
+				free_tmp = false;
+				break;
+			case FIELD_DESCRIPTION:
+				tmp = tsk->description;
+				free_tmp = false;
+				break;
+			case FIELD_DUE:
+				tmp = utc_date(tsk->due);
+				break;
+			case FIELD_PRIORITY:
+				if (tsk->priority)
+				{
+					tmp = calloc(2, sizeof(char));
+					*tmp = tsk->priority;
+				}
+				break;
+			case FIELD_UUID:
+				tmp = tsk->uuid;
+				free_tmp = false;
+				break;
+			case FIELD_INDEX:
+				asprintf(&tmp, "%d", tsk->index);
+				break;
 			default:
 				break;
 		}
@@ -192,7 +220,8 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 		{
 			tmplen = strlen(tmp);
 			strncpy(str+pos, tmp, tmplen);
-			free(tmp);
+			if (free_tmp)
+				free(tmp);
 			this->width = tmplen;
 			tmp = NULL;
 			tmplen = -1;
