@@ -155,18 +155,21 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 {
 	/* evaluate a format field array */
 	int nfmts = 0, totallen = 0, i, pos = 0, tmplen;
-	char *str = NULL, *tmp;
+	char *str = NULL, *tmp = NULL;
 	fmt_field *this;
 
 	/* determine field length */
 	while (fmts[nfmts] != NULL)
 	{
-		totallen += fmts[nfmts]->width;
+		if (fmts[nfmts]->width > 0)
+			totallen += fmts[nfmts]->width;
+		else
+			totallen += 20;
 		nfmts++;
 	}
 
 	/* build string */
-	str = calloc(totallen+10, sizeof(char));
+	str = calloc(totallen, sizeof(char));
 	for (i = 0; i < nfmts; i++)
 	{
 		this = fmts[i];
@@ -177,21 +180,24 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 				break;
 			case FIELD_DATE:
 				tmp = utc_date(0);
-				tmplen = strlen(tmp);
-				strncpy(str+pos, tmp, tmplen);
-				free(tmp);
-				this->width = tmplen;
 				break;
 			case FIELD_VAR:
 				tmp = var_value_message(this->variable, false);
-				tmplen = strlen(tmp);
-				strncpy(str+pos, tmp, tmplen);
-				free(tmp);
-				this->width = tmplen;
 				break;
 			default:
 				break;
 		}
+		/* handle temporarily allocated strings */
+		if (tmp != NULL)
+		{
+			tmplen = strlen(tmp);
+			strncpy(str+pos, tmp, tmplen);
+			free(tmp);
+			this->width = tmplen;
+			tmp = NULL;
+			tmplen = -1;
+		}
+
 		pos += this->width;
 	}
 
