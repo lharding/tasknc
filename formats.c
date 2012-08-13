@@ -13,7 +13,7 @@
 #include "formats.h"
 
 /* externs */
-extern var *vars;
+extern var vars[];
 
 /* local functions */
 static char *append_buffer(char *, const char, int *);
@@ -24,7 +24,7 @@ char *append_buffer(char *buffer, const char append, int *bufferlen) /* {{{ */
 {
 	/* append a character to a buffer */
 	(*bufferlen)++;
-	buffer = realloc(buffer, (*bufferlen)*sizeof(char));
+	buffer = realloc(buffer, ((*bufferlen)+1)*sizeof(char));
 	buffer[*bufferlen-1] = append;
 	buffer[*bufferlen] = 0;
 
@@ -62,6 +62,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 	fmt_field **fields = NULL, *this;
 	int fieldcount = 0, buffersize = 0, i;
 	char *buffer = NULL;
+	bool next;
 	static const char *task_field_map[] =
 	{
 		[FIELD_PROJECT]     = "project",
@@ -71,8 +72,6 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 		[FIELD_UUID]        = "uuid",
 		[FIELD_INDEX]       = "index"
 	};
-	static const int ntask_fields = sizeof(task_field_map)/sizeof(char *);
-	static const int nvars = sizeof(vars)/sizeof(var);
 
 	/* check for an empty format string */
 	if (fmt == NULL)
@@ -81,6 +80,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 	/* iterate through format string */
 	while (*fmt != 0)
 	{
+		next = false;
 		/* handle a character */
 		if (*fmt != '$')
 			buffer = append_buffer(buffer, *fmt, &buffersize);
@@ -106,7 +106,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 				continue;
 			}
 			/* check for task field */
-			for (i = 0; i < ntask_fields; i++)
+			for (i = FIELD_PROJECT; i < FIELD_INDEX; i++)
 			{
 				if (str_starts_with(fmt, task_field_map[i]))
 				{
@@ -114,23 +114,27 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 					this->type = FIELD_DATE;
 					fields = append_field(fields, this, &fieldcount);
 					fmt += strlen(task_field_map[i]);
-					continue;
+					next = true;
+					break;
 				}
 			}
+			if (next)
+				continue;
 			/* check for a var */
-			for (i = 0; i < nvars; i++)
+			for (i = 0; vars[i].name != NULL; i++)
 			{
-				if (vars[i].name == NULL)
-					break;
 				if (str_starts_with(fmt, vars[i].name))
 				{
 					this = calloc(1, sizeof(fmt_field));
 					this->type = FIELD_VAR;
 					this->variable = &(vars[i]);
 					fmt += strlen(vars[i].name);
-					continue;
+					next = true;
+					break;
 				}
 			}
+			if (next)
+				continue;
 		}
 		fmt++;
 	}
@@ -161,7 +165,7 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 	}
 
 	/* build string */
-	str = calloc(totallen, sizeof(char));
+	str = calloc(totallen+10, sizeof(char));
 	for (i = 0; i < nfmts; i++)
 	{
 		this = fmts[i];
