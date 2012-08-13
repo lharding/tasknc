@@ -61,7 +61,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 {
 	/* compile a format string */
 	fmt_field **fields = NULL, *this;
-	int fieldcount = 0, buffersize = 0, i;
+	int fieldcount = 0, buffersize = 0, i, width;
 	char *buffer = NULL;
 	bool next;
 	static const char *task_field_map[] =
@@ -97,11 +97,16 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 				fields = append_field(fields, this, &fieldcount);
 			}
 			fmt++;
+			/* check for width specification */
+			width = 0;
+			while (*fmt >= '0' && *fmt <= '9')
+				width = (10 * width) + (*(fmt++) - 48);
 			/* check for date */
 			if (str_starts_with(fmt, "date"))
 			{
 				this = calloc(1, sizeof(fmt_field));
 				this->type = FIELD_DATE;
+				this->width = width;
 				fields = append_field(fields, this, &fieldcount);
 				fmt += 4;
 				continue;
@@ -113,6 +118,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 				{
 					this = calloc(1, sizeof(fmt_field));
 					this->type = i;
+					this->width = width;
 					fields = append_field(fields, this, &fieldcount);
 					fmt += strlen(task_field_map[i]);
 					next = true;
@@ -127,6 +133,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 				if (str_starts_with(fmt, vars[i].name))
 				{
 					this = calloc(1, sizeof(fmt_field));
+					this->width = width;
 					this->type = FIELD_VAR;
 					this->variable = &(vars[i]);
 					fields = append_field(fields, this, &fieldcount);
@@ -158,8 +165,9 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 {
 	/* evaluate a format field array */
-	int nfmts = 0, totallen = 0, i, pos = 0, tmplen;
-	char *str = NULL, *tmp = NULL;
+	int nfmts = 0, totallen = 0, i, pos = 0;
+	unsigned int fieldwidth, fieldlen, p;
+	char *str = NULL, *tmp;
 	fmt_field *this;
 	bool free_tmp;
 
@@ -179,6 +187,9 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 	{
 		this = fmts[i];
 		free_tmp = true;
+		tmp = NULL;
+		fieldwidth = this->width;
+		fieldlen = fieldwidth;
 		switch(this->type)
 		{
 			case FIELD_STRING:
@@ -221,16 +232,18 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 		/* handle temporarily allocated strings */
 		if (tmp != NULL)
 		{
-			tmplen = strlen(tmp);
-			strncpy(str+pos, tmp, tmplen);
+			fieldlen = strlen(tmp);
+			fieldwidth = (fieldwidth > 0 && fieldwidth <= fieldlen) ? fieldwidth : fieldlen;
+			strncpy(str+pos, tmp, fieldwidth);
 			if (free_tmp)
 				free(tmp);
-			this->width = tmplen;
-			tmp = NULL;
-			tmplen = -1;
+			fieldwidth = this->width > fieldlen ? this->width : fieldwidth;
 		}
+		/* buffer left-aligned string */
+		for (p = fieldlen; p < fieldwidth; p++)
+			*(str + pos + p) = ' ';
 
-		pos += this->width;
+		pos += fieldwidth;
 	}
 
 	return str;

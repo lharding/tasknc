@@ -85,7 +85,7 @@ void test_compile_fmt() /* {{{ */
 	fmt_field **fmts;
 	char *eval;
 
-	fmts = compile_string("first $date $program_author second");
+	fmts = compile_string("first $date $4program_name $10program_author second");
 	eval = eval_format(fmts, NULL);
 	if (eval != NULL)
 		printf("%s\n", eval);

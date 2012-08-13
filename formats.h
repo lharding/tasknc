@@ -30,8 +30,8 @@ typedef struct _fmt_field
 {
 	var *variable;
 	char *field;
-	int length;
-	int width;
+	unsigned int length;
+	unsigned int width;
 	fmt_field_type type;
 } fmt_field;
 
