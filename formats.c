@@ -64,7 +64,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 	fmt_field **fields = NULL, *this;
 	int fieldcount = 0, buffersize = 0, i, width;
 	char *buffer = NULL;
-	bool next;
+	bool next, right_align;
 	static const char *task_field_map[] =
 	{
 		[FIELD_PROJECT]     = "project",
@@ -98,6 +98,10 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 				fields = append_field(fields, this, &fieldcount);
 			}
 			fmt++;
+			/* check for right align */
+			right_align = *fmt == '-';
+			if (right_align)
+				fmt++;
 			/* check for width specification */
 			width = 0;
 			while (*fmt >= '0' && *fmt <= '9')
@@ -108,6 +112,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 				this = calloc(1, sizeof(fmt_field));
 				this->type = FIELD_DATE;
 				this->width = width;
+				this->right_align = right_align;
 				fields = append_field(fields, this, &fieldcount);
 				fmt += 4;
 				continue;
@@ -120,6 +125,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 					this = calloc(1, sizeof(fmt_field));
 					this->type = i;
 					this->width = width;
+					this->right_align = right_align;
 					fields = append_field(fields, this, &fieldcount);
 					fmt += strlen(task_field_map[i]);
 					next = true;
@@ -135,6 +141,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 				{
 					this = calloc(1, sizeof(fmt_field));
 					this->width = width;
+					this->right_align = right_align;
 					this->type = FIELD_VAR;
 					this->variable = &(vars[i]);
 					fields = append_field(fields, this, &fieldcount);

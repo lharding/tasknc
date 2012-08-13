@@ -28,11 +28,12 @@ typedef enum
 /* format field struct */
 typedef struct _fmt_field
 {
+	fmt_field_type type;
 	var *variable;
 	char *field;
 	unsigned int length;
 	unsigned int width;
-	fmt_field_type type;
+	bool right_align;
 } fmt_field;
 
 fmt_field **compile_string();
