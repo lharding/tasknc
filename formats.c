@@ -20,6 +20,7 @@ extern var vars[];
 static char *append_buffer(char *, const char, int *);
 static fmt_field **append_field(fmt_field **, fmt_field *, int *);
 static fmt_field *buffer_field(char *, int);
+static char *field_to_str(fmt_field *, bool *, task *);
 
 char *append_buffer(char *buffer, const char append, int *bufferlen) /* {{{ */
 {
@@ -186,50 +187,14 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 	for (i = 0; i < nfmts; i++)
 	{
 		this = fmts[i];
-		free_tmp = true;
 		tmp = NULL;
 		fieldwidth = this->width;
 		fieldlen = fieldwidth;
-		switch(this->type)
-		{
-			case FIELD_STRING:
-				strncpy(str+pos, this->field, this->width);
-				break;
-			case FIELD_DATE:
-				tmp = utc_date(0);
-				break;
-			case FIELD_VAR:
-				tmp = var_value_message(this->variable, false);
-				break;
-			case FIELD_PROJECT:
-				tmp = tsk->project;
-				free_tmp = false;
-				break;
-			case FIELD_DESCRIPTION:
-				tmp = tsk->description;
-				free_tmp = false;
-				break;
-			case FIELD_DUE:
-				tmp = utc_date(tsk->due);
-				break;
-			case FIELD_PRIORITY:
-				if (tsk->priority)
-				{
-					tmp = calloc(2, sizeof(char));
-					*tmp = tsk->priority;
-				}
-				break;
-			case FIELD_UUID:
-				tmp = tsk->uuid;
-				free_tmp = false;
-				break;
-			case FIELD_INDEX:
-				asprintf(&tmp, "%d", tsk->index);
-				break;
-			default:
-				break;
-		}
-		/* handle temporarily allocated strings */
+
+		/* convert field to string */
+		tmp = field_to_str(this, &free_tmp, tsk);
+
+		/* handle field string */
 		if (tmp != NULL)
 		{
 			fieldlen = strlen(tmp);
@@ -238,13 +203,63 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 			if (free_tmp)
 				free(tmp);
 			fieldwidth = this->width > fieldlen ? this->width : fieldwidth;
+			/* buffer left-aligned string */
+			for (p = fieldlen; p < fieldwidth; p++)
+				*(str + pos + p) = ' ';
 		}
-		/* buffer left-aligned string */
-		for (p = fieldlen; p < fieldwidth; p++)
-			*(str + pos + p) = ' ';
 
 		pos += fieldwidth;
 	}
 
 	return str;
+} /* }}} */
+
+static char *field_to_str(fmt_field *this, bool *free_field, task *tsk) /* {{{ */
+{
+	/* evaluate a field and convert it to a string */
+	char *ret = NULL;
+	*free_field = true;
+
+	switch(this->type)
+	{
+		case FIELD_STRING:
+			ret = this->field;
+			*free_field = false;
+			break;
+		case FIELD_DATE:
+			ret = utc_date(0);
+			break;
+		case FIELD_VAR:
+			ret = var_value_message(this->variable, false);
+			break;
+		case FIELD_PROJECT:
+			ret = tsk->project;
+			*free_field = false;
+			break;
+		case FIELD_DESCRIPTION:
+			ret = tsk->description;
+			*free_field = false;
+			break;
+		case FIELD_DUE:
+			ret = utc_date(tsk->due);
+			break;
+		case FIELD_PRIORITY:
+			if (tsk->priority)
+			{
+				ret = calloc(2, sizeof(char));
+				*ret = tsk->priority;
+			}
+			break;
+		case FIELD_UUID:
+			ret = tsk->uuid;
+			*free_field = false;
+			break;
+		case FIELD_INDEX:
+			asprintf(&ret , "%d", tsk->index);
+			break;
+		default:
+			break;
+	}
+
+	return ret;
 } /* }}} */
