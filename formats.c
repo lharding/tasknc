@@ -137,6 +137,9 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 			}
 			if (next)
 				continue;
+			/* handle bad variable */
+			buffer = append_buffer(buffer, '$', &buffersize);
+			buffer = append_buffer(buffer, *fmt, &buffersize);
 		}
 		fmt++;
 	}
