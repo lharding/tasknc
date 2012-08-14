@@ -114,6 +114,9 @@ typedef struct _config {
 /* logical xor */
 #define XOR(x, y)                       ((x || y) && !(x && y))
 
+/* min function */
+#define MIN(x, y)                       (x < y ? x : y)
+
 /* functions */
 bool match_string(const char *, const char *);
 char *utc_date(const time_t);

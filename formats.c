@@ -185,7 +185,7 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 		if (fmts[nfmts]->width > 0)
 			totallen += fmts[nfmts]->width;
 		else
-			totallen += 20;
+			totallen += 25;
 		nfmts++;
 	}
 
@@ -195,8 +195,6 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 	{
 		this = fmts[i];
 		tmp = NULL;
-		fieldwidth = this->width;
-		fieldlen = fieldwidth;
 
 		/* convert field to string */
 		tmp = field_to_str(this, &free_tmp, tsk);
@@ -205,11 +203,10 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 		if (tmp != NULL)
 		{
 			fieldlen = strlen(tmp);
-			fieldwidth = (fieldwidth > 0 && fieldwidth <= fieldlen) ? fieldwidth : fieldlen;
-			strncpy(str+pos, tmp, fieldwidth);
+			fieldwidth = this->width > 0 ? this->width : fieldlen;
+			strncpy(str+pos, tmp, MIN(fieldwidth, fieldlen));
 			if (free_tmp)
 				free(tmp);
-			fieldwidth = this->width > fieldlen ? this->width : fieldwidth;
 			/* buffer left-aligned string */
 			for (p = fieldlen; p < fieldwidth; p++)
 				*(str + pos + p) = ' ';
