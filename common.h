@@ -64,6 +64,43 @@ typedef enum {
 	MODE_ANY
 } prog_mode;
 
+/* format fields */
+typedef enum
+{
+	FIELD_DATE = 0,
+	FIELD_PROJECT,
+	FIELD_DESCRIPTION,
+	FIELD_DUE,
+	FIELD_PRIORITY,
+	FIELD_UUID,
+	FIELD_INDEX,
+	FIELD_STRING,
+	FIELD_VAR,
+	FIELD_CONDITIONAL
+} fmt_field_type;
+
+/* format field struct */
+typedef struct _fmt_field
+{
+	fmt_field_type type;
+	var *variable;
+	char *field;
+	struct _conditional_fmt_field *conditional;
+	unsigned int length;
+	unsigned int width;
+	bool right_align;
+	struct _fmt_field *next;
+} fmt_field;
+
+/* conditional form field struct */
+typedef struct _conditional_fmt_field
+{
+	fmt_field *condition;
+	fmt_field *positive;
+	fmt_field *negative;
+} conditional_fmt_field;
+
+
 /* function maps */
 typedef struct _funcmap
 {
@@ -93,8 +130,11 @@ typedef struct _config {
 	bool follow_task;
 	struct {
 		char *task;
+		fmt_field *task_compiled;
 		char *title;
+		fmt_field *title_compiled;
 		char *view;
+		fmt_field *view_compiled;
 	} formats;
 	struct {
 		int description;

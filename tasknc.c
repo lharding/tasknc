@@ -266,6 +266,9 @@ void configure(void) /* {{{ */
 	}
 	run_command_source(filepath);
 	free(filepath);
+
+	/* compile format strings */
+	compile_formats();
 } /* }}} */
 
 const char *eval_string(int maxlen, char *fmt, const task *this, char *str, int position) /* {{{ */

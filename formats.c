@@ -15,6 +15,7 @@
 
 /* externs */
 extern var vars[];
+extern config cfg;
 
 /* local functions */
 static char *append_buffer(char *, const char, int *);
@@ -58,6 +59,14 @@ fmt_field *buffer_field(char *buffer, int bufferlen) /* {{{ */
 	this->type = FIELD_STRING;
 
 	return this;
+} /* }}} */
+
+void compile_formats() /* {{{ */
+{
+	/* compile the format strings */
+	cfg.formats.task_compiled = compile_string(cfg.formats.task);
+	cfg.formats.title_compiled = compile_string(cfg.formats.title);
+	cfg.formats.view_compiled = compile_string(cfg.formats.view);
 } /* }}} */
 
 fmt_field *compile_string(char *fmt) /* {{{ */

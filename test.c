@@ -82,7 +82,7 @@ void test(const char *args) /* {{{ */
 void test_compile_fmt() /* {{{ */
 {
 	/* test compiling a format to a series of fields */
-	fmt_field **fmts;
+	fmt_field *fmts;
 	char *eval;
 
 	fmts = compile_string("first $date $-8program_version $4program_name $10program_author $?$search_string?SEARCH?NO? $?$active_filter?FILT?NO? second");
