@@ -20,6 +20,7 @@ extern var vars[];
 static char *append_buffer(char *, const char, int *);
 static fmt_field **append_field(fmt_field **, fmt_field *, int *);
 static fmt_field *buffer_field(char *, int);
+static char *eval_conditional(conditional_fmt_field *, task *);
 static char *field_to_str(fmt_field *, bool *, task *);
 static conditional_fmt_field *parse_conditional(char *, int *);
 
@@ -169,6 +170,28 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 	}
 
 	return fields;
+} /* }}} */
+
+static char *eval_conditional(conditional_fmt_field *this, task *tsk) /* {{{ */
+{
+	/* evaluate a conditional struct to a string */
+	char *tmp = NULL, *ret = NULL;
+
+	tmp = eval_format(this->condition, tsk);
+	switch (*tmp)
+	{
+		case 0:
+		case '0':
+		case ' ':
+			ret = eval_format(this->negative, tsk);
+			break;
+		default:
+			ret = eval_format(this->positive, tsk);
+			break;
+	}
+	free(tmp);
+
+	return ret;
 } /* }}} */
 
 char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
