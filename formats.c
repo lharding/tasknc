@@ -21,6 +21,7 @@ static char *append_buffer(char *, const char, int *);
 static fmt_field **append_field(fmt_field **, fmt_field *, int *);
 static fmt_field *buffer_field(char *, int);
 static char *field_to_str(fmt_field *, bool *, task *);
+static conditional_fmt_field *parse_conditional(char *, int *);
 
 char *append_buffer(char *buffer, const char append, int *bufferlen) /* {{{ */
 {
@@ -282,4 +283,36 @@ static char *field_to_str(fmt_field *this, bool *free_field, task *tsk) /* {{{ *
 	}
 
 	return ret;
+} /* }}} */
+
+conditional_fmt_field *parse_conditional(char *str, int *pos) /* {{{ */
+{
+	/* parse a conditional struct from a string @ position */
+	conditional_fmt_field *this = calloc(1, sizeof(conditional_fmt_field));
+	char *condition = NULL, *positive = NULL, *negative = NULL;
+	int ret;
+
+	/* parse fields */
+	ret = sscanf(str+(*pos), "?%m[^?]?%m[^?]?%m[^?]?", &condition, &positive, &negative);
+	if (ret != 3)
+	{
+		check_free(this);
+		this = NULL;
+		goto done;
+	}
+
+	/* compile each field */
+	this->condition = compile_string(condition);
+	this->positive = compile_string(positive);
+	this->negative = compile_string(negative);
+
+	goto done;
+
+done:
+	/* free allocated strings */
+	check_free(condition);
+	check_free(positive);
+	check_free(negative);
+
+	return this;
 } /* }}} */
