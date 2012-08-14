@@ -203,18 +203,32 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 		if (tmp == NULL)
 			continue;
 
+		/* get string data */
 		fieldlen = strlen(tmp);
 		fieldwidth = this->width > 0 ? this->width : fieldlen;
+
+		/* buffer right-aligned string */
+		if (this->right_align)
+		{
+			for (p = 0; p < fieldwidth - fieldlen; p++)
+				*(str + pos + p) = ' ';
+			pos += fieldwidth - fieldlen;
+		}
+
+		/* copy string */
 		strncpy(str+pos, tmp, MIN(fieldwidth, fieldlen));
 		if (free_tmp)
 			free(tmp);
 
 		/* buffer left-aligned string */
-		for (p = fieldlen; p < fieldwidth; p++)
-			*(str + pos + p) = ' ';
+		if (!(this->right_align))
+		{
+			for (p = fieldlen; p < fieldwidth; p++)
+				*(str + pos + p) = ' ';
+		}
 
 		/* move current position */
-		pos += fieldwidth;
+		pos += this->right_align ? fieldwidth-fieldlen  : fieldwidth;
 	}
 
 	return str;
