@@ -200,18 +200,20 @@ char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
 		tmp = field_to_str(this, &free_tmp, tsk);
 
 		/* handle field string */
-		if (tmp != NULL)
-		{
-			fieldlen = strlen(tmp);
-			fieldwidth = this->width > 0 ? this->width : fieldlen;
-			strncpy(str+pos, tmp, MIN(fieldwidth, fieldlen));
-			if (free_tmp)
-				free(tmp);
-			/* buffer left-aligned string */
-			for (p = fieldlen; p < fieldwidth; p++)
-				*(str + pos + p) = ' ';
-		}
+		if (tmp == NULL)
+			continue;
 
+		fieldlen = strlen(tmp);
+		fieldwidth = this->width > 0 ? this->width : fieldlen;
+		strncpy(str+pos, tmp, MIN(fieldwidth, fieldlen));
+		if (free_tmp)
+			free(tmp);
+
+		/* buffer left-aligned string */
+		for (p = fieldlen; p < fieldwidth; p++)
+			*(str + pos + p) = ' ';
+
+		/* move current position */
 		pos += fieldwidth;
 	}
 
