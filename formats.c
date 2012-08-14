@@ -115,6 +115,11 @@ fmt_field *compile_string(char *fmt) /* {{{ */
 				this->type = FIELD_CONDITIONAL;
 				this->conditional = parse_conditional(&fmt);
 				append_field(&head, &last, this);
+				if (this->conditional == NULL)
+				{
+					buffer = append_buffer(buffer, *fmt, &buffersize);
+					fmt++;
+				}
 				continue;
 			}
 			fmt++;
