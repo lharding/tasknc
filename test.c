@@ -24,7 +24,6 @@
 #ifdef TASKNC_INCLUDE_TESTS
 /* local functions {{{ */
 void test_compile_fmt();
-void test_eval_string();
 void test_result(const char *, const bool);
 void test_search();
 void test_set_var();
