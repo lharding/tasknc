@@ -1,7 +1,7 @@
 #!/bin/bash
 
 errorfile="valgrind_errors"
-run="../tasknc -d compile_fmt"
+run="../tasknc"
 valgrind_options="--tool=memcheck --leak-check=full -v --show-reachable=yes --track-origins=yes --suppressions=valgrind.supp"
 
 if [ -e $errorfile ]; then

@@ -9,7 +9,7 @@ set curs_timeout 200
 set statusbar_timeout 2
 
 # formats
-set title_format "$program_name ($selected_line/$task_count) ?$filter_string?filter=$filter_string?? $> $date"
+set title_format "$program_name ($selected_line/$task_count) ?$filter_string?filter=$filter_string? ? $> $date"
 set task_format  "$-3index $project $description $> ?$due?$due?$-6priority?"
 
 # priority modifications

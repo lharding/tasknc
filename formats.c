@@ -95,7 +95,7 @@ fmt_field *compile_string(char *fmt) /* {{{ */
 	{
 		next = false;
 		/* handle a character */
-		if (*fmt != '$')
+		if (strchr("$?", *fmt) == NULL)
 			buffer = append_buffer(buffer, *fmt, &buffersize);
 		/* handle a variable */
 		else
@@ -108,7 +108,6 @@ fmt_field *compile_string(char *fmt) /* {{{ */
 				buffersize = 0;
 				append_field(&head, &last, this);
 			}
-			fmt++;
 			/* check for conditional */
 			if (*fmt == '?')
 			{
@@ -118,6 +117,7 @@ fmt_field *compile_string(char *fmt) /* {{{ */
 				append_field(&head, &last, this);
 				continue;
 			}
+			fmt++;
 			/* check for right align */
 			right_align = *fmt == '-';
 			if (right_align)
@@ -245,7 +245,7 @@ char *eval_format(fmt_field *fmts, task *tsk) /* {{{ */
 		if (this->width > 0)
 			totallen += this->width;
 		else
-			totallen += 25;
+			totallen += 100;
 	}
 
 	/* build string */

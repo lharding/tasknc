@@ -46,7 +46,6 @@ void test(const char *args) /* {{{ */
 	struct test tests[] =
 	{
 		{"compile_fmt", test_compile_fmt},
-		{"eval_string", test_eval_string},
 		{"task_count", test_task_count},
 		{"trim", test_trim},
 		{"search", test_search},
@@ -97,30 +96,6 @@ void test_compile_fmt() /* {{{ */
 		printf("%s\n", eval);
 	else
 		puts("NULL returned");
-} /* }}} */
-
-void test_eval_string() /* {{{ */
-{
-	/* test the functionality of eval_string function */
-	char *testfmt = strdup("\"$10program_name - $5program_author ?$search_string?YES?NO?\"");
-	strip_quotes(&testfmt, 1);
-	const char *eval = eval_string(1000, testfmt, head, NULL, 0);
-	const char *eval2 = eval_string(1000, testfmt, head, NULL, 0);
-	const char *check = "tasknc     - mjhea NO";
-	bool pass = strcmp(check, eval)==0;
-	bool pass2 = strcmp(check, eval2)==0;
-	pass = pass && pass2;
-
-	test_result("eval_string", pass);
-	if (!pass)
-	{
-		puts(testfmt);
-		puts(eval);
-		puts(eval2);
-		puts(check);
-	}
-
-	free(testfmt);
 } /* }}} */
 
 void test_result(const char *testname, const bool passed) /* {{{ */

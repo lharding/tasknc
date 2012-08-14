@@ -16,6 +16,7 @@
 #include "color.h"
 #include "common.h"
 #include "config.h"
+#include "formats.h"
 #include "keys.h"
 #include "log.h"
 #include "pager.h"
@@ -308,7 +309,7 @@ void view_task(task *this) /* {{{ */
 
 	/* build command and title */
 	asprintf(&cmdstr, "task %s info rc._forcecolor=no rc.defaultwidth=%d", this->uuid, cols-4);
-	title = (char *)eval_string(2*cols, cfg.formats.view, this, NULL, 0);
+	title = (char *)eval_format(cfg.formats.view_compiled, this);
 
 	/* run pager */
 	pager_command(cmdstr, title, 0, 1, 4);
