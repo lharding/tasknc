@@ -18,7 +18,7 @@ extern var vars[];
 
 /* local functions */
 static char *append_buffer(char *, const char, int *);
-static fmt_field **append_field(fmt_field **, fmt_field *, int *);
+static void append_field(fmt_field **, fmt_field **, fmt_field *);
 static fmt_field *buffer_field(char *, int);
 static char *eval_conditional(conditional_fmt_field *, task *);
 static char *field_to_str(fmt_field *, bool *, task *);
@@ -35,15 +35,15 @@ char *append_buffer(char *buffer, const char append, int *bufferlen) /* {{{ */
 	return buffer;
 } /* }}} */
 
-fmt_field **append_field(fmt_field **fields, fmt_field *this, int *fieldcount) /* {{{ */
+void append_field(fmt_field **head, fmt_field **last, fmt_field *this) /* {{{ */
 {
-	/* append a field to the fields array */
-	(*fieldcount)++;
-	fields = realloc(fields, (*fieldcount)*sizeof(fmt_field));
-	fields[*fieldcount-1] = this;
-	fields[*fieldcount] = NULL;
+	/* append a field to the field list */
+	if (*head == NULL)
+		*head = this;
+	else
+		(*last)->next = this;
 
-	return fields;
+	*last = this;
 } /* }}} */
 
 fmt_field *buffer_field(char *buffer, int bufferlen) /* {{{ */
@@ -60,11 +60,11 @@ fmt_field *buffer_field(char *buffer, int bufferlen) /* {{{ */
 	return this;
 } /* }}} */
 
-fmt_field **compile_string(char *fmt) /* {{{ */
+fmt_field *compile_string(char *fmt) /* {{{ */
 {
 	/* compile a format string */
-	fmt_field **fields = NULL, *this;
-	int fieldcount = 0, buffersize = 0, i, width;
+	fmt_field *head = NULL, *this, *last = NULL;
+	int buffersize = 0, i, width;
 	char *buffer = NULL;
 	bool next, right_align;
 	static const char *task_field_map[] =
@@ -97,7 +97,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 				this = buffer_field(buffer, buffersize);
 				buffer = NULL;
 				buffersize = 0;
-				fields = append_field(fields, this, &fieldcount);
+				append_field(&head, &last, this);
 			}
 			fmt++;
 			/* check for conditional */
@@ -106,7 +106,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 				this = calloc(1, sizeof(fmt_field));
 				this->type = FIELD_CONDITIONAL;
 				this->conditional = parse_conditional(&fmt);
-				fields = append_field(fields, this, &fieldcount);
+				append_field(&head, &last, this);
 				continue;
 			}
 			/* check for right align */
@@ -124,7 +124,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 				this->type = FIELD_DATE;
 				this->width = width;
 				this->right_align = right_align;
-				fields = append_field(fields, this, &fieldcount);
+				append_field(&head, &last, this);
 				fmt += 4;
 				continue;
 			}
@@ -137,7 +137,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 					this->type = i;
 					this->width = width;
 					this->right_align = right_align;
-					fields = append_field(fields, this, &fieldcount);
+					append_field(&head, &last, this);
 					fmt += strlen(task_field_map[i]);
 					next = true;
 					break;
@@ -155,7 +155,7 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 					this->right_align = right_align;
 					this->type = FIELD_VAR;
 					this->variable = &(vars[i]);
-					fields = append_field(fields, this, &fieldcount);
+					append_field(&head, &last, this);
 					fmt += strlen(vars[i].name);
 					next = true;
 					break;
@@ -175,10 +175,10 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 		this = buffer_field(buffer, buffersize);
 		buffer = NULL;
 		buffersize = 0;
-		fields = append_field(fields, this, &fieldcount);
+		append_field(&head, &last, this);
 	}
 
-	return fields;
+	return head;
 } /* }}} */
 
 static char *eval_conditional(conditional_fmt_field *this, task *tsk) /* {{{ */
@@ -221,30 +221,28 @@ static char *eval_conditional(conditional_fmt_field *this, task *tsk) /* {{{ */
 	return ret;
 } /* }}} */
 
-char *eval_format(fmt_field **fmts, task *tsk) /* {{{ */
+char *eval_format(fmt_field *fmts, task *tsk) /* {{{ */
 {
 	/* evaluate a format field array */
-	int nfmts = 0, totallen = 0, i, pos = 0;
+	int totallen = 0, pos = 0;
 	unsigned int fieldwidth, fieldlen, p;
 	char *str = NULL, *tmp;
 	fmt_field *this;
 	bool free_tmp;
 
 	/* determine field length */
-	while (fmts[nfmts] != NULL)
+	for (this = fmts; this != NULL; this = this->next)
 	{
-		if (fmts[nfmts]->width > 0)
-			totallen += fmts[nfmts]->width;
+		if (this->width > 0)
+			totallen += this->width;
 		else
 			totallen += 25;
-		nfmts++;
 	}
 
 	/* build string */
 	str = calloc(totallen, sizeof(char));
-	for (i = 0; i < nfmts; i++)
+	for (this = fmts; this != NULL; this = this->next)
 	{
-		this = fmts[i];
 		tmp = NULL;
 
 		/* convert field to string */

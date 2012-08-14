@@ -36,17 +36,18 @@ typedef struct _fmt_field
 	unsigned int length;
 	unsigned int width;
 	bool right_align;
+	struct _fmt_field *next;
 } fmt_field;
 
 /* conditional form field struct */
 typedef struct _conditional_fmt_field
 {
-	fmt_field **condition;
-	fmt_field **positive;
-	fmt_field **negative;
+	fmt_field *condition;
+	fmt_field *positive;
+	fmt_field *negative;
 } conditional_fmt_field;
 
-fmt_field **compile_string();
-char *eval_format(fmt_field **, task *);
+fmt_field *compile_string();
+char *eval_format(fmt_field *, task *);
 
 #endif
