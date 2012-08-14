@@ -22,7 +22,7 @@ static fmt_field **append_field(fmt_field **, fmt_field *, int *);
 static fmt_field *buffer_field(char *, int);
 static char *eval_conditional(conditional_fmt_field *, task *);
 static char *field_to_str(fmt_field *, bool *, task *);
-static conditional_fmt_field *parse_conditional(char *, int *);
+static conditional_fmt_field *parse_conditional(char **);
 
 char *append_buffer(char *buffer, const char append, int *bufferlen) /* {{{ */
 {
@@ -100,6 +100,15 @@ fmt_field **compile_string(char *fmt) /* {{{ */
 				fields = append_field(fields, this, &fieldcount);
 			}
 			fmt++;
+			/* check for conditional */
+			if (*fmt == '?')
+			{
+				this = calloc(1, sizeof(fmt_field));
+				this->type = FIELD_CONDITIONAL;
+				this->conditional = parse_conditional(&fmt);
+				fields = append_field(fields, this, &fieldcount);
+				continue;
+			}
 			/* check for right align */
 			right_align = *fmt == '-';
 			if (right_align)
@@ -177,7 +186,25 @@ static char *eval_conditional(conditional_fmt_field *this, task *tsk) /* {{{ */
 	/* evaluate a conditional struct to a string */
 	char *tmp = NULL, *ret = NULL;
 
+	/* handle empty conditionals */
+	if (this == NULL)
+	{
+		ret = calloc(1, sizeof(char));
+		*ret = 0;
+		return ret;
+	}
+
+	/* evaluate conditional */
 	tmp = eval_format(this->condition, tsk);
+
+	/* check if conditional was "(null)" */
+	if (str_eq(tmp, "(null)"))
+		*tmp = 0;
+
+	/* check first char of evaluated format at determine
+	 * whether the positive or negative condition should
+	 * be returned
+	 */
 	switch (*tmp)
 	{
 		case 0:
@@ -301,6 +328,9 @@ static char *field_to_str(fmt_field *this, bool *free_field, task *tsk) /* {{{ *
 		case FIELD_INDEX:
 			asprintf(&ret , "%d", tsk->index);
 			break;
+		case FIELD_CONDITIONAL:
+			ret = eval_conditional(this->conditional, tsk);
+			break;
 		default:
 			break;
 	}
@@ -308,7 +338,7 @@ static char *field_to_str(fmt_field *this, bool *free_field, task *tsk) /* {{{ *
 	return ret;
 } /* }}} */
 
-conditional_fmt_field *parse_conditional(char *str, int *pos) /* {{{ */
+conditional_fmt_field *parse_conditional(char **str) /* {{{ */
 {
 	/* parse a conditional struct from a string @ position */
 	conditional_fmt_field *this = calloc(1, sizeof(conditional_fmt_field));
@@ -316,7 +346,7 @@ conditional_fmt_field *parse_conditional(char *str, int *pos) /* {{{ */
 	int ret;
 
 	/* parse fields */
-	ret = sscanf(str+(*pos), "?%m[^?]?%m[^?]?%m[^?]?", &condition, &positive, &negative);
+	ret = sscanf(*str, "?%m[^?]?%m[^?]?%m[^?]?", &condition, &positive, &negative);
 	if (ret != 3)
 	{
 		check_free(this);
@@ -328,6 +358,9 @@ conditional_fmt_field *parse_conditional(char *str, int *pos) /* {{{ */
 	this->condition = compile_string(condition);
 	this->positive = compile_string(positive);
 	this->negative = compile_string(negative);
+
+	/* move position of string */
+	*str = ((*str) + 4 + strlen(condition) + strlen(positive) + strlen(negative));
 
 	goto done;
 
