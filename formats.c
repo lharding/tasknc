@@ -138,7 +138,7 @@ fmt_field *compile_string(char *fmt) /* {{{ */
 				continue;
 			}
 			/* check for task field */
-			for (i = FIELD_PROJECT; i < FIELD_INDEX; i++)
+			for (i = FIELD_PROJECT; i <= FIELD_INDEX; i++)
 			{
 				if (str_starts_with(fmt, task_field_map[i]))
 				{
@@ -286,7 +286,7 @@ char *eval_format(fmt_field *fmts, task *tsk) /* {{{ */
 		}
 
 		/* move current position */
-		pos += this->right_align ? fieldwidth-fieldlen  : fieldwidth;
+		pos += this->right_align ? fieldlen : fieldwidth;
 	}
 
 	return str;
