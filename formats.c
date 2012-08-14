@@ -319,7 +319,10 @@ static char *field_to_str(fmt_field *this, bool *free_field, task *tsk) /* {{{ *
 			*free_field = false;
 			break;
 		case FIELD_DUE:
-			ret = utc_date(tsk->due);
+			if (tsk->due)
+				ret = utc_date(tsk->due);
+			else
+				ret = strdup(" ");
 			break;
 		case FIELD_PRIORITY:
 			if (tsk->priority)
