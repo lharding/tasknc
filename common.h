@@ -122,6 +122,7 @@ typedef enum {
 
 /* runtime config */
 typedef struct _config {
+	int history_max;
 	int nc_timeout;
 	int statusbar_timeout;
 	log_mode loglvl;

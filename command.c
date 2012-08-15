@@ -19,6 +19,7 @@
 #include "config.h"
 #include "keys.h"
 #include "log.h"
+#include "statusbar.h"
 #include "tasknc.h"
 
 /* local functions */

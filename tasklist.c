@@ -23,7 +23,7 @@
 #include "keys.h"
 #include "log.h"
 #include "sort.h"
-#include "string.h"
+#include "statusbar.h"
 #include "tasklist.h"
 #include "tasknc.h"
 #include "tasks.h"
@@ -95,12 +95,8 @@ void key_tasklist_filter(const char *arg) /* {{{ */
 	check_free(active_filter);
 	if (arg==NULL)
 	{
-		statusbar_message(-1, "filter by: ");
-		set_curses_mode(NCURSES_MODE_STRING);
-		active_filter = calloc(2*cols, sizeof(char));
-		wgetstr(statusbar, active_filter);
+		statusbar_getstr(&active_filter, "filter by: ");
 		wipe_statusbar();
-		set_curses_mode(NCURSES_MODE_STD);
 	}
 	else
 		active_filter = strdup(arg);
@@ -117,12 +113,8 @@ void key_tasklist_modify(const char *arg) /* {{{ */
 
 	if (arg==NULL)
 	{
-		statusbar_message(-1, "modify: ");
-		set_curses_mode(NCURSES_MODE_STRING);
-		argstr = calloc(2*cols, sizeof(char));
-		wgetstr(statusbar, argstr);
+		statusbar_getstr(&argstr, "modify: ");
 		wipe_statusbar();
-		set_curses_mode(NCURSES_MODE_STD);
 	}
 	else
 		argstr = strdup(arg);
@@ -230,14 +222,9 @@ void key_tasklist_search(const char *arg) /* {{{ */
 	check_free(searchstring);
 	if (arg==NULL)
 	{
-		statusbar_message(-1, "search phrase: ");
-		set_curses_mode(NCURSES_MODE_STRING);
-
 		/* store search string  */
-		searchstring = malloc((cols-16)*sizeof(char));
-		wgetstr(statusbar, searchstring);
-		sb_timeout = time(NULL) + 3;
-		set_curses_mode(NCURSES_MODE_STD);
+		statusbar_getstr(&searchstring, "/");
+		wipe_statusbar();
 	}
 	else
 		searchstring = strdup(arg);
@@ -276,14 +263,10 @@ void key_tasklist_sort(const char *arg) /* {{{ */
 	check_free(cfg.sortmode);
 	if (arg==NULL)
 	{
-		statusbar_message(-1, "sort order: ");
-		set_curses_mode(NCURSES_MODE_STRING);
-
-		/* store search string  */
+		/* store sort string  */
 		cfg.sortmode = calloc(cols, sizeof(char));
-		wgetstr(statusbar, cfg.sortmode);
+		statusbar_getstr(&(cfg.sortmode), "sort by: ");
 		sb_timeout = time(NULL) + 3;
-		set_curses_mode(NCURSES_MODE_STD);
 	}
 	else
 		cfg.sortmode = strdup(arg);

@@ -47,8 +47,6 @@ void ncurses_init();
 void print_header();
 void print_version(void);
 void set_curses_mode(const ncurses_mode);
-void statusbar_message(const int, const char *, ...) __attribute__((format(printf,2,3)));
-void statusbar_timeout();
 char *str_trim(char *);
 int umvaddstr(WINDOW *, const int, const int, const char *, ...) __attribute__((format(printf,4,5)));
 int umvaddstr_align(WINDOW *, const int, char *);
