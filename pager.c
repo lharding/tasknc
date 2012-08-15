@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * view.c - view task info
  * for tasknc
  * by mjheagle
@@ -332,3 +330,5 @@ void view_task(task *this) /* {{{ */
 	free(cmdstr);
 	free(title);
 } /* }}} */
+
+// vim: noet ts=4 sw=4 sts=4

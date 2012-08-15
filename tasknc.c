@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * task nc - a ncurses wrapper around taskwarrior
  * by mjheagle
  */
@@ -847,3 +845,5 @@ int main(int argc, char **argv) /* {{{ */
 	tnc_fprintf(logfp, LOG_DEBUG, "exiting");
 	return 0;
 } /* }}} */
+
+// vim: noet ts=4 sw=4 sts=4

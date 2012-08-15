@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * test.h
  * for tasknc
  * by mjheagle
@@ -19,3 +17,5 @@ extern int selline;
 extern task *head;
 
 #endif
+
+// vim: noet ts=4 sw=4 sts=4

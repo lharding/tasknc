@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * sort.c - handle sorting of tasks
  * for tasknc
  * by mjheagle
@@ -222,3 +220,5 @@ void swap_tasks(task *a, task *b) /* {{{ */
 	a->description = b->description;
 	b->description = strtmp;
 } /* }}} */
+
+// vim: noet ts=4 sw=4 sts=4

@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * statusbar.c - statusbar functions
  * for tasknc
  * by mjheagle
@@ -348,3 +346,5 @@ void statusbar_timeout() /* {{{ */
 		wipe_statusbar();
 	}
 } /* }}} */
+
+// vim: noet ts=4 sw=4 sts=4

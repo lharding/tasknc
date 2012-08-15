@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * statusbar.h
  * for tasknc
  * by mjheagle
@@ -22,3 +20,5 @@ extern FILE *logfp;
 extern WINDOW *statusbar;
 
 #endif
+
+// vim: noet ts=4 sw=4 sts=4

@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * formats.h
  * for tasknc
  * by mjheagle
@@ -17,3 +15,5 @@ void compile_formats();
 void free_formats();
 
 #endif
+
+// vim: noet ts=4 sw=4 sts=4

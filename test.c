@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * test.c - testing for tasknc
  * for tasknc
  * by mjheagle
@@ -228,3 +226,5 @@ void test(const char *args) /* {{{ */
 } /* }}} */
 
 #endif
+
+// vim: noet ts=4 sw=4 sts=4

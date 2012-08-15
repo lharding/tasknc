@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * keys.c - handle keyboard input
  * for tasknc
  * by mjheagle
@@ -329,3 +327,5 @@ int remove_keybinds(const int key, const prog_mode mode) /* {{{ */
 
 	return counter;
 } /* }}} */
+
+// vim: noet ts=4 sw=4 sts=4

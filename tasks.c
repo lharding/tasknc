@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * tasks - handle Taskwarrior io and task structs
  * for tasknc
  * by mjheagle
@@ -572,3 +570,5 @@ void task_modify(const char *argstr) /* {{{ */
 
 	free(cmd);
 } /* }}} */
+
+// vim: noet ts=4 sw=4 sts=4

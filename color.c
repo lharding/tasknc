@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * color.c - manage curses colors
  * for tasknc
  * by mjheagle
@@ -445,3 +443,5 @@ int set_default_colors() /* {{{ */
 
 	return 0;
 } /* }}} */
+
+// vim: noet ts=4 sw=4 sts=4

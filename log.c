@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * log.c - logging & stdout
  * for tasknc
  * by mjheagle
@@ -62,3 +60,5 @@ void tnc_fprintf(FILE *fp, const log_mode minloglvl, const char *format, ...) /*
 	/* trailing newline */
 	fputc('\n', fp);
 } /* }}} */
+
+// vim: noet ts=4 sw=4 sts=4

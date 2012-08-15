@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * view.h
  * for tasknc
  * by mjheagle
@@ -39,3 +37,5 @@ extern WINDOW *pager;
 extern WINDOW *statusbar;
 
 #endif
+
+// vim: noet ts=4 sw=4 sts=4

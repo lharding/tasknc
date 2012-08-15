@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * formats.c - evaluating format strings
  * for tasknc
  * by mjheagle
@@ -431,3 +429,5 @@ done:
 
 	return this;
 } /* }}} */
+
+// vim: noet ts=4 sw=4 sts=4

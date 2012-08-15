@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * tasknc.h
  * by mjheagle
  */
@@ -54,3 +52,5 @@ void wipe_screen(WINDOW *, const short, const short);
 void wipe_window(WINDOW *);
 
 #endif
+
+// vim: noet ts=4 sw=4 sts=4

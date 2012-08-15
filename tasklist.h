@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * tasklist.c - tasklist window
  * for tasknc
  * by mjheagle
@@ -57,3 +55,5 @@ extern WINDOW *header;
 extern WINDOW *statusbar;
 
 #endif
+
+// vim: noet ts=4 sw=4 sts=4

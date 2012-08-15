@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * command.c - handle commands
  * for tasknc
  * by mjheagle
@@ -483,3 +481,5 @@ void strip_quotes(char **strptr, bool needsfree) /* {{{ */
 	if (needsfree)
 		free(str);
 } /* }}} */
+
+// vim: noet ts=4 sw=4 sts=4

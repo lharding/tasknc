@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * tasklist.c - tasklist window
  * for tasknc
  * by mjheagle
@@ -629,3 +627,5 @@ done:
 	tasklist_command_message(ret, failmsg, "task add succeeded");
 	free(failmsg);
 } /* }}} */
+
+// vim: noet ts=4 sw=4 sts=4

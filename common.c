@@ -1,6 +1,4 @@
 /*
- * vim: noet ts=4 sw=4 sts=4
- *
  * common.c - generic functions
  * for tasknc
  * by mjheagle
@@ -101,3 +99,5 @@ char *var_value_message(var *v, bool printname) /* {{{ */
 
 	return message;
 } /* }}} */
+
+// vim: noet ts=4 sw=4 sts=4
