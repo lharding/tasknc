@@ -304,7 +304,7 @@ void view_stats() /* {{{ */
 {
 	/* run task stat and page the output */
 	char *cmdstr;
-	asprintf(&cmdstr, "task stat rc._forcecolor=no rc.defaultwidth=%d", cols-4);
+	asprintf(&cmdstr, "task stat rc._forcecolor=no rc.defaultwidth=%d 2>&1", cols-4);
 	const char *title = "task statistics";
 
 	/* run pager */
@@ -320,7 +320,7 @@ void view_task(task *this) /* {{{ */
 	char *cmdstr, *title;
 
 	/* build command and title */
-	asprintf(&cmdstr, "task %s info rc._forcecolor=no rc.defaultwidth=%d", this->uuid, cols-4);
+	asprintf(&cmdstr, "task %s info rc._forcecolor=no rc.defaultwidth=%d 2>&1", this->uuid, cols-4);
 	title = (char *)eval_format(cfg.formats.view_compiled, this);
 
 	/* run pager */
