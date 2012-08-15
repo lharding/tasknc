@@ -259,7 +259,10 @@ char *eval_format(fmt_field *fmts, task *tsk) /* {{{ */
 
 		/* get string data */
 		fieldlen = strlen(tmp);
-		fieldwidth = this->width > 0 ? this->width : fieldlen;
+		if (this->type == FIELD_PROJECT && this->width == 0)
+			fieldwidth = cfg.fieldlengths.project;
+		else
+			fieldwidth = this->width > 0 ? this->width : fieldlen;
 
 		/* realloc string */
 		totallen += fieldwidth;
