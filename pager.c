@@ -52,7 +52,19 @@ void help_window() /* {{{ */
 	line *head, *cur, *last;
 	keybind *this;
 	char *modestr, *keyname;
+	static bool help_running;
 
+	/* check for existing help window */
+	if (help_running)
+	{
+		statusbar_message(cfg.statusbar_timeout, "help window already open");
+		return;
+	}
+
+	/* lock help window */
+	help_running = true;
+
+	/* list keybinds */
 	head = calloc(1, sizeof(line));
 	head->str = strdup("keybinds");
 
@@ -85,6 +97,7 @@ void help_window() /* {{{ */
 
 	pager_window(head, 1, -1, " help");
 	free_lines(head);
+	help_running = false;
 } /* }}} */
 
 void key_pager_close() /* {{{ */
