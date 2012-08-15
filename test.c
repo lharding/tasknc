@@ -81,15 +81,17 @@ void test_compile_fmt() /* {{{ */
 {
 	/* test compiling a format to a series of fields */
 	fmt_field *fmts;
-	char *eval;
+	char *eval, *teststr;
 
-	fmts = compile_string("first $date $-8program_version $4program_name $10program_author ?$search_string?SEARCH?NO? ?$active_filter?FILT?NO? second");
+	teststr = "first $date $-8program_version $4program_name $10program_author ++?$search_string?SEARCH??++ ++?$active_filter??NO?++ second";
+	fmts = compile_string(teststr);
 	eval = eval_format(fmts, NULL);
 	if (eval != NULL)
 		printf("%s\n", eval);
 	else
 		puts("NULL returned");
-	fmts = compile_string("first uuid:'$uuid' pro:'$project' desc:'$description' $badvar second");
+	teststr = "first uuid:'$uuid' pro:'$project' desc:'$description' $badvar second";
+	fmts = compile_string(teststr);
 	eval = eval_format(fmts, head);
 	if (eval != NULL)
 		printf("%s\n", eval);

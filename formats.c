@@ -384,11 +384,19 @@ conditional_fmt_field *parse_conditional(char **str) /* {{{ */
 	/* parse a conditional struct from a string @ position */
 	conditional_fmt_field *this = calloc(1, sizeof(conditional_fmt_field));
 	char *condition = NULL, *positive = NULL, *negative = NULL;
-	int ret;
+	int ret, addlen = 0;
 
-	/* parse fields */
+	/* look for positive and negative */
 	ret = sscanf(*str, "?%m[^?]?%m[^?]?%m[^?]?", &condition, &positive, &negative);
 	if (ret == 3)
+		goto parse;
+	/* look for positive */
+	ret = sscanf(*str, "?%m[^?]?%m[^?]??", &condition, &positive);
+	if (ret == 2)
+		goto parse;
+	/* look for negative */
+	ret = sscanf(*str, "?%m[^?]??%m[^?]?", &condition, &negative);
+	if (ret == 2)
 		goto parse;
 
 	check_free(this);
@@ -402,7 +410,13 @@ parse:
 	this->negative = compile_string(negative);
 
 	/* move position of string */
-	*str = ((*str) + 4 + strlen(condition) + strlen(positive) + strlen(negative));
+	if (condition != NULL)
+		addlen += strlen(condition);
+	if (positive != NULL)
+		addlen += strlen(positive);
+	if (negative != NULL)
+		addlen += strlen(negative);
+	*str = ((*str) + 4 + addlen);
 
 	goto done;
 
