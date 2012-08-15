@@ -388,13 +388,14 @@ conditional_fmt_field *parse_conditional(char **str) /* {{{ */
 
 	/* parse fields */
 	ret = sscanf(*str, "?%m[^?]?%m[^?]?%m[^?]?", &condition, &positive, &negative);
-	if (ret != 3)
-	{
-		check_free(this);
-		this = NULL;
-		goto done;
-	}
+	if (ret == 3)
+		goto parse;
 
+	check_free(this);
+	this = NULL;
+	goto done;
+
+parse:
 	/* compile each field */
 	this->condition = compile_string(condition);
 	this->positive = compile_string(positive);
