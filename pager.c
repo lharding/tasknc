@@ -50,7 +50,7 @@ void help_window() /* {{{ */
 	line *head, *cur, *last;
 	keybind *this;
 	char *modestr, *keyname;
-	static bool help_running;
+	static bool help_running = false;
 
 	/* check for existing help window */
 	if (help_running)
@@ -306,11 +306,23 @@ void view_stats() /* {{{ */
 	char *cmdstr;
 	asprintf(&cmdstr, "task stat rc._forcecolor=no rc.defaultwidth=%d 2>&1", cols-4);
 	const char *title = "task statistics";
+	static bool stats_running = false;
+
+	/* check for an existing stats window */
+	if (stats_running)
+	{
+		statusbar_message(cfg.statusbar_timeout, "stats window already open");
+		return;
+	}
+
+	/* lock stats window */
+	stats_running = true;
 
 	/* run pager */
 	pager_command(cmdstr, title, 1, 1, 4);
 
 	/* clean up */
+	stats_running = false;
 	free(cmdstr);
 } /* }}} */
 
