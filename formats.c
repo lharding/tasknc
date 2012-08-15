@@ -239,23 +239,13 @@ static char *eval_conditional(conditional_fmt_field *this, task *tsk) /* {{{ */
 char *eval_format(fmt_field *fmts, task *tsk) /* {{{ */
 {
 	/* evaluate a format field array */
-	int totallen = 0, pos = 0;
+	int totallen = 1, pos = 0;
 	unsigned int fieldwidth, fieldlen, p;
 	char *str = NULL, *tmp;
 	fmt_field *this;
 	bool free_tmp;
 
-	/* determine field length */
-	for (this = fmts; this != NULL; this = this->next)
-	{
-		if (this->width > 0)
-			totallen += this->width;
-		else
-			totallen += 100;
-	}
-
 	/* build string */
-	str = calloc(totallen, sizeof(char));
 	for (this = fmts; this != NULL; this = this->next)
 	{
 		tmp = NULL;
@@ -270,6 +260,11 @@ char *eval_format(fmt_field *fmts, task *tsk) /* {{{ */
 		/* get string data */
 		fieldlen = strlen(tmp);
 		fieldwidth = this->width > 0 ? this->width : fieldlen;
+
+		/* realloc string */
+		totallen += fieldwidth;
+		str = realloc(str, totallen*sizeof(char));
+		str[totallen-1] = 0;
 
 		/* buffer right-aligned string */
 		if (this->right_align)
