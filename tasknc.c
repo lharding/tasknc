@@ -177,6 +177,7 @@ void cleanup() /* {{{ */
 	}
 	free_colors();
 	free_prompts();
+	free_formats();
 
 	/* close open files */
 	fflush(logfp);

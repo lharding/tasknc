@@ -23,6 +23,7 @@ static void append_field(fmt_field **, fmt_field **, fmt_field *);
 static fmt_field *buffer_field(char *, int);
 static char *eval_conditional(conditional_fmt_field *, task *);
 static char *field_to_str(fmt_field *, bool *, task *);
+static void free_format(fmt_field *);
 static conditional_fmt_field *parse_conditional(char **);
 
 char *append_buffer(char *buffer, const char append, int *bufferlen) /* {{{ */
@@ -351,6 +352,36 @@ static char *field_to_str(fmt_field *this, bool *free_field, task *tsk) /* {{{ *
 	}
 
 	return ret;
+} /* }}} */
+
+void free_format(fmt_field *this) /* {{{ */
+{
+	/* walk through a format list and free its elements */
+	fmt_field *last;
+
+	while (this != NULL)
+	{
+		last = this;
+		this = this->next;
+		if (last->type == FIELD_STRING)
+			free(last->field);
+		if (last->type == FIELD_CONDITIONAL && last->conditional != NULL)
+		{
+			free_format(last->conditional->condition);
+			free_format(last->conditional->positive);
+			free_format(last->conditional->negative);
+			free(last->conditional);
+		}
+		free(last);
+	}
+} /* }}} */
+
+void free_formats() /* {{{ */
+{
+	/* free memory allocated for compiled formats */
+	free_format(cfg.formats.view_compiled);
+	free_format(cfg.formats.title_compiled);
+	free_format(cfg.formats.task_compiled);
 } /* }}} */
 
 conditional_fmt_field *parse_conditional(char **str) /* {{{ */

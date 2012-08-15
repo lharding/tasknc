@@ -14,5 +14,6 @@
 fmt_field *compile_string(char *);
 char *eval_format(fmt_field *, task *);
 void compile_formats();
+void free_formats();
 
 #endif
