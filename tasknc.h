@@ -8,7 +8,7 @@
 
 /* program description */
 #define PROGNAME                        "tasknc"
-#define PROGVERSION                     "v0.7"
+#define PROGVERSION                     "v0.8"
 #define PROGAUTHOR                      "mjheagle"
 
 /* wiping functions */

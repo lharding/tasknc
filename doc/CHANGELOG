@@ -1,5 +1,24 @@
 tasknc changelog
 
+v0.8
+    * increased modularity
+    * color rules
+    * make help and stats windows unique
+    * support stacking pagers
+    * implement a basic test suite
+    * compile format strings for performance improvement
+    * added source and source-cmd
+    * follow task afer it is modified
+    * initialize within ncurses
+    * allow multiple commands to run on a single keypress
+    * implemented custom sort orders
+    * toggle task start/stop
+    * improved string entry
+        * history
+        * moving cursor within string
+        * C-w to delete words
+    * shell and shell_bg commands
+
 v0.7
     * long options
     * improved search
