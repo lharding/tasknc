@@ -291,6 +291,18 @@ void run_command_set(char *args) /* {{{ */
 		goto cleanup;
 	}
 
+	/* check for permission */
+	if (this_var->perms == VAR_RO)
+	{
+		statusbar_message(cfg.statusbar_timeout, "variable is read only: %s", varname);
+		goto cleanup;
+	}
+	if (this_var->perms == VAR_RC && tasklist != NULL)
+	{
+		statusbar_message(cfg.statusbar_timeout, "variable must be set in config: %s", varname);
+		goto cleanup;
+	}
+
 	/* set the value */
 	switch (this_var->type)
 	{

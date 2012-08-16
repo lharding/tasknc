@@ -17,7 +17,7 @@ typedef enum {
 	NCURSES_MODE_STRING
 } ncurses_mode;
 
-/* var struct management */
+/* var type */
 typedef enum {
 	VAR_UNDEF = 0,
 	VAR_CHAR,
@@ -25,11 +25,19 @@ typedef enum {
 	VAR_INT
 } var_type;
 
-/* variable management */
+/* variable permissions */
+typedef enum {
+	VAR_RW = 0,
+	VAR_RC,
+	VAR_RO
+} var_perms;
+
+/* variable management struct */
 typedef struct _var
 {
 	char *name;
 	var_type type;
+	var_perms perms;
 	void *ptr;
 } var;
 
