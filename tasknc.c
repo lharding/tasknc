@@ -505,6 +505,8 @@ const char *name_function(void *function) /* {{{ */
 void ncurses_end(int sig) /* {{{ */
 {
 	/* terminate ncurses */
+	bool print_check_log = true;
+
 	delwin(header);
 	delwin(tasklist);
 	delwin(statusbar);
@@ -525,12 +527,24 @@ void ncurses_end(int sig) /* {{{ */
 			tnc_fprintf(stdout, LOG_ERROR, "killed");
 			tnc_fprintf(logfp, LOG_ERROR, "received SIGKILL, exiting");
 			break;
+		case -1:
+			tnc_fprintf(stdout, LOG_ERROR, "an error has occurred, exiting");
+			break;
 		default:
 			tnc_fprintf(stdout, LOG_DEFAULT, "done");
 			tnc_fprintf(logfp, LOG_DEBUG, "exiting with code %d", sig);
+			print_check_log = false;
 			break;
 	}
 
+	/* tell user to check logs */
+	if (print_check_log)
+	{
+		tnc_fprintf(stdout, LOG_ERROR, "tasknc ended abnormally. please check '%s' for details", LOGFILE);
+		fflush(stdout);
+	}
+
+	/* free memory */
 	cleanup();
 
 	exit(0);
@@ -819,13 +833,6 @@ int main(int argc, char **argv) /* {{{ */
 		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "loading tasks...");
 		head = get_tasks(NULL);
 		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "%d tasks loaded", taskcount);
-		if (head==NULL)
-		{
-			ncurses_end(0);
-			tnc_fprintf(stdout, LOG_WARN, "it appears that your task list is empty");
-			tnc_fprintf(stdout, LOG_WARN, "please add some tasks for %s to manage\n", PROGNAME);
-			return 1;
-		}
 		mvwhline(stdscr, 0, 0, ' ', COLS);
 		mvwhline(stdscr, 1, 0, ' ', COLS);
 		tasklist_window();

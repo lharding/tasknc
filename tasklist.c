@@ -447,6 +447,13 @@ void tasklist_window() /* {{{ */
 		redraw = false;
 		reload = false;
 
+		/* check for an empty task list */
+		if (head == NULL)
+		{
+			tnc_fprintf(logfp, LOG_ERROR, "it appears that your task list is empty. %s does not yet support empty task lists.", PROGNAME);
+			ncurses_end(-1);
+		}
+
 		/* get the screen size */
 		rows = LINES;
 		cols = COLS;
