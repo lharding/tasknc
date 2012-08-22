@@ -222,6 +222,17 @@ int statusbar_getstr(char **str, const char *msg) /* {{{ */
 			case '\n':
 				done = true;
 				break;
+			case 21: /* C-u (discard line) */
+				position--;
+				while (position>=0)
+				{
+					wstr[position] = 0;
+					position--;
+					str_len--;
+				}
+				position = 0;
+				str_len = 0;
+				break;
 			case 23: /* C-w (delete last word) */
 				position--;
 				while (position>=0 && wstr[position] == ' ')
