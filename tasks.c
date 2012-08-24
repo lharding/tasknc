@@ -473,18 +473,35 @@ int task_background_command(const char *cmdfmt) /* {{{ */
 {
 	/* run a command on the current task in the background */
 	task *cur;
-	char *cmdstr;
+	char *cmdstr, *line;
 	FILE *cmd;
 	int ret;
 
 	/* build command */
 	cur = get_task_by_position(selline);
 	asprintf(&cmdstr, cmdfmt, cur->uuid);
+	cmdstr = realloc(cmdstr, (strlen(cmdstr)+6)*sizeof(char));
+	strcat(cmdstr, " 2>&1");
 	tnc_fprintf(logfp, LOG_DEBUG, "running command: %s", cmdstr);
 
 	/* run command in background */
 	cmd = popen(cmdstr, "r");
+	free(cmdstr);
+	while (!feof(cmd))
+	{
+		ret = fscanf(cmd, "%m[^\n]*", &line);
+		if (ret == 1)
+		{
+			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, line);
+			free(line);
+		}
+		else
+			break;
+	}
 	ret = pclose(cmd);
+
+	/* log command return value */
+	tnc_fprintf(logfp, LOG_DEBUG, "command returned: %d", WEXITSTATUS(ret));
 
 	return WEXITSTATUS(ret);
 } /* }}} */
@@ -520,6 +537,9 @@ int task_interactive_command(const char *cmdfmt) /* {{{ */
 
 	/* run command */
 	ret = system(cmdstr);
+
+	/* log command return value */
+	tnc_fprintf(logfp, LOG_DEBUG, "command returned: %d", WEXITSTATUS(ret));
 
 	/* force redraw */
 	reset_prog_mode();
