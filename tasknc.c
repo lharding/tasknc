@@ -822,13 +822,13 @@ int main(int argc, char **argv) /* {{{ */
 	{
 		tnc_fprintf(logfp, LOG_DEBUG, "running gui");
 		ncurses_init();
-		mvwprintw(stdscr, 0, 0, "%s %s", PROGNAME, PROGVERSION);
-		mvwprintw(stdscr, 1, 0, "configuring...");
+		umvaddstr(stdscr, 0, 0, "%s %s", PROGNAME, PROGVERSION);
+		umvaddstr(stdscr, 1, 0, "configuring...");
 		wrefresh(stdscr);
 		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "configuring...");
 		configure();
 		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "configuration complete");
-		mvwprintw(stdscr, 1, 0, "loading tasks...");
+		umvaddstr(stdscr, 1, 0, "loading tasks...");
 		wrefresh(stdscr);
 		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "loading tasks...");
 		head = get_tasks(NULL);
