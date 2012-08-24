@@ -822,6 +822,8 @@ int main(int argc, char **argv) /* {{{ */
 	{
 		tnc_fprintf(logfp, LOG_DEBUG, "running gui");
 		ncurses_init();
+		cols = COLS;
+		rows = LINES;
 		umvaddstr(stdscr, 0, 0, "%s %s", PROGNAME, PROGVERSION);
 		umvaddstr(stdscr, 1, 0, "configuring...");
 		wrefresh(stdscr);
