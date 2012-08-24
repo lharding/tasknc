@@ -10,7 +10,6 @@
 #include "common.h"
 #include "log.h"
 
-
 void tnc_fprintf(FILE *fp, const log_mode minloglvl, const char *format, ...) /* {{{ */
 {
 	/* log a message to the logfile */
@@ -59,6 +58,10 @@ void tnc_fprintf(FILE *fp, const log_mode minloglvl, const char *format, ...) /*
 
 	/* trailing newline */
 	fputc('\n', fp);
+
+	/* fflush if in debug mode */
+	if (minloglvl>LOG_DEBUG)
+		fflush(fp);
 } /* }}} */
 
 // vim: noet ts=4 sw=4 sts=4
