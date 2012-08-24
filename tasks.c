@@ -473,7 +473,7 @@ int task_background_command(const char *cmdfmt) /* {{{ */
 {
 	/* run a command on the current task in the background */
 	task *cur;
-	char *cmdstr;
+	char *cmdstr, *line;
 	FILE *cmd;
 	int ret;
 
@@ -484,6 +484,17 @@ int task_background_command(const char *cmdfmt) /* {{{ */
 
 	/* run command in background */
 	cmd = popen(cmdstr, "r");
+	while (!feof(cmd))
+	{
+		ret = fscanf(cmd, "%m[^\n]*", &line);
+		if (ret == 1)
+		{
+			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, line);
+			free(line);
+		}
+		else
+			break;
+	}
 	ret = pclose(cmd);
 
 	/* log command return value */
