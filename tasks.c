@@ -486,6 +486,9 @@ int task_background_command(const char *cmdfmt) /* {{{ */
 	cmd = popen(cmdstr, "r");
 	ret = pclose(cmd);
 
+	/* log command return value */
+	tnc_fprintf(logfp, LOG_DEBUG, "command returned: %d", WEXITSTATUS(ret));
+
 	return WEXITSTATUS(ret);
 } /* }}} */
 
@@ -520,6 +523,9 @@ int task_interactive_command(const char *cmdfmt) /* {{{ */
 
 	/* run command */
 	ret = system(cmdstr);
+
+	/* log command return value */
+	tnc_fprintf(logfp, LOG_DEBUG, "command returned: %d", WEXITSTATUS(ret));
 
 	/* force redraw */
 	reset_prog_mode();
