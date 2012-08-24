@@ -480,10 +480,13 @@ int task_background_command(const char *cmdfmt) /* {{{ */
 	/* build command */
 	cur = get_task_by_position(selline);
 	asprintf(&cmdstr, cmdfmt, cur->uuid);
+	cmdstr = realloc(cmdstr, (strlen(cmdstr)+6)*sizeof(char));
+	strcat(cmdstr, " 2>&1");
 	tnc_fprintf(logfp, LOG_DEBUG, "running command: %s", cmdstr);
 
 	/* run command in background */
 	cmd = popen(cmdstr, "r");
+	free(cmdstr);
 	while (!feof(cmd))
 	{
 		ret = fscanf(cmd, "%m[^\n]*", &line);
