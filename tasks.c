@@ -307,6 +307,21 @@ task *parse_task(char *line) /* {{{ */
 			ctype = CONTENT_STRING;
 			fieldpos = &(tsk->description);
 		}
+		else if (str_eq(field, "project"))
+		{
+			ctype = CONTENT_STRING;
+			fieldpos = &(tsk->project);
+		}
+		else if (str_eq(field, "tags"))
+		{
+			ctype = CONTENT_STRING;
+			fieldpos = &(tsk->tags);
+		}
+		else if (str_eq(field, "uuid"))
+		{
+			ctype = CONTENT_STRING;
+			fieldpos = &(tsk->uuid);
+		}
 		else if (str_eq(field, "entry"))
 		{
 			ctype = CONTENT_DATE;
