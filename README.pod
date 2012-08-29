@@ -497,6 +497,14 @@ For task formats, the following variables are available:
 
 Keys may be specified as an integer or character. In addition, special key strings are recognized.  HWhen pressing an unbound key, tasknc will display its name in the statusbar message.
 
+=head1 BUGS
+
+Please report bugs on I<http://github.com/mjheagle8/tasknc>.
+
+If you experience a segmentation fault, please try the following to attempt an easy fix: I<make clean; make>
+
+When reporting segmentation faults, please run the I<valgrind_test.sh> script from within the test directory and attach the resulting I<valgrind_errors> file to your bug report.
+
 =head1 AUTHOR
 
 mjheagle E<lt>mjheagle8@gmail.comE<gt>
