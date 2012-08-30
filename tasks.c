@@ -20,13 +20,13 @@
 
 /* local function declarations */
 static time_t strtotime(const char *);
+static void set_date(time_t *, char **);
 
 /* internal data types */
 typedef enum
 {
 	CONTENT_NONE = 0,
 	CONTENT_STRING,
-	CONTENT_DATE,
 	CONTENT_INT,
 	CONTENT_CHAR
 } content_type;
@@ -324,15 +324,9 @@ task *parse_task(char *line) /* {{{ */
 			fieldpos = &(tsk->uuid);
 		}
 		else if (str_eq(field, "entry"))
-		{
-			ctype = CONTENT_DATE;
-			fieldpos = &(tsk->entry);
-		}
+			set_date(&(tsk->entry), &line);
 		else if (str_eq(field, "due"))
-		{
-			ctype = CONTENT_DATE;
-			fieldpos = &(tsk->due);
-		}
+			set_date(&(tsk->due), &line);
 		else if (str_eq(field, "priority"))
 		{
 			ctype = CONTENT_CHAR;
@@ -368,21 +362,6 @@ task *parse_task(char *line) /* {{{ */
 				tnc_fprintf(logfp, LOG_ERROR, "error parsing char @ %s", line);
 			else
 				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "char: %c", *(char *)fieldpos);
-			while (*line != ',' && *line != '}')
-				line++;
-		}
-		else if (ctype == CONTENT_DATE)
-		{
-			char *tmp;
-			ret = sscanf(line, "\"%m[^\"]\"", &tmp);
-			if (ret != 1)
-				tnc_fprintf(logfp, LOG_ERROR, "error parsing time @ %s", line);
-			else
-			{
-				*(time_t *)fieldpos = strtotime(tmp);
-				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "time: %d", (int)*(time_t *)fieldpos);
-				free(tmp);
-			}
 			while (*line != ',' && *line != '}')
 				line++;
 		}
@@ -500,6 +479,23 @@ void remove_char(char *str, char remove) /* {{{ */
 			break;
 	}
 
+} /* }}} */
+
+void set_date(time_t *field, char **line) /* {{{ */
+{
+	/* set a time field from the next contents of line */
+	char *tmp;
+	int ret = sscanf(*line, "\"%m[^\"]\"", &tmp);
+	if (ret != 1)
+		tnc_fprintf(logfp, LOG_ERROR, "error parsing time @ %s", *line);
+	else
+	{
+		*field = strtotime(tmp);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "time: %d", (int)*field);
+		free(tmp);
+	}
+	while (**line != ',' && **line != '}')
+		(*line)++;
 } /* }}} */
 
 void set_position_by_uuid(const char *uuid) /* {{{ */
