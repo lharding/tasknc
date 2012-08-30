@@ -344,7 +344,10 @@ task *parse_task(char *line) /* {{{ */
 				line++;
 			line++;
 		}
-		else
+		free(field);
+
+		/* continue if no data type */
+		if (ctype == CONTENT_NONE)
 			continue;
 
 		/* parse and set variable */
