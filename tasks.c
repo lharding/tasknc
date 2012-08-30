@@ -27,7 +27,8 @@ typedef enum
 	CONTENT_NONE = 0,
 	CONTENT_STRING,
 	CONTENT_DATE,
-	CONTENT_INT
+	CONTENT_INT,
+	CONTENT_CHAR
 } content_type;
 
 char free_task(task *tsk) /* {{{ */
@@ -325,7 +326,12 @@ task *parse_task(char *line) /* {{{ */
 		else if (str_eq(field, "entry"))
 		{
 			ctype = CONTENT_DATE;
-			fieldpos = &(tsk->description);
+			fieldpos = &(tsk->entry);
+		}
+		else if (str_eq(field, "priority"))
+		{
+			ctype = CONTENT_CHAR;
+			fieldpos = &(tsk->priority);
 		}
 		else
 			continue;
@@ -338,6 +344,16 @@ task *parse_task(char *line) /* {{{ */
 				tnc_fprintf(logfp, LOG_ERROR, "error parsing integer @ %s", line);
 			else
 				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "int: %d", (int)(*(int *)fieldpos));
+			while (*line != ',' && *line != '}')
+				line++;
+		}
+		else if (ctype == CONTENT_CHAR)
+		{
+			ret = sscanf(line, "\"%c\"", (char *)fieldpos);
+			if (ret != 1)
+				tnc_fprintf(logfp, LOG_ERROR, "error parsing char @ %s", line);
+			else
+				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "char: %c", (char)(*(char *)fieldpos));
 			while (*line != ',' && *line != '}')
 				line++;
 		}
