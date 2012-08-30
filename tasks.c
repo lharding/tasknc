@@ -328,6 +328,11 @@ task *parse_task(char *line) /* {{{ */
 			ctype = CONTENT_DATE;
 			fieldpos = &(tsk->entry);
 		}
+		else if (str_eq(field, "due"))
+		{
+			ctype = CONTENT_DATE;
+			fieldpos = &(tsk->due);
+		}
 		else if (str_eq(field, "priority"))
 		{
 			ctype = CONTENT_CHAR;
@@ -343,7 +348,7 @@ task *parse_task(char *line) /* {{{ */
 			if (ret != 1)
 				tnc_fprintf(logfp, LOG_ERROR, "error parsing integer @ %s", line);
 			else
-				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "int: %d", (int)(*(int *)fieldpos));
+				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "int: %d", *(int *)fieldpos);
 			while (*line != ',' && *line != '}')
 				line++;
 		}
@@ -353,7 +358,22 @@ task *parse_task(char *line) /* {{{ */
 			if (ret != 1)
 				tnc_fprintf(logfp, LOG_ERROR, "error parsing char @ %s", line);
 			else
-				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "char: %c", (char)(*(char *)fieldpos));
+				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "char: %c", *(char *)fieldpos);
+			while (*line != ',' && *line != '}')
+				line++;
+		}
+		else if (ctype == CONTENT_DATE)
+		{
+			char *tmp;
+			ret = sscanf(line, "\"%m[^\"]\"", &tmp);
+			if (ret != 1)
+				tnc_fprintf(logfp, LOG_ERROR, "error parsing time @ %s", line);
+			else
+			{
+				*(time_t *)fieldpos = strtotime(tmp);
+				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "time: %d", (int)*(time_t *)fieldpos);
+				free(tmp);
+			}
 			while (*line != ',' && *line != '}')
 				line++;
 		}
