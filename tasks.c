@@ -23,13 +23,7 @@ static time_t strtotime(const char *);
 static void set_char(char *, char **);
 static void set_date(time_t *, char **);
 static void set_int(unsigned short *, char **);
-
-/* internal data types */
-typedef enum
-{
-	CONTENT_NONE = 0,
-	CONTENT_STRING,
-} content_type;
+static void set_string(char **, char **);
 
 char free_task(task *tsk) /* {{{ */
 {
@@ -272,9 +266,7 @@ task *parse_task(char *line) /* {{{ */
 	{
 		/* local vars */
 		char *field = NULL;
-		content_type ctype = CONTENT_NONE;
 		int ret;
-		void *fieldpos = NULL;
 
 		/* skip field delimiters */
 		if (*line == ',')
@@ -301,25 +293,13 @@ task *parse_task(char *line) /* {{{ */
 		if (str_eq(field, "id"))
 			set_int(&(tsk->index), &line);
 		else if (str_eq(field, "description"))
-		{
-			ctype = CONTENT_STRING;
-			fieldpos = &(tsk->description);
-		}
+			set_string(&(tsk->description), &line);
 		else if (str_eq(field, "project"))
-		{
-			ctype = CONTENT_STRING;
-			fieldpos = &(tsk->project);
-		}
+			set_string(&(tsk->project), &line);
 		else if (str_eq(field, "tags"))
-		{
-			ctype = CONTENT_STRING;
-			fieldpos = &(tsk->tags);
-		}
+			set_string(&(tsk->tags), &line);
 		else if (str_eq(field, "uuid"))
-		{
-			ctype = CONTENT_STRING;
-			fieldpos = &(tsk->uuid);
-		}
+			set_string(&(tsk->uuid), &line);
 		else if (str_eq(field, "entry"))
 			set_date(&(tsk->entry), &line);
 		else if (str_eq(field, "due"))
@@ -333,30 +313,6 @@ task *parse_task(char *line) /* {{{ */
 			line++;
 		}
 		free(field);
-
-		/* continue if no data type */
-		if (ctype == CONTENT_NONE)
-			continue;
-
-		/* parse and set variable */
-		if (ctype == CONTENT_STRING)
-		{
-			char *tmp = line;
-			do
-			{
-				tmp = strstr(line, "\",");
-				if (tmp == NULL)
-					tmp = strstr(line, "\"}");
-			} while (tmp != NULL && *(tmp-1) == '\\');
-			*(char **)fieldpos = strndup(line+1, tmp-line-1);
-			if (tmp == NULL || *(char **)fieldpos == NULL)
-				tnc_fprintf(logfp, LOG_ERROR, "error parsing string @ %s", line);
-			else
-				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "string: %s", (char *)(*(char **)fieldpos));
-			line += tmp - line;
-			while (*line != ',' && *line != '}')
-				line++;
-		}
 	}
 
 	return tsk;
@@ -492,6 +448,26 @@ void set_int(unsigned short *field, char **line) /* {{{ */
 		tnc_fprintf(logfp, LOG_ERROR, "error parsing integer @ %s", *line);
 	else
 		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "int: %d", *field);
+	while (**line != ',' && **line != '}')
+		(*line)++;
+} /* }}} */
+
+void set_string(char **field, char **line) /* {{{ */
+{
+	/* set an string field from the next contents of line */
+	char *tmp = *line;
+	do
+	{
+		tmp = strstr(*line, "\",");
+		if (tmp == NULL)
+			tmp = strstr(*line, "\"}");
+	} while (tmp != NULL && *(tmp-1) == '\\');
+	*field = strndup((*line)+1, tmp-(*line)-1);
+	if (tmp == NULL || *field == NULL)
+		tnc_fprintf(logfp, LOG_ERROR, "error parsing string @ %s", *line);
+	else
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "string: %s", *field);
+	*line += tmp - *line;
 	while (**line != ',' && **line != '}')
 		(*line)++;
 } /* }}} */
