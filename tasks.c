@@ -21,6 +21,7 @@
 /* local function declarations */
 static time_t strtotime(const char *);
 static void set_date(time_t *, char **);
+static void set_char(char *, char **);
 
 /* internal data types */
 typedef enum
@@ -28,7 +29,6 @@ typedef enum
 	CONTENT_NONE = 0,
 	CONTENT_STRING,
 	CONTENT_INT,
-	CONTENT_CHAR
 } content_type;
 
 char free_task(task *tsk) /* {{{ */
@@ -328,10 +328,7 @@ task *parse_task(char *line) /* {{{ */
 		else if (str_eq(field, "due"))
 			set_date(&(tsk->due), &line);
 		else if (str_eq(field, "priority"))
-		{
-			ctype = CONTENT_CHAR;
-			fieldpos = &(tsk->priority);
-		}
+			set_char(&(tsk->priority), &line);
 		else if (str_eq(field, "annotations"))
 		{
 			while (*line != ']')
@@ -352,16 +349,6 @@ task *parse_task(char *line) /* {{{ */
 				tnc_fprintf(logfp, LOG_ERROR, "error parsing integer @ %s", line);
 			else
 				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "int: %d", *(int *)fieldpos);
-			while (*line != ',' && *line != '}')
-				line++;
-		}
-		else if (ctype == CONTENT_CHAR)
-		{
-			ret = sscanf(line, "\"%c\"", (char *)fieldpos);
-			if (ret != 1)
-				tnc_fprintf(logfp, LOG_ERROR, "error parsing char @ %s", line);
-			else
-				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "char: %c", *(char *)fieldpos);
 			while (*line != ',' && *line != '}')
 				line++;
 		}
@@ -479,6 +466,18 @@ void remove_char(char *str, char remove) /* {{{ */
 			break;
 	}
 
+} /* }}} */
+
+void set_char(char *field, char **line) /* {{{ */
+{
+	/* set a character field from the next contents of line */
+	int ret = sscanf(*line, "\"%c\"", field);
+	if (ret != 1)
+		tnc_fprintf(logfp, LOG_ERROR, "error parsing char @ %s", *line);
+	else
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "char: %c", *field);
+	while (**line != ',' && **line != '}')
+		(*line)++;
 } /* }}} */
 
 void set_date(time_t *field, char **line) /* {{{ */
