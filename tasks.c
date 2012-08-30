@@ -20,6 +20,10 @@
 
 /* local function declarations */
 static time_t strtotime(const char *);
+static void set_char(char *, char **);
+static void set_date(time_t *, char **);
+static void set_int(unsigned short *, char **);
+static void set_string(char **, char **);
 
 char free_task(task *tsk) /* {{{ */
 {
@@ -187,7 +191,6 @@ task *get_tasks(char *uuid) /* {{{ */
 	free(line);
 	pclose(cmd);
 
-
 	/* sort tasks */
 	if (new_head!=NULL)
 		sort_wrapper(new_head);
@@ -252,103 +255,67 @@ task *malloc_task(void) /* {{{ */
 task *parse_task(char *line) /* {{{ */
 {
 	task *tsk = malloc_task();
-	char *token, *tmpcontent;
-	tmpcontent = NULL;
-	int tokencounter = 0;
 
 	/* detect lines that are not json */
-	if (line[0]!='{')
+	if (*line!='{')
 		return (task *) -1;
+	line++;
 
 	/* parse json */
-	token = strtok(line, ",");
-	while (token != NULL)
+	while (*line != 0)
 	{
-		char *field, *content, *divider, endchar;
+		/* local vars */
+		char *field = NULL;
+		int ret;
 
-		/* increment counter */
-		tokencounter++;
-
-		/* determine field name */
-		if (token[0] == '{')
-			token++;
-		if (token[0] == '"')
-			token++;
-		divider = strchr(token, ':');
-		if (divider==NULL)
-			break;
-		(*divider) = '\0';
-		(*(divider-1)) = '\0';
-		field = token;
-
-		/* get content */
-		content = divider+2;
-		if (str_eq(field, "tags") || str_eq(field, "annotations"))
-			endchar = ']';
-		else if (str_eq(field, "id"))
+		/* skip field delimiters */
+		if (*line == ',')
 		{
-			sscanf(content-1, "%hd", &(tsk->index));
-			token = strtok(NULL, ",");
+			line++;
 			continue;
 		}
-		else
-			endchar = '"';
 
-		divider = strchr(content, endchar);
-		if (divider!=NULL)
-			(*divider) = '\0';
-		else /* handle commas */
+		/* terminate at end of line */
+		if (*line == '}')
+			break;
+
+		/* get field */
+		ret = sscanf(line, "\"%m[^\"]\":", &field);
+		if (ret != 1)
 		{
-			tmpcontent = strdup(content);
-			do
-			{
-				token = strtok(NULL, ",");
-				tmpcontent = realloc(tmpcontent, (strlen(tmpcontent)+strlen(token)+5)*sizeof(char));
-				strcat(tmpcontent, ",");
-				strcat(tmpcontent, token);
-				divider = strchr(tmpcontent, endchar);
-			} while (divider==NULL);
-			(*divider) = '\0';
-			content = tmpcontent;
+			tnc_fprintf(logfp, LOG_ERROR, "error parsing task @ %s", line);
+			return (task *) -1;
 		}
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "field: %s", field);
+		line += strlen(field) + 3;
 
-		/* log content */
-		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "field: %-11s content: %s", field, content);
-
-		/* handle data */
-		if (str_eq(field, "uuid"))
-			tsk->uuid = strdup(content);
-		else if (str_eq(field, "project"))
-			tsk->project = strdup(content);
+		/* determine how to handle content */
+		if (str_eq(field, "id"))
+			set_int(&(tsk->index), &line);
 		else if (str_eq(field, "description"))
-			tsk->description = strdup(content);
-		else if (str_eq(field, "priority"))
-			tsk->priority = content[0];
-		else if (str_eq(field, "due"))
-			tsk->due = strtotime(content);
-		else if (str_eq(field, "start"))
-			tsk->start = strtotime(content);
+			set_string(&(tsk->description), &line);
+		else if (str_eq(field, "project"))
+			set_string(&(tsk->project), &line);
 		else if (str_eq(field, "tags"))
-			tsk->tags = strdup(content);
-
-		/* free tmpcontent if necessary */
-		if (tmpcontent!=NULL)
+			set_string(&(tsk->tags), &line);
+		else if (str_eq(field, "uuid"))
+			set_string(&(tsk->uuid), &line);
+		else if (str_eq(field, "entry"))
+			set_date(&(tsk->entry), &line);
+		else if (str_eq(field, "due"))
+			set_date(&(tsk->due), &line);
+		else if (str_eq(field, "priority"))
+			set_char(&(tsk->priority), &line);
+		else if (str_eq(field, "annotations"))
 		{
-			free(tmpcontent);
-			tmpcontent = NULL;
+			while (*line != ']')
+				line++;
+			line++;
 		}
-
-		/* move to the next token */
-		token = strtok(NULL, ",");
+		free(field);
 	}
 
-	if (tokencounter<2)
-	{
-		free_tasks(tsk);
-		return NULL;
-	}
-	else
-		return tsk;
+	return tsk;
 } /* }}} */
 
 void reload_task(task *this) /* {{{ */
@@ -442,6 +409,67 @@ void remove_char(char *str, char remove) /* {{{ */
 			break;
 	}
 
+} /* }}} */
+
+void set_char(char *field, char **line) /* {{{ */
+{
+	/* set a character field from the next contents of line */
+	int ret = sscanf(*line, "\"%c\"", field);
+	if (ret != 1)
+		tnc_fprintf(logfp, LOG_ERROR, "error parsing char @ %s", *line);
+	else
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "char: %c", *field);
+	while (**line != ',' && **line != '}')
+		(*line)++;
+} /* }}} */
+
+void set_date(time_t *field, char **line) /* {{{ */
+{
+	/* set a time field from the next contents of line */
+	char *tmp;
+	int ret = sscanf(*line, "\"%m[^\"]\"", &tmp);
+	if (ret != 1)
+		tnc_fprintf(logfp, LOG_ERROR, "error parsing time @ %s", *line);
+	else
+	{
+		*field = strtotime(tmp);
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "time: %d", (int)*field);
+		free(tmp);
+	}
+	while (**line != ',' && **line != '}')
+		(*line)++;
+} /* }}} */
+
+void set_int(unsigned short *field, char **line) /* {{{ */
+{
+	/* set an integer field from the next contents of line */
+	int ret = sscanf(*line, "%hd", field);
+	if (ret != 1)
+		tnc_fprintf(logfp, LOG_ERROR, "error parsing integer @ %s", *line);
+	else
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "int: %d", *field);
+	while (**line != ',' && **line != '}')
+		(*line)++;
+} /* }}} */
+
+void set_string(char **field, char **line) /* {{{ */
+{
+	/* set an string field from the next contents of line */
+	char *tmp = *line;
+	do
+	{
+		tmp = strstr(*line, "\",");
+		if (tmp == NULL)
+			tmp = strstr(*line, "\"}");
+	} while (tmp != NULL && *(tmp-1) == '\\');
+	*field = strndup((*line)+1, tmp-(*line)-1);
+	if (tmp == NULL || *field == NULL)
+		tnc_fprintf(logfp, LOG_ERROR, "error parsing string @ %s", *line);
+	else
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "string: %s", *field);
+	*line += tmp - *line;
+	while (**line != ',' && **line != '}')
+		(*line)++;
 } /* }}} */
 
 void set_position_by_uuid(const char *uuid) /* {{{ */
