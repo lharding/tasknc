@@ -338,6 +338,12 @@ task *parse_task(char *line) /* {{{ */
 			ctype = CONTENT_CHAR;
 			fieldpos = &(tsk->priority);
 		}
+		else if (str_eq(field, "annotations"))
+		{
+			while (*line != ']')
+				line++;
+			line++;
+		}
 		else
 			continue;
 
