@@ -20,15 +20,15 @@
 
 /* local function declarations */
 static time_t strtotime(const char *);
-static void set_date(time_t *, char **);
 static void set_char(char *, char **);
+static void set_date(time_t *, char **);
+static void set_int(unsigned short *, char **);
 
 /* internal data types */
 typedef enum
 {
 	CONTENT_NONE = 0,
 	CONTENT_STRING,
-	CONTENT_INT,
 } content_type;
 
 char free_task(task *tsk) /* {{{ */
@@ -299,10 +299,7 @@ task *parse_task(char *line) /* {{{ */
 
 		/* determine how to handle content */
 		if (str_eq(field, "id"))
-		{
-			ctype = CONTENT_INT;
-			fieldpos = &(tsk->index);
-		}
+			set_int(&(tsk->index), &line);
 		else if (str_eq(field, "description"))
 		{
 			ctype = CONTENT_STRING;
@@ -342,17 +339,7 @@ task *parse_task(char *line) /* {{{ */
 			continue;
 
 		/* parse and set variable */
-		if (ctype == CONTENT_INT)
-		{
-			ret = sscanf(line, "%d", (int *)fieldpos);
-			if (ret != 1)
-				tnc_fprintf(logfp, LOG_ERROR, "error parsing integer @ %s", line);
-			else
-				tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "int: %d", *(int *)fieldpos);
-			while (*line != ',' && *line != '}')
-				line++;
-		}
-		else if (ctype == CONTENT_STRING)
+		if (ctype == CONTENT_STRING)
 		{
 			char *tmp = line;
 			do
@@ -493,6 +480,18 @@ void set_date(time_t *field, char **line) /* {{{ */
 		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "time: %d", (int)*field);
 		free(tmp);
 	}
+	while (**line != ',' && **line != '}')
+		(*line)++;
+} /* }}} */
+
+void set_int(unsigned short *field, char **line) /* {{{ */
+{
+	/* set an integer field from the next contents of line */
+	int ret = sscanf(*line, "%hd", field);
+	if (ret != 1)
+		tnc_fprintf(logfp, LOG_ERROR, "error parsing integer @ %s", *line);
+	else
+		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "int: %d", *field);
 	while (**line != ',' && **line != '}')
 		(*line)++;
 } /* }}} */
