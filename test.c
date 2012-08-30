@@ -168,7 +168,7 @@ void test_set_var() /* {{{ */
 {
 	/* test the ability to set a variable */
 	char *teststr = strdup("  set \t task_version   0.6.9  ");
-	char *testint = strdup("  set \t nc_timeout \t 6969\t\t \n ");
+	char *testint = strdup("  set \t curs_timeout \t 6969\t\t \n ");
 
 	stdout = devnull;
 	handle_command(teststr);
