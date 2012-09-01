@@ -506,6 +506,7 @@ void ncurses_end(int sig) /* {{{ */
 {
 	/* terminate ncurses */
 	bool print_check_log = true;
+	char *logpath;
 
 	delwin(header);
 	delwin(tasklist);
@@ -540,7 +541,9 @@ void ncurses_end(int sig) /* {{{ */
 	/* tell user to check logs */
 	if (print_check_log)
 	{
-		tnc_fprintf(stdout, LOG_ERROR, "tasknc ended abnormally. please check '%s' for details", LOGFILE);
+		asprintf(&logpath, LOGFILE, getenv("USER"));
+		tnc_fprintf(stdout, LOG_ERROR, "tasknc ended abnormally. please check '%s' for details", logpath);
+		free(logpath);
 		fflush(stdout);
 	}
 
@@ -768,9 +771,12 @@ int main(int argc, char **argv) /* {{{ */
 	int c;
 	bool debug = false;
 	char *debugopts = NULL;
+	char *logpath;
 
 	/* open log */
-	logfp = fopen(LOGFILE, "a");
+	asprintf(&logpath, LOGFILE, getenv("USER"));
+	logfp = fopen(logpath, "a");
+	free(logpath);
 	tnc_fprintf(logfp, LOG_DEBUG, "%s started", PROGNAME);
 
 	/* set defaults */

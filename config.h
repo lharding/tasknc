@@ -13,7 +13,7 @@
 #define PROJECTLENGTH           64
 #define DESCRIPTIONLENGTH       512
 #define TIMELENGTH              32
-#define LOGFILE                 "/tmp/.tasknc_runlog"
+#define LOGFILE                 "/tmp/.tasknc_runlog_%s"
 
 /* static field lengths */
 #define UUIDLENGTH                      38
