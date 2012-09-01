@@ -297,7 +297,14 @@ task *parse_task(char *line) /* {{{ */
 		else if (str_eq(field, "project"))
 			set_string(&(tsk->project), &line);
 		else if (str_eq(field, "tags"))
-			set_string(&(tsk->tags), &line);
+		{
+			char *pos = line;
+			while (*pos != ']')
+				pos++;
+			tsk->tags = strndup(line+1, pos-line-1);
+			line = pos+1;
+			tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "string: %s", tsk->tags);
+		}
 		else if (str_eq(field, "uuid"))
 			set_string(&(tsk->uuid), &line);
 		else if (str_eq(field, "entry"))
