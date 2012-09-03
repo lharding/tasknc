@@ -202,7 +202,8 @@ void configure(void) /* {{{ */
 	cfg.formats.view = strdup(" task info");
 
 	/* set initial filter */
-	active_filter = strdup("status:pending");
+	if (!active_filter)
+		active_filter = strdup("status:pending");
 
 	/* get task version */
 	cmd = popen("task --version", "r");
