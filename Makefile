@@ -23,7 +23,7 @@ endif
 all: $(OUT) doc
 
 doc: tasknc.1
-tasknc.1: README.pod
+tasknc.1: doc/manual.pod
 		pod2man --section=1 --center="tasknc Manual" --name="tasknc" --release="tasknc ${VERSION}" $< > $@
 
 install: tasknc tasknc.1
