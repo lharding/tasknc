@@ -6,6 +6,7 @@
 
 #define _GNU_SOURCE
 #include <curses.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -536,9 +537,13 @@ int task_background_command(const char *cmdfmt) /* {{{ */
 	ret = pclose(cmd);
 
 	/* log command return value */
-	tnc_fprintf(logfp, LOG_DEBUG, "command returned: %d", WEXITSTATUS(ret));
+	if (WEXITSTATUS(ret) == 0 || WEXITSTATUS(ret) == 128+SIGPIPE)
+		ret = 0;
+	else
+		ret = WEXITSTATUS(ret);
+	tnc_fprintf(logfp, LOG_DEBUG, "command returned: %d", ret);
 
-	return WEXITSTATUS(ret);
+	return ret;
 } /* }}} */
 
 void task_count() /* {{{ */
