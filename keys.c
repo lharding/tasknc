@@ -155,7 +155,13 @@ const int nkeys = sizeof(keymaps)/sizeof(struct keymap);
 
 void add_int_keybind(const int key, void *function, const int argint, const prog_mode mode) /* {{{ */
 {
-	/* convert integer to string, then add keybind */
+	/**
+	 * convert argint to a string, then add keybind
+	 * key      - the key to be bound
+	 * function - the function to be bound
+	 * argint   - the argument to the function
+	 * mode     - the mode the bind applies in
+	 */
 	char *argstr;
 
 	asprintf(&argstr, "%d", argint);
@@ -165,7 +171,13 @@ void add_int_keybind(const int key, void *function, const int argint, const prog
 
 void add_keybind(const int key, void *function, char *arg, const prog_mode mode) /* {{{ */
 {
-	/* add a keybind to the list of binds */
+	/**
+	 * add a keybind to the linked list of keybinds
+	 * key      - the key to be bound
+	 * function - the function to be bound
+	 * arg      - the argument to the function
+	 * mode     - the mode the bind applies in
+	 */
 	keybind *this_bind, *new;
 	int n = 0;
 	char *modestr, *name;
@@ -206,6 +218,11 @@ void add_keybind(const int key, void *function, char *arg, const prog_mode mode)
 void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 {
 	/* handle a key press on the main screen */
+	/**
+	 * handle a key pressed
+	 * c    - the key pressed
+	 * mode - the mode the key was pressed during
+	 */
 	keybind *this_bind;
 	char *modestr, *keyname;
 	bool match = false;
@@ -287,7 +304,7 @@ char *name_key(const int val) /* {{{ */
 
 int parse_key(const char *keystr) /* {{{ */
 {
-	/* determine a key value from a string specifier */
+	/* parse a key value from a string specifier */
 	int key, i;
 
 	/* try for a mapped key */
@@ -307,7 +324,11 @@ int parse_key(const char *keystr) /* {{{ */
 
 int remove_keybinds(const int key, const prog_mode mode) /* {{{ */
 {
-	/* remove all keybinds to key */
+	/**
+	 * remove all keybinds to key
+	 * key  - which key to unbind
+	 * mode - what mode to unbind a key in
+	 */
 	int counter = 0;
 	keybind *this, *last = NULL, *next;
 
