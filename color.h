@@ -10,13 +10,7 @@
 #include <stdio.h>
 #include "common.h"
 
-typedef enum
-{
-	OBJECT_TASK = 0,
-	OBJECT_HEADER,
-	OBJECT_ERROR,
-	OBJECT_NONE,
-} color_object;
+typedef enum { OBJECT_TASK, OBJECT_HEADER, OBJECT_ERROR, OBJECT_NONE } color_object;
 
 short add_color_rule(const color_object, const char *, const short, const short);
 void free_colors();

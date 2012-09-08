@@ -11,26 +11,14 @@
 #include <time.h>
 
 /* ncurses settings */
-typedef enum {
-	NCURSES_MODE_STD = 0,
-	NCURSES_MODE_STD_BLOCKING,
-	NCURSES_MODE_STRING
-} ncurses_mode;
+typedef enum { NCURSES_MODE_STD, NCURSES_MODE_STD_BLOCKING,
+	NCURSES_MODE_STRING} ncurses_mode;
 
 /* var type */
-typedef enum {
-	VAR_UNDEF = 0,
-	VAR_CHAR,
-	VAR_STR,
-	VAR_INT
-} var_type;
+typedef enum { VAR_UNDEF, VAR_CHAR, VAR_STR, VAR_INT } var_type;
 
 /* variable permissions */
-typedef enum {
-	VAR_RW = 0,
-	VAR_RC,
-	VAR_RO
-} var_perms;
+typedef enum { VAR_RW, VAR_RC, VAR_RO } var_perms;
 
 /* variable management struct */
 typedef struct _var
@@ -64,26 +52,12 @@ typedef struct _task
 } task;
 
 /* program modes */
-typedef enum {
-	MODE_TASKLIST = 0,
-	MODE_PAGER,
-	MODE_ANY
-} prog_mode;
+typedef enum { MODE_TASKLIST, MODE_PAGER, MODE_ANY } prog_mode;
 
 /* format fields */
-typedef enum
-{
-	FIELD_DATE = 0,
-	FIELD_PROJECT,
-	FIELD_DESCRIPTION,
-	FIELD_DUE,
-	FIELD_PRIORITY,
-	FIELD_UUID,
-	FIELD_INDEX,
-	FIELD_STRING,
-	FIELD_VAR,
-	FIELD_CONDITIONAL
-} fmt_field_type;
+typedef enum { FIELD_DATE, FIELD_PROJECT, FIELD_DESCRIPTION, FIELD_DUE,
+	FIELD_PRIORITY, FIELD_UUID, FIELD_INDEX, FIELD_STRING, FIELD_VAR,
+	FIELD_CONDITIONAL } fmt_field_type;
 
 /* format field struct */
 typedef struct _fmt_field
@@ -117,14 +91,8 @@ typedef struct _funcmap
 } funcmap;
 
 /* log levels */
-typedef enum {
-	LOG_DEFAULT = 0,
-	LOG_ERROR,
-	LOG_WARN,
-	LOG_INFO,
-	LOG_DEBUG,
-	LOG_DEBUG_VERBOSE
-} log_mode;
+typedef enum { LOG_DEFAULT, LOG_ERROR, LOG_WARN, LOG_INFO, LOG_DEBUG,
+	LOG_DEBUG_VERBOSE } log_mode;
 
 /* runtime config */
 typedef struct _config {
