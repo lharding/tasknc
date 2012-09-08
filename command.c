@@ -92,14 +92,17 @@ void handle_command(char *cmdstr) /* {{{ */
 	else if (str_eq(command, "dump"))
 	{
 		task *this = head;
+		int counter = 0;
 		while (this!=NULL)
 		{
-			tnc_fprintf(logfp, -1, "uuid: %s", this->uuid);
-			tnc_fprintf(logfp, -1, "description: %s", this->description);
-			tnc_fprintf(logfp, -1, "project: %s", this->project);
-			tnc_fprintf(logfp, -1, "tags: %s", this->tags);
+			tnc_fprintf(logfp, 0, "uuid: %s", this->uuid);
+			tnc_fprintf(logfp, 0, "description: %s", this->description);
+			tnc_fprintf(logfp, 0, "project: %s", this->project);
+			tnc_fprintf(logfp, 0, "tags: %s", this->tags);
 			this = this->next;
+			counter++;
 		}
+		tnc_fprintf(logfp, 0, "dumped %d tasks", counter);
 	}
 	else
 	{
