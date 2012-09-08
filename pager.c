@@ -31,7 +31,7 @@ bool pager_done;
 
 void free_lines(line *head) /* {{{ */
 {
-	/* iterate through lines list and free all elements */
+	/* iterate through linked list of lines and free all elements */
 	line *cur, *last;
 
 	cur = head;
@@ -100,6 +100,7 @@ void help_window() /* {{{ */
 
 void key_pager_close() /* {{{ */
 {
+	/* close the pager on keypress */
 	pager_done = true;
 } /* }}} */
 
@@ -135,7 +136,14 @@ void key_pager_scroll_up() /* {{{ */
 
 void pager_command(const char *cmdstr, const char *title, const bool fullscreen, const int head_skip, const int tail_skip) /* {{{ */
 {
-	/* run a command and page through its results */
+	/**
+	 * run a command and page through its results
+	 * cmdstr     - the command to be run
+	 * title      - the title of the pager
+	 * fullscreen - whether the pager should be fullscreen
+	 * head_skip  - how many lines to skip at the beginning of output
+	 * tail_skip  - how many lines to skip at the end of output
+	 */
 	FILE *cmd;
 	char *str;
 	int count = 0, maxlen = 0, len;
@@ -184,7 +192,13 @@ void pager_command(const char *cmdstr, const char *title, const bool fullscreen,
 
 void pager_window(line *head, const bool fullscreen, int nlines, char *title) /* {{{ */
 {
-	/* page through a series of lines */
+	/**
+	 * page through a linked list of lines
+	 * head       - the first line to print
+	 * fullscreen - whether the pager should be fullscreen
+	 * nlines     - the number of lines that will be printed
+	 * title      - the title of the pager
+	 */
 	int startx, starty, lineno, c, taskheight;
 	line *tmp;
 	offset = 0;
@@ -302,7 +316,7 @@ void pager_window(line *head, const bool fullscreen, int nlines, char *title) /*
 
 void view_stats() /* {{{ */
 {
-	/* run task stat and page the output */
+	/* run `task stat` and page the output */
 	char *cmdstr;
 	asprintf(&cmdstr, "task stat rc._forcecolor=no rc.defaultwidth=%d 2>&1", cols-4);
 	const char *title = "task statistics";
@@ -328,7 +342,7 @@ void view_stats() /* {{{ */
 
 void view_task(task *this) /* {{{ */
 {
-	/* read in task info and print it to a window */
+	/* run `task info` and print it to a window */
 	char *cmdstr, *title;
 
 	/* build command and title */
