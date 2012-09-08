@@ -15,7 +15,12 @@
 #include "log.h"
 #include "tasks.h"
 
-/* color structure */
+/**
+ * color structure
+ * pair - the color pair number to be passed to COLOR_PAIR
+ * fg   - the number of the foreground color
+ * bg   - the number of the background color
+ */
 typedef struct _color
 {
 	short pair;
@@ -23,7 +28,13 @@ typedef struct _color
 	short bg;
 } color;
 
-/* color rule structure */
+/**
+ * color rule structure
+ * pair   - the color pair number to be passed to COLOR_PAIR
+ * rule   - the string containing the rule to be evaluated
+ * object - the type of item that is being colored
+ * next   - the next color_rule struct
+ */
 typedef struct _color_rule
 {
 	short pair;

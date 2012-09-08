@@ -17,7 +17,13 @@
 #include "statusbar.h"
 #include "tasknc.h"
 
-/* prompt index */
+/**
+ * prompt index structure  to contain records for a prompt
+ * prompt - the string identifying the prompt
+ * history - an array of entries previously used for this prompt
+ * char_history - a cached conversion of the above array to char's
+ * next - the next prompt index structure
+ */
 typedef struct _prompt_index
 {
 	char *prompt;

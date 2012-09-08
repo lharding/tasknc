@@ -11,6 +11,11 @@
 #include <stdbool.h>
 #include "common.h"
 
+/**
+ * line struct (basic string vector struct)
+ * str  - the string contained
+ * next - the next line struct
+ */
 typedef struct _line
 {
 	char *str;

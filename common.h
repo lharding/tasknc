@@ -20,7 +20,13 @@ typedef enum { VAR_UNDEF, VAR_CHAR, VAR_STR, VAR_INT } var_type;
 /* variable permissions */
 typedef enum { VAR_RW, VAR_RC, VAR_RO } var_perms;
 
-/* variable management struct */
+/**
+ * variable container struct
+ * name  - the name of the variable
+ * type  - the type of variable
+ * perms - the permissions of the variable
+ * ptr   - a pointer to the variable
+ */
 typedef struct _var
 {
 	char *name;
@@ -29,7 +35,14 @@ typedef struct _var
 	void *ptr;
 } var;
 
-/* task definition */
+/**
+ * task struct - the main structure in this program!
+ * the fields thru description are data from the taskwarrior json
+ * selpair - the cached color pair to be used when this task is selected
+ * pair    - the cached color pair to be used when this task is not selected
+ * prev    - the previous task struct
+ * next    - the next task struct
+ */
 typedef struct _task
 {
 	/* taskwarrior data */
@@ -59,7 +72,17 @@ typedef enum { FIELD_DATE, FIELD_PROJECT, FIELD_DESCRIPTION, FIELD_DUE,
 	FIELD_PRIORITY, FIELD_UUID, FIELD_INDEX, FIELD_STRING, FIELD_VAR,
 	FIELD_CONDITIONAL } fmt_field_type;
 
-/* format field struct */
+/**
+ * format field struct - for describing portions of format strings
+ * type        - the field type which is to be printed
+ * variable    - variable struct
+ * field       - raw string data
+ * conditional - a structure describing a conditional
+ * length      - the length of the data contained
+ * width       - the width that the field will be padded or cut to
+ * right_align - whether the field should be right aligned
+ * next        - the next format field struct
+ */
 typedef struct _fmt_field
 {
 	fmt_field_type type;
@@ -72,7 +95,12 @@ typedef struct _fmt_field
 	struct _fmt_field *next;
 } fmt_field;
 
-/* conditional form field struct */
+/**
+ * conditional format field struct
+ * condition - the condition to be evaluated
+ * positive  - the string to be printed if condition was true
+ * negative  - the string to be printed if condition was false
+ */
 typedef struct _conditional_fmt_field
 {
 	fmt_field *condition;
@@ -81,7 +109,13 @@ typedef struct _conditional_fmt_field
 } conditional_fmt_field;
 
 
-/* function maps */
+/**
+ * function maps - map between a function name, mode and pointer
+ * name     - the name of the function
+ * function - a pointer to the function
+ * argn     - the number of arguments the function takes
+ * mode     - the mode that this function should be run in
+ */
 typedef struct _funcmap
 {
 	char *name;
@@ -94,7 +128,18 @@ typedef struct _funcmap
 typedef enum { LOG_DEFAULT, LOG_ERROR, LOG_WARN, LOG_INFO, LOG_DEBUG,
 	LOG_DEBUG_VERBOSE } log_mode;
 
-/* runtime config */
+/**
+ * runtime configuration struct
+ * history_max       - the max number of history items stored (used in prompt history)
+ * nc_timeout        - the time ncurses will wait for a keypress in ms
+ * statusbar_timeout - the time a statusbar message will display before timing out
+ * loglvl            - which log messages should be printed
+ * version           - the task warrior version being wrapped
+ * sortmode          - the active sort mode
+ * follow_task       - whether a task will be followed when it moves in the list
+ * formats           - string and compiled printing formats
+ * fieldlengths      - width of some task data fields
+ */
 typedef struct _config {
 	int history_max;
 	int nc_timeout;

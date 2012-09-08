@@ -17,7 +17,11 @@
 #include "tasklist.h"
 #include "tasknc.h"
 
-/* keymap struct */
+/**
+ * keymap struct to map between key values and names
+ * value - the number of the key
+ * name  - the string representing the key
+ */
 struct keymap
 {
 	int value;
