@@ -58,7 +58,12 @@ static int set_default_colors();
 
 short add_color_pair(short askpair, short fg, short bg) /* {{{ */
 {
-	/* initialize a color pair and return its pair number */
+	/**
+	 * initialize a color pair and return its pair number
+	 * askpair - the pair number being requested (<=0 for next free)
+	 * fg      - the foreground color to be stored
+	 * bg      - the background color to be stored
+	 */
 	short pair = 1;
 
 	/* pick a color number if none is specified */
@@ -90,7 +95,16 @@ short add_color_pair(short askpair, short fg, short bg) /* {{{ */
 
 short add_color_rule(const color_object object, const char *rule, const short fg, const short bg) /* {{{ */
 {
-	/* add or overwrite a color rule for the provided conditions */
+	/**
+	 * add or overwrite a color rule for the provided conditions
+	 * if the rule is unique, create a new rule
+	 * if the rule is not unique, overwrite the colors being set
+	 *
+	 * object - the type of object this rule applies to
+	 * rule   - a string containing the rule to be evaluated
+	 * fg     - the foreground color to be set when rule is true
+	 * bg     - the background color to be set when rule is true
+	 */
 	color_rule *last, *this;
 	short ret;
 	task *tsk;
@@ -146,7 +160,8 @@ short add_color_rule(const color_object object, const char *rule, const short fg
 
 int check_color(int color) /* {{{ */
 {
-	/* make sure a color is valid before using it
+	/**
+	 * make sure a color is valid before using it
 	 * return -1 (default) if color is not valid
 	 */
 	if (color>=COLORS || color<-2)
@@ -157,7 +172,12 @@ int check_color(int color) /* {{{ */
 
 bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 {
-	/* evaluate a rule set for a task */
+	/**
+	 * evaluate a rule set for a task
+	 * rule     - the rule to be evaluated
+	 * tsk      - the task the rule will be evaluated on
+	 * selected - whether the task is selected
+	 */
 	char *regex = NULL, pattern, *tmp;
 	int ret, move;
 	bool go = false, invert = false;
@@ -246,7 +266,11 @@ bool eval_rules(char *rule, const task *tsk, const bool selected) /* {{{ */
 
 short find_add_pair(const short fg, const short bg) /* {{{ */
 {
-	/* find a color pair with specified content or create a new one */
+	/**
+	 * find a color pair with specified content or create a new one
+	 * fg - the foreground color
+	 * bg - the background color
+	 */
 	short tmpfg, tmpbg, pair, free_pair = -1;
 	int ret;
 
@@ -288,7 +312,12 @@ void free_colors() /* {{{ */
 
 int get_colors(const color_object object, task *tsk, const bool selected) /* {{{ */
 {
-	/* evaluate color rules and return attrset arg */
+	/**
+	 * evaluate color rules and return an argument to attrset
+	 * object   - the object to be colored
+	 * tsk      - the task to be colored
+	 * selected - whether the task is selected
+	 */
 	short pair = 0;
 	int *tskpair;
 	color_rule *rule;
