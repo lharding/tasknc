@@ -104,6 +104,13 @@ void handle_command(char *cmdstr) /* {{{ */
 		}
 		tnc_fprintf(logfp, 0, "dumped %d tasks", counter);
 	}
+	/* scrdump: do an ncurses scr_dump */
+	else if (str_eq(command, "scrdump"))
+	{
+		const char *dumppath = "nc_dump";
+		scr_dump(dumppath);
+		tnc_fprintf(logfp, LOG_DEBUG, "ncurses dumped to '%s'", dumppath);
+	}
 	else
 	{
 		statusbar_message(cfg.statusbar_timeout, "error: command %s not found", command);

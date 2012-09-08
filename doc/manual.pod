@@ -221,6 +221,10 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item
 
+=item B<scrdump> will write the ncurses screen dump to file.  This is mostly for debugging.
+
+=item
+
 =item B<filter> applies filter string I<optarg> or prompts user for a filter string with no arg.
 
 =item
