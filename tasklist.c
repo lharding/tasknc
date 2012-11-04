@@ -48,7 +48,7 @@ void key_tasklist_complete() /* {{{ */
 	ret = task_background_command("task %s done");
 	tasklist_remove_task(cur);
 
-	tasklist_command_message(ret, "complete failed (%s)", "complete successful");
+	tasklist_command_message(ret, "complete failed (%d)", "complete successful");
 } /* }}} */
 
 void key_tasklist_delete() /* {{{ */
@@ -62,7 +62,7 @@ void key_tasklist_delete() /* {{{ */
 	ret = task_background_command("task %s delete");
 	tasklist_remove_task(cur);
 
-	tasklist_command_message(ret, "delete failed (%s)", "delete successful");
+	tasklist_command_message(ret, "delete failed (%d)", "delete successful");
 } /* }}} */
 
 void key_tasklist_edit() /* {{{ */
@@ -84,7 +84,7 @@ void key_tasklist_edit() /* {{{ */
 	}
 	check_free(uuid);
 
-	tasklist_command_message(ret, "edit failed (%s)", "edit succesful");
+	tasklist_command_message(ret, "edit failed (%d)", "edit succesful");
 } /* }}} */
 
 void key_tasklist_filter(const char *arg) /* {{{ */
@@ -643,7 +643,7 @@ void tasklist_task_add() /* {{{ */
 	free(cmd);
 	if (ret != 0)
 	{
-		failmsg = strdup("task add failed (%s)");
+		failmsg = strdup("task add failed (%d)");
 		goto done;
 	}
 
