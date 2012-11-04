@@ -26,7 +26,12 @@ static conditional_fmt_field *parse_conditional(char **);
 
 char *append_buffer(char *buffer, const char append, int *bufferlen) /* {{{ */
 {
-	/* append a character to a buffer */
+	/**
+	 * append a character to a string
+	 * buffer    - the string to append to
+	 * append    - the character to append
+	 * bufferlen - a pointer to the length of the string (will be updated)
+	 */
 	(*bufferlen)++;
 	buffer = realloc(buffer, ((*bufferlen)+1)*sizeof(char));
 	buffer[*bufferlen-1] = append;
@@ -37,7 +42,12 @@ char *append_buffer(char *buffer, const char append, int *bufferlen) /* {{{ */
 
 void append_field(fmt_field **head, fmt_field **last, fmt_field *this) /* {{{ */
 {
-	/* append a field to the field list */
+	/**
+	 * append a format field to a linked list of format fields
+	 * head      - the first format field
+	 * last      - the last format field
+	 * this      - the format field to append
+	 */
 	if (*head == NULL)
 		*head = this;
 	else
@@ -48,7 +58,7 @@ void append_field(fmt_field **head, fmt_field **last, fmt_field *this) /* {{{ */
 
 fmt_field *buffer_field(char *buffer, int bufferlen) /* {{{ */
 {
-	/* create a format struct from a buffer string */
+	/* create a format struct from a buffer string of a specified length */
 	fmt_field *this;
 
 	this = calloc(1, sizeof(fmt_field));
@@ -62,15 +72,15 @@ fmt_field *buffer_field(char *buffer, int bufferlen) /* {{{ */
 
 void compile_formats() /* {{{ */
 {
-	/* compile the format strings */
-	cfg.formats.task_compiled = compile_string(cfg.formats.task);
-	cfg.formats.title_compiled = compile_string(cfg.formats.title);
-	cfg.formats.view_compiled = compile_string(cfg.formats.view);
+	/* compile all the format strings */
+	cfg.formats.task_compiled = compile_format_string(cfg.formats.task);
+	cfg.formats.title_compiled = compile_format_string(cfg.formats.title);
+	cfg.formats.view_compiled = compile_format_string(cfg.formats.view);
 } /* }}} */
 
-fmt_field *compile_string(char *fmt) /* {{{ */
+fmt_field *compile_format_string(char *fmt) /* {{{ */
 {
-	/* compile a format string */
+	/* compile a given format string */
 	fmt_field *head = NULL, *this, *last = NULL;
 	int buffersize = 0, i, width;
 	char *buffer = NULL;
@@ -196,7 +206,11 @@ fmt_field *compile_string(char *fmt) /* {{{ */
 
 static char *eval_conditional(conditional_fmt_field *this, task *tsk) /* {{{ */
 {
-	/* evaluate a conditional struct to a string */
+	/**
+	 * evaluate a conditional struct to a string
+	 * this - the conditional struct
+	 * tsk  - the task to evaluate the struct on
+	 */
 	char *tmp = NULL, *ret = NULL;
 
 	/* handle empty conditionals */
@@ -236,7 +250,11 @@ static char *eval_conditional(conditional_fmt_field *this, task *tsk) /* {{{ */
 
 char *eval_format(fmt_field *fmts, task *tsk) /* {{{ */
 {
-	/* evaluate a format field array */
+	/**
+	 * evaluate a linked list of format fields
+	 * fmts - the first element in the linked list of format fields
+	 * tsk  - the task to evaluate the format on
+	 */
 	int totallen = 1, pos = 0;
 	unsigned int fieldwidth, fieldlen, p;
 	char *str = NULL, *tmp;
@@ -296,7 +314,12 @@ char *eval_format(fmt_field *fmts, task *tsk) /* {{{ */
 
 static char *field_to_str(fmt_field *this, bool *free_field, task *tsk) /* {{{ */
 {
-	/* evaluate a field and convert it to a string */
+	/**
+	 * evaluate a field and convert it to a string
+	 * this       - the field to be evaluated
+	 * free_field - whether the field needs to be free'd after use
+	 * tsk        - the task to evaluate the format on
+	 */
 	char *ret = NULL;
 	*free_field = true;
 
@@ -382,7 +405,7 @@ void free_formats() /* {{{ */
 
 conditional_fmt_field *parse_conditional(char **str) /* {{{ */
 {
-	/* parse a conditional struct from a string @ position */
+	/* parse a conditional struct from a string at a position */
 	conditional_fmt_field *this = calloc(1, sizeof(conditional_fmt_field));
 	char *condition = NULL, *positive = NULL, *negative = NULL;
 	int ret, addlen = 0;
@@ -406,9 +429,9 @@ conditional_fmt_field *parse_conditional(char **str) /* {{{ */
 
 parse:
 	/* compile each field */
-	this->condition = compile_string(condition);
-	this->positive = compile_string(positive);
-	this->negative = compile_string(negative);
+	this->condition = compile_format_string(condition);
+	this->positive = compile_format_string(positive);
+	this->negative = compile_format_string(negative);
 
 	/* move position of string */
 	if (condition != NULL)

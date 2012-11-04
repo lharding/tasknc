@@ -12,7 +12,12 @@
 
 void tnc_fprintf(FILE *fp, const log_mode minloglvl, const char *format, ...) /* {{{ */
 {
-	/* log a message to the logfile */
+	/**
+	 * log a message to a file
+	 * fp        - the file handle to write the log to
+	 * minloglvl - what cfg.loglvl must be above for this log to be written
+	 * format    - printf format string for log
+	 */
 	time_t lt;
 	struct tm *t;
 	va_list args;

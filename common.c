@@ -18,7 +18,7 @@ extern int selline;
 
 bool match_string(const char *haystack, const char *needle) /* {{{ */
 {
-	/* match a string to a regex */
+	/* find the regex needle in a haystack */
 	regex_t regex;
 	bool ret;
 

@@ -16,8 +16,12 @@ static void swap_tasks(task *, task*);
 
 bool compare_tasks(const task *a, const task *b, const char *mode_queue) /* {{{ */
 {
-	/* compare two tasks to determine order
+	/**
+	 * compare two tasks to determine order
 	 * a return of 1 means that the tasks should be swapped (b comes before a)
+	 * a          - the first task to be compared
+	 * b          - the second task to be compared
+	 * mode_queue - the remaining tests to be evaluated
 	 */
 	bool ret = false;
 	int tmp, pri0, pri1;
@@ -112,8 +116,9 @@ int priority_to_int(const char pri) /* {{{ */
 
 void sort_wrapper(task *first) /* {{{ */
 {
-	/* a wrapper around sort_tasks that finds the last element
-	 * to pass to that function
+	/**
+	 * a wrapper around sort_tasks that finds the last element
+	 * in the linked list to pass to the aforementioned function
 	 */
 	task *last;
 
@@ -128,7 +133,7 @@ void sort_wrapper(task *first) /* {{{ */
 
 void sort_tasks(task *first, task *last) /* {{{ */
 {
-	/* sort the list of tasks */
+	/* sort a list of tasks from first to last */
 	task *start, *cur, *oldcur;
 
 	/* check if we are done */

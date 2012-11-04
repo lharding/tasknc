@@ -82,14 +82,14 @@ void test_compile_fmt() /* {{{ */
 	char *eval, *teststr;
 
 	teststr = "first $date $-8program_version $4program_name $10program_author ++?$search_string?SEARCH??++ ++?$active_filter??NO?++ second";
-	fmts = compile_string(teststr);
+	fmts = compile_format_string(teststr);
 	eval = eval_format(fmts, NULL);
 	if (eval != NULL)
 		printf("%s\n", eval);
 	else
 		puts("NULL returned");
 	teststr = "first uuid:'$uuid' pro:'$project' desc:'$description' $badvar second";
-	fmts = compile_string(teststr);
+	fmts = compile_format_string(teststr);
 	eval = eval_format(fmts, head);
 	if (eval != NULL)
 		printf("%s\n", eval);

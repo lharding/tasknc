@@ -3,7 +3,6 @@
  * for tasknc
  * by mjheagle
  */
-
 #define _GNU_SOURCE
 
 #include <curses.h>
@@ -46,7 +45,11 @@ static wchar_t *search_history(const prompt_index *, const wchar_t *, const int,
 
 void add_to_history(prompt_index *pindex, const wchar_t *entry) /* {{{ */
 {
-	/* add an entry to history */
+	/**
+	 * add an entry to history
+	 * pindex - a pointer to the prompt_index whose history is being modified
+	 * entry  - the entry that is being added into the history
+	 */
 	int i;
 
 	/* rotate history */
@@ -81,7 +84,11 @@ void free_prompts() /* {{{ */
 
 wchar_t *get_history(const prompt_index *pindex, const int count) /* {{{ */
 {
-	/* get an item out of history */
+	/**
+	 * retrieve an item from history if available
+	 * pindex - a pointer to the prompt_index whose history is being modified
+	 * count  - the history element to be retrieved
+	 */
 
 	/* check for bad index */
 	if (count >= cfg.history_max || count < 0)
@@ -92,7 +99,8 @@ wchar_t *get_history(const prompt_index *pindex, const int count) /* {{{ */
 
 prompt_index *get_prompt_index(const char *prompt) /* {{{ */
 {
-	/* find the index of a specified prompt, creating it if necessary */
+	/* find the index of a specified prompt,
+	 * creating a new prompt_index if necessary */
 	prompt_index *cur = prompt_number, *last = NULL;
 
 	/* iterate through prompt indices */
@@ -122,7 +130,7 @@ prompt_index *get_prompt_index(const char *prompt) /* {{{ */
 
 void remove_first_char(wchar_t *str) /* {{{ */
 {
-	/* remove the first character from a string, shift the remainder */
+	/* remove the first character from a string, shift the remainder back */
 	while (*str != 0)
 	{
 		*str = *(str+1);
@@ -132,7 +140,13 @@ void remove_first_char(wchar_t *str) /* {{{ */
 
 int replace_entry(wchar_t *str, const int len, const wchar_t *tmp) /* {{{ */
 {
-	/* replace a string with another and return the new length */
+	/**
+	 * replace a string with a different and return the length
+	 * of the new string
+	 * str - the old string
+	 * len - the length of the old string
+	 * tmp - the new string
+	 */
 	int ret, i;
 
 	/* empty new string */
@@ -156,7 +170,14 @@ done:
 
 wchar_t *search_history(const prompt_index *pindex, const wchar_t *regex_wide, const int start, int end, int *match_index) /* {{{ */
 {
-	/* search through the history to match a regex */
+	/**
+	 * search through the history for a prompt to match a regex
+	 * pindex      - the prompt index whose history will be searched
+	 * regex_wide  - a wchar regex to be converted and ran on history elements
+	 * start       - the first element of history to operate on
+	 * match_index - a pointer to the index of the match found
+	 * return is the string that matches
+	 */
 	char *regex;
 	const int regex_len = wcstombs(NULL, regex_wide, 0) + 1;
 	int i, tmplen;
@@ -195,7 +216,11 @@ wchar_t *search_history(const prompt_index *pindex, const wchar_t *regex_wide, c
 
 int statusbar_getstr(char **str, const char *msg) /* {{{ */
 {
-	/* get a string from the user */
+	/**
+	 * get a string from user input (like readline)
+	 * str - where the string to be stored
+	 * msg - the prompt message
+	 */
 	int position = 0, histindex = -1, str_len = 0, charlen, ret;
 	bool done = false;
 	const int msglen = strlen(msg);
@@ -318,7 +343,11 @@ int statusbar_getstr(char **str, const char *msg) /* {{{ */
 
 void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 {
-	/* print a message in the statusbar */
+	/**
+	 * print a message in the statusbar
+	 * dtmout - the time the message should last
+	 * format - the printf format string to be printed to the statusbar
+	 */
 	va_list args;
 	char *message;
 
@@ -356,7 +385,7 @@ void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 
 void statusbar_timeout() /* {{{ */
 {
-	/* timeout statusbar */
+	/* check for statusbar timeout */
 	if (sb_timeout>0 && sb_timeout<time(NULL))
 	{
 		sb_timeout = 0;
