@@ -619,8 +619,6 @@ int task_interactive_command(const char *cmdfmt) /* {{{ */
 	 * return is the return of the command run
 	 */
 	task *cur;
-	char *cmdstr, *line;
-	task *cur;
 	char *cmdstr;
 	int ret;
 
