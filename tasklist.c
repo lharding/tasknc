@@ -628,7 +628,7 @@ void tasklist_task_add() /* {{{ */
 	FILE *cmdout;
 	char *cmd, line[TOTALLENGTH], *failmsg;
 	unsigned short tasknum;
-	int ret = 0;
+	int ret = 0, pret;
 
 	/* add new task */
 	cmd = strdup("task add new task");
@@ -639,9 +639,9 @@ void tasklist_task_add() /* {{{ */
 		if (sscanf(line, "Created task %hu.", &tasknum))
 			break;
 	}
-	ret = WEXITSTATUS(pclose(cmdout));
+	pret = pclose(cmdout);
 	free(cmd);
-	if (ret != 0)
+	if (WEXITSTATUS(pret) != 0)
 	{
 		failmsg = strdup("task add failed (%d)");
 		goto done;
