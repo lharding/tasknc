@@ -276,7 +276,12 @@ void configure(void) /* {{{ */
 
 funcmap *find_function(const char *name, const prog_mode mode) /* {{{ */
 {
-	/* search through the function maps */
+	/* search through the function maps to convert a string to a function pointer
+	 * name - the string naming the function
+	 * mode - the mode of operation currently active
+	 * the return is a pointer to the function that was mapped, or NULL
+	 * if no function is found
+	 */
 	int i;
 
 	for (i=0; i<NFUNCS; i++)
@@ -290,7 +295,10 @@ funcmap *find_function(const char *name, const prog_mode mode) /* {{{ */
 
 void find_next_search_result(task *head, task *pos) /* {{{ */
 {
-	/* find the next search result in the list of tasks */
+	/* find the next search result in the list of tasks
+	 * head - the first task in the task list
+	 * pos  - the position in the task list to start searching from
+	 */
 	task *cur;
 
 	cur = pos;
@@ -327,7 +335,10 @@ void find_next_search_result(task *head, task *pos) /* {{{ */
 
 var *find_var(const char *name) /* {{{ */
 {
-	/* attempt to find an exposed variable matching <name> */
+	/* attempt to find an exposed variable matching <name>
+	 * name - the name of the variable
+	 * return is a pointer to the variable found, or NULL on failure
+	 */
 	int i;
 
 	for (i=0; i<NVARS; i++)
@@ -419,7 +430,9 @@ void help(void) /* {{{ */
 
 void key_command(const char *arg) /* {{{ */
 {
-	/* accept and attemt to execute a command string */
+	/* accept and attemt to execute a command string
+	 * arg - the command to run (pass NULL to prompt user)
+	 */
 	char *cmdstr;
 
 	if (arg==NULL)
@@ -446,7 +459,9 @@ void key_command(const char *arg) /* {{{ */
 
 void key_task_background_command(const char *arg) /* {{{ */
 {
-	/* run a background command */
+	/* run a background command
+	 * arg - the command to run in the background
+	 */
 	if (arg == NULL)
 		return;
 	task_background_command(arg);
@@ -455,7 +470,9 @@ void key_task_background_command(const char *arg) /* {{{ */
 
 void key_task_interactive_command(const char *arg) /* {{{ */
 {
-	/* run an interactive command */
+	/* run an interactive command
+	 * arg - the command to run interactively (task window will be closed)
+	 */
 	if (arg == NULL)
 		return;
 	task_interactive_command(arg);
@@ -470,7 +487,9 @@ void key_done() /* {{{ */
 
 char max_project_length() /* {{{ */
 {
-	/* compute max project length */
+	/* compute max project length
+	 * return is the maximum project length
+	 */
 	char len = 0;
 	task *cur;
 
@@ -491,7 +510,10 @@ char max_project_length() /* {{{ */
 
 const char *name_function(void *function) /* {{{ */
 {
-	/* search through the function maps */
+	/* search through the function maps
+	 * function - a pointer to the function to be named
+	 * return is a string naming the function, or NULL on failure
+	 */
 	int i;
 
 	for (i=0; i<NFUNCS; i++)
@@ -505,7 +527,9 @@ const char *name_function(void *function) /* {{{ */
 
 void ncurses_end(int sig) /* {{{ */
 {
-	/* terminate ncurses */
+	/* terminate ncurses
+	 * sig - the signal which is terminating the program
+	 */
 	bool print_check_log = true;
 	char *logpath;
 
@@ -606,7 +630,9 @@ void print_version(void) /* {{{ */
 
 void set_curses_mode(const ncurses_mode mode) /* {{{ */
 {
-	/* set curses settings for various common modes */
+	/* set curses settings for various common modes
+	 * mode - the ncurses_mode describing how to accept input
+	 */
 	switch (mode)
 	{
 		case NCURSES_MODE_STD:
@@ -639,7 +665,9 @@ void set_curses_mode(const ncurses_mode mode) /* {{{ */
 char *str_trim(char *str) /* {{{ */
 {
 	/* remove trailing and leading spaces from a string in place
-	 * returns the pointer to the new start */
+	 * str - string to be trimmed
+	 * return is a pointer to the new start
+	 */
 	char *pos;
 
 	/* skip nulls */
@@ -667,7 +695,15 @@ char *str_trim(char *str) /* {{{ */
 
 int umvaddstr(WINDOW *win, const int y, const int x, const char *format, ...) /* {{{ */
 {
-	/* convert a string to a wchar string and mvaddwstr */
+	/* convert a string to a wchar string and mvaddwstr
+	 * win    - the window to print the string in
+	 * y      - the y coordinates to print the string at
+	 * x      - the x coordinates to print the string at
+	 * format - the format string to print
+	 * additional args are accepted to use with the format string
+	 * (similar to printf)
+	 * return is the return of mvwaddnwstr
+	 */
 	int len, r;
 	wchar_t *wstr;
 	char *str;
@@ -707,7 +743,13 @@ int umvaddstr(WINDOW *win, const int y, const int x, const char *format, ...) /*
 
 int umvaddstr_align(WINDOW *win, const int y, char *str) /* {{{ */
 {
-	/* evaluate an aligned string */
+	/* evaluate an aligned string
+	 * win - the window to print the string in
+	 * y   - the y coordinates to print the string at
+	 * str - the string to parse and print
+	 * the return is the return of the first umvaddstr, if it failed
+	 * or the return of the second umvaddstr otherwise
+	 */
 	char *right, *pos;
 	int ret, tmp;
 
@@ -734,7 +776,7 @@ int umvaddstr_align(WINDOW *win, const int y, char *str) /* {{{ */
 	if (tmp > ret)
 		ret = tmp;
 
-	/* fix string */
+	/* replace the '$' in the string */
 	if (pos != NULL)
 		(*pos) = '$';
 
@@ -743,7 +785,11 @@ int umvaddstr_align(WINDOW *win, const int y, char *str) /* {{{ */
 
 void wipe_screen(WINDOW *win, const short startl, const short stopl) /* {{{ */
 {
-	/* clear specified lines of the screen */
+	/* clear specified lines of the screen
+	 * win    - the window to print the string in
+	 * startl - the number of the line to start wiping at
+	 * stopl  - the number of the line to stop wiping at
+	 */
 	int y, x;
 
 	wattrset(win, COLOR_PAIR(0));
@@ -755,7 +801,9 @@ void wipe_screen(WINDOW *win, const short startl, const short stopl) /* {{{ */
 
 void wipe_window(WINDOW *win) /* {{{ */
 {
-	/* wipe everything on the screen */
+	/* wipe everything on the screen
+	 * win - the window to print the string in
+	 */
 	int x, y, tx, ty;
 
 	getmaxyx(win, y, x);
