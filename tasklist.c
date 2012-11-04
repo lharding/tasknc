@@ -89,7 +89,10 @@ void key_tasklist_edit() /* {{{ */
 
 void key_tasklist_filter(const char *arg) /* {{{ */
 {
-	/* handle a keyboard direction to add a new filter */
+	/* handle a keyboard direction to add a new filter
+	 * arg - string to filter by (pass NULL to prompt user)
+	 *       see the manual page for how filter strings are parsed
+	 */
 	check_free(active_filter);
 	if (arg==NULL)
 	{
@@ -106,7 +109,10 @@ void key_tasklist_filter(const char *arg) /* {{{ */
 
 void key_tasklist_modify(const char *arg) /* {{{ */
 {
-	/* handle a keyboard direction to modify a task */
+	/* handle a keyboard direction to modify a task
+	 * arg - the modifications to apply (pass NULL to prompt user)
+	 *       this will be appended to `task UUID modify `
+	 */
 	char *argstr;
 
 	if (arg==NULL)
@@ -133,7 +139,13 @@ void key_tasklist_reload() /* {{{ */
 
 void key_tasklist_scroll(const int direction) /* {{{ */
 {
-	/* handle a keyboard direction to scroll */
+	/* handle a keyboard direction to scroll
+	 * direction - the direction to scroll in
+	 *             u = up one
+	 *             d = down one
+	 *             h = to first element in list
+	 *             e = to last element in list
+	 */
 	const char oldsel = selline;
 	const char oldoffset = pageoffset;
 
@@ -216,7 +228,9 @@ void key_tasklist_scroll_up() /* {{{ */
 
 void key_tasklist_search(const char *arg) /* {{{ */
 {
-	/* handle a keyboard direction to search */
+	/* handle a keyboard direction to search
+	 * arg - the string to search for (pass NULL to prompt user)
+	 */
 	check_free(searchstring);
 	if (arg==NULL)
 	{
@@ -248,7 +262,10 @@ void key_tasklist_search_next() /* {{{ */
 
 void key_tasklist_sort(const char *arg) /* {{{ */
 {
-	/* handle a keyboard direction to sort */
+	/* handle a keyboard direction to sort
+	 * arg - the mode to sort by (pass NULL to prompt user)
+	 *       see the manual page for how sort strings are parsed
+	 */
 	task *cur;
 	char *uuid = NULL;
 
@@ -401,7 +418,11 @@ void tasklist_check_curs_pos() /* {{{ */
 
 void tasklist_command_message(const int ret, const char *fail, const char *success) /* {{{ */
 {
-	/* print a message depending on the return of a command */
+	/* print a message depending on the return of a command
+	 * ret     - the return of the command
+	 * fail    - the format string to use if ret == 1
+	 * success - the literal string to use if ret == 0
+	 */
 	if (ret!=0)
 		statusbar_message(cfg.statusbar_timeout, fail, ret);
 	else
@@ -515,7 +536,13 @@ void tasklist_window() /* {{{ */
 
 void tasklist_print_task(const int tasknum, const task *this, const int count) /* {{{ */
 {
-	/* print a task specified by number */
+	/* print a task specified by number
+	 * tasknum - the number of the task to be printed (used to find task object
+	 *           if it is not specified in `this`
+	 * this    - a pointer to the task to be printed
+	 *           only one of either `tasknum` or `this` should be specified
+	 * count   - number of consecutive tasks to print
+	 */
 	bool sel = false;
 	char *tmp;
 	int x, y;
