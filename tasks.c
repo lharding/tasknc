@@ -28,7 +28,10 @@ static void set_string(char **, char **);
 
 char free_task(task *tsk) /* {{{ */
 {
-	/* free the memory allocated to a task */
+	/* free the memory allocated to a task
+	 * tsk - the task to free
+	 * return is always 0
+	 */
 	char ret = 0;
 
 	free(tsk->uuid);
@@ -45,7 +48,9 @@ char free_task(task *tsk) /* {{{ */
 
 void free_tasks(task *head) /* {{{ */
 {
-	/* free the task stack */
+	/* free the task stack
+	 * head - the first task on the stack to free
+	 */
 	task *cur, *next;
 
 	cur = head;
@@ -59,8 +64,10 @@ void free_tasks(task *head) /* {{{ */
 
 task *get_task_by_position(int n) /* {{{ */
 {
-	/* navigate to line n
-	 * and return its task pointer
+	/* get task at line #n
+	 * n - line number to retrieve task from
+	 * return is the pointer to the task found
+	 * or null if n > # of tasks on the stack
 	 */
 	task *cur;
 	short i = -1;
@@ -79,8 +86,10 @@ task *get_task_by_position(int n) /* {{{ */
 
 int get_task_position_by_uuid(const char *uuid) /* {{{ */
 {
-	/* find the task with the specified uuid 
-	 * return its line number
+	/* find the task with the specified uuid
+	 * uuid - the uuid to match
+	 * return is the line number which matches the uuid
+	 * or -1 if no task on the stack matches this uuid
 	 */
 	task *cur;
 	int pos = 0;
@@ -100,6 +109,12 @@ int get_task_position_by_uuid(const char *uuid) /* {{{ */
 
 task *get_tasks(char *uuid) /* {{{ */
 {
+	/* parse the task list
+	 * uuid - specific task to obtain information for
+	 *        pass NULL to get a full task list
+	 * return is the task data for a single task, if a uuid was passed
+	 * or all tasks, if uuid == NULL
+	 */
 	FILE *cmd;
 	char *line, *tmp, *cmdstr;
 	int linelen = TOTALLENGTH;
@@ -201,9 +216,10 @@ task *get_tasks(char *uuid) /* {{{ */
 
 unsigned short get_task_id(char *uuid) /* {{{ */
 {
-	/* given a task uuid, find its id
-	 * we do this using a custom report
+	/* given a task uuid, find its id using a custom report
 	 * necessary to do without uuid addressing in task v2
+	 * uuid - the task to find the id of
+	 * return is the id of the task specified
 	 */
 	FILE *cmd;
 	char line[128], format[128];
@@ -230,6 +246,7 @@ task *malloc_task(void) /* {{{ */
 {
 	/* allocate memory for a new task
 	 * and initialize values where necessary
+	 * return is the newly allocated task
 	 */
 	task *tsk = calloc(1, sizeof(task));
 	if (tsk==NULL)
@@ -255,6 +272,11 @@ task *malloc_task(void) /* {{{ */
 
 task *parse_task(char *line) /* {{{ */
 {
+	/* parse a line of output from `task export ...`
+	 * line - the line to parse
+	 * return is the task structure defined in the line,
+	 * or -1 if this line is not a task or parsing failed
+	 */
 	task *tsk = malloc_task();
 
 	/* detect lines that are not json */
@@ -328,7 +350,11 @@ task *parse_task(char *line) /* {{{ */
 
 void reload_task(task *this) /* {{{ */
 {
-	/* reload an individual task's data by number */
+	/* reload an individual task's data
+	 * this - the task whose data needs reloading
+	 * task data is modified by generating a new task struct, and replacing
+	 * the old task in the stack
+	 */
 	task *new;
 
 	/* get new task */
@@ -397,7 +423,10 @@ void reload_tasks() /* {{{ */
 
 void remove_char(char *str, char remove) /* {{{ */
 {
-	/* iterate through a string and remove escapes inline */
+	/* iterate through a string and remove escapes inline
+	 * str    - the string to remove escapes from
+	 * remove - the escape to remove
+	 */
 	const int len = strlen(str);
 	int i, offset = 0;
 
@@ -421,7 +450,10 @@ void remove_char(char *str, char remove) /* {{{ */
 
 void set_char(char *field, char **line) /* {{{ */
 {
-	/* set a character field from the next contents of line */
+	/* set a character field from the next contents of line
+	 * field - the field set the character in
+	 * line  - the line to parse the character from
+	 */
 	int ret = sscanf(*line, "\"%c\"", field);
 	if (ret != 1)
 		tnc_fprintf(logfp, LOG_ERROR, "error parsing char @ %s", *line);
@@ -433,7 +465,10 @@ void set_char(char *field, char **line) /* {{{ */
 
 void set_date(time_t *field, char **line) /* {{{ */
 {
-	/* set a time field from the next contents of line */
+	/* set a time field from the next contents of line
+	 * field - the field set the time in
+	 * line  - the line to parse the time from
+	 */
 	char *tmp;
 	int ret = sscanf(*line, "\"%m[^\"]\"", &tmp);
 	if (ret != 1)
@@ -450,7 +485,10 @@ void set_date(time_t *field, char **line) /* {{{ */
 
 void set_int(unsigned short *field, char **line) /* {{{ */
 {
-	/* set an integer field from the next contents of line */
+	/* set an integer field from the next contents of line
+	 * field - the field set the integer in
+	 * line  - the line to parse the integer from
+	 */
 	int ret = sscanf(*line, "%hd", field);
 	if (ret != 1)
 		tnc_fprintf(logfp, LOG_ERROR, "error parsing integer @ %s", *line);
@@ -462,7 +500,10 @@ void set_int(unsigned short *field, char **line) /* {{{ */
 
 void set_string(char **field, char **line) /* {{{ */
 {
-	/* set an string field from the next contents of line */
+	/* set an string field from the next contents of line
+	 * field - the field set the string in
+	 * line  - the line to parse the string from
+	 */
 	char *tmp = *line;
 	do
 	{
@@ -482,7 +523,9 @@ void set_string(char **field, char **line) /* {{{ */
 
 void set_position_by_uuid(const char *uuid) /* {{{ */
 {
-	/* set the cursor position to a uuid's position */
+	/* set the cursor position to a uuid's position
+	 * uuid - the uuid of the task to select
+	 */
 	int pos;
 
 	/* check for null uuid */
@@ -497,7 +540,10 @@ void set_position_by_uuid(const char *uuid) /* {{{ */
 
 time_t strtotime(const char *timestr) /* {{{ */
 {
-	/* convert a string to a time_t */
+	/* convert a string to a time_t
+	 * timestr - the string to parse
+	 * return is the time structure parsed
+	 */
 	struct tm tmr;
 
 	memset(&tmr, 0, sizeof(tmr));
@@ -507,7 +553,12 @@ time_t strtotime(const char *timestr) /* {{{ */
 
 int task_background_command(const char *cmdfmt) /* {{{ */
 {
-	/* run a command on the current task in the background */
+	/* run a command on the current task in the background
+	 * cmdfmt - the format string describing the command to run
+	 *          a %s in the format string will be replaced with
+	 *          the selected task's uuid
+	 * return is the return of the command run
+	 */
 	task *cur;
 	char *cmdstr, *line;
 	FILE *cmd;
@@ -561,7 +612,14 @@ void task_count() /* {{{ */
 
 int task_interactive_command(const char *cmdfmt) /* {{{ */
 {
-	/* run a command on the current task in the foreground */
+	/* run a command on the current task in the foreground
+	 * cmdfmt - the format string describing the command to run
+	 *          a %s in the format string will be replaced with
+	 *          the selected task's uuid
+	 * return is the return of the command run
+	 */
+	task *cur;
+	char *cmdstr, *line;
 	task *cur;
 	char *cmdstr;
 	int ret;
@@ -590,6 +648,12 @@ int task_interactive_command(const char *cmdfmt) /* {{{ */
 
 bool task_match(const task *cur, const char *str) /* {{{ */
 {
+	/* check if specified task meets specified conditions
+	 * cur - the task to check
+	 * str - the conditions to apply to the task
+	 *       refer to the manual for how conditions are specified
+	 * return is whether the task matches
+	 */
 	if (match_string(cur->project, str) ||
 			match_string(cur->description, str) ||
 			match_string(cur->tags, str))
@@ -600,7 +664,10 @@ bool task_match(const task *cur, const char *str) /* {{{ */
 
 void task_modify(const char *argstr) /* {{{ */
 {
-	/* run a modify command on the selected task */
+	/* run a modify command on the selected task
+	 * argstr - the command to run on the selected task
+	 *          this will be appended to `task UUID modify `
+	 */
 	task *cur;
 	char *cmd, *uuid;
 	int arglen;
