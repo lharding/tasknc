@@ -447,8 +447,12 @@ void tasklist_window() /* {{{ */
 	header = newwin(1, cols, 0, 0);
 	tasklist = newwin(rows-2, cols, 1, 0);
 	statusbar = newwin(1, cols, rows-1, 0);
-	if (statusbar==NULL)
-		tnc_fprintf(logfp, LOG_ERROR, "statusbar creation failed (rows:%d, cols:%d)", rows, cols);
+	tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "ncurses windows: h:%p, t:%p, s:%p (%d,%d)", header, tasklist, statusbar, rows, cols);
+	if (statusbar==NULL || tasklist==NULL || header==NULL)
+	{
+		tnc_fprintf(logfp, LOG_ERROR, "window creation failed (rows:%d, cols:%d)", rows, cols);
+		ncurses_end(-1);
+	}
 
 	/* set curses settings */
 	set_curses_mode(NCURSES_MODE_STD);

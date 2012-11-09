@@ -590,7 +590,8 @@ void ncurses_init() /* {{{ */
 
 	/* initialize screen */
 	tnc_fprintf(stdout, LOG_DEBUG, "starting ncurses...");
-	if ((stdscr = initscr()) == NULL )
+	stdscr = initscr();
+	if (stdscr == NULL )
 	{
 	    fprintf(stderr, "Error initialising ncurses.\n");
 	    exit(EXIT_FAILURE);
