@@ -366,6 +366,16 @@ void statusbar_message(const int dtmout, const char *format, ...) /* {{{ */
 		return;
 	}
 
+	/* check for statusbar */
+	if (statusbar == NULL)
+	{
+		if (cfg.loglvl >= LOG_DEBUG)
+			tnc_fprintf(stdout, LOG_INFO, message);
+		tnc_fprintf(logfp, LOG_DEBUG, "(stdscr==NULL) %s", message);
+        free(message);
+        return;
+	}
+
 	wipe_statusbar();
 
 	/* print message */
