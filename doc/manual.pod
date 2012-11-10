@@ -513,6 +513,10 @@ When reporting segmentation faults, please run the I<valgrind_test.sh> script fr
 
 mjheagle E<lt>mjheagle8@gmail.comE<gt>
 
+=head1 CONTRIBUTORS
+
+Special thanks to the following contributor: irl
+
 =head1 SEE ALSO
 
 B<task(1)>
