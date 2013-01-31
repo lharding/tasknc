@@ -29,4 +29,7 @@ char *task_get_description(const struct task *);
  */
 struct task ** get_tasks(const char *);
 
+/* get task version */
+int * task_version();
+
 #endif

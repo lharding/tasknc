@@ -238,3 +238,29 @@ struct task ** get_tasks(const char *filter) {
         pclose(out);
         return tasks;
 }
+
+/* function to get task version */
+int * task_version() {
+        int * version = calloc(4, sizeof(int));
+        FILE *out = popen("task --version", "r");
+
+        char *line = calloc(16, sizeof(char));
+        if (fgets(line, 15, out) == NULL)
+                goto errorout;
+
+        if (sscanf(line, "%d.%d.%d", version, version+1, version+2) != 3)
+                goto errorout;
+
+        goto done;
+
+errorout:
+        free(line);
+        free(version);
+        version = NULL;
+        goto done;
+
+done:
+        pclose(out);
+
+        return version;
+}
