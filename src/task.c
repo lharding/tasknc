@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "config.h"
 #include "json.h"
 #include "task.h"
 
@@ -193,9 +194,9 @@ struct task ** get_tasks(const char *filter) {
         /* generate command to run */
         char *cmd;
         if (filter != NULL)
-                asprintf(&cmd, "task export %s", filter);
+                asprintf(&cmd, TASKBIN " export %s", filter);
         else
-                cmd = strdup("task export");
+                cmd = strdup(TASKBIN " export");
 
         /* allocate task array */
         int ntasks = 16;
