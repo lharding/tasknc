@@ -26,7 +26,7 @@ task.o: task.c config.h json.h task.h
 json.o: json.c json.h
 	$(CC) -c $(CFLAGS) json.c -o json.o
 
-tasklist.o: tasklist.c tasklist.h task.h
+tasklist.o: tasklist.c tasklist.h task.h cursutil.h
 	$(CC) -c $(CFLAGS) tasklist.c -o tasklist.o
 
 cursutil.o: cursutil.c cursutil.h

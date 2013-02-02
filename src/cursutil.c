@@ -81,3 +81,35 @@ int umvaddstr_align(WINDOW *win, const int y, const int width, char *str)
 
         return ret;
 }
+
+/* function to change curses input modes */
+void set_curses_mode(WINDOW *win, const enum ncurses_mode mode)
+{
+        switch (mode)
+        {
+                case NCURSES_MODE_STD:
+                        keypad(win, TRUE);      /* enable keyboard mapping */
+                        nonl();                 /* tell curses not to do NL->CR/NL on output */
+                        cbreak();               /* take input chars one at a time, no wait for \n */
+                        noecho();               /* dont echo input */
+                        curs_set(0);            /* set cursor invisible */
+                        wtimeout(win, 1000);    /* timeout getch */
+                        break;
+                case NCURSES_MODE_STD_BLOCKING:
+                        keypad(win, TRUE);      /* enable keyboard mapping */
+                        nonl();                 /* tell curses not to do NL->CR/NL on output */
+                        cbreak();               /* take input chars one at a time, no wait for \n */
+                        noecho();               /* dont echo input */
+                        curs_set(0);            /* set cursor invisible */
+                        wtimeout(win, -1);      /* no timeout on getch */
+                        break;
+                case NCURSES_MODE_STRING:
+                        curs_set(1);            /* set cursor visible */
+                        nocbreak();             /* wait for \n */
+                        echo();                 /* echo input */
+                        wtimeout(win, -1);      /* no timeout on getch */
+                        break;
+                default:
+                        break;
+        }
+}

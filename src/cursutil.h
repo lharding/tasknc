@@ -36,4 +36,21 @@ int umvaddstr(WINDOW *win, const int y, const int x, const int width, const char
  */
 int umvaddstr_align(WINDOW *win, const int y, const int width, char *str);
 
+/**
+ * ncurses input modes
+ */
+enum ncurses_mode { NCURSES_MODE_STD, NCURSES_MODE_STD_BLOCKING, NCURSES_MODE_STRING };
+
+/**
+ * set ncurses input mode
+ *
+ * @param win ncurses window that will be handling input
+ * @param mode ncurses mode describing input parameters.  mode descriptions:
+ *  - NCURSES_MODE_STD: non-blocking cbreak input
+ *  - NCURSES_MODE_STD_BLOCKING: blocking cbreak input
+ *  - NCURSES_MODE_STRING: blocking non-cbreak input
+ * @todo get timeout from config
+ */
+void set_curses_mode(WINDOW *win, const enum ncurses_mode mode);
+
 #endif

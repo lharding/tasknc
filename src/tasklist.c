@@ -24,6 +24,7 @@ void tasklist_window(struct task ** tasks) {
 
         /* create windows */
         WINDOW *tasklist = newwin(rows-2, cols, 1, 0);
+        set_curses_mode(tasklist, NCURSES_MODE_STD_BLOCKING);
 
         /* print test lines */
         int n;
