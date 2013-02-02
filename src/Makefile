@@ -7,6 +7,8 @@ CFLAGS = -Wall -g -Wextra -O2
 SRC = $(wildcard *.c)
 OBJ = $(SRC:.c=.o)
 
+.PHONY: clean doc all
+
 all: $(OUT)
 
 .c.o:
@@ -34,4 +36,7 @@ $(OUT): $(OBJ)
 	$(CC) -lncursesw -o $@ $(OBJ)
 
 clean:
-		rm $(OBJ) $(OUT)
+	rm $(OBJ) $(OUT)
+
+doc:
+	doxygen Doxyfile
