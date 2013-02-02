@@ -27,6 +27,8 @@
  *  quicksort is used for ordering, thus this sort is not stable.  it is
  *  recommended that a sort with unique values is placed last, such as index or
  *  uuid.
+ *
+ *  @todo add more sort modes
  */
 void sort_tasks(struct task ** tasks, int ntasks, const char * sortmode);
 
