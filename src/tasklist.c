@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "tasklist.h"
+#include "cursutil.h"
 
 /* temporary function to test printing tasks */
 int simple_print_task(WINDOW *win, const int line, const int width, struct task * task) {
