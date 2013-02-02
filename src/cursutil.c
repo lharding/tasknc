@@ -9,17 +9,9 @@
 #include <wchar.h>
 #include "cursutil.h"
 
+/* evaluate a format string, convert to wchar, and print it to window */
 int umvaddstr(WINDOW *win, const int y, const int x, const int width, const char *format, ...)
 {
-        /* convert a string to a wchar string and mvaddwstr
-        * win    - the window to print the string in
-        * y      - the y coordinates to print the string at
-        * x      - the x coordinates to print the string at
-        * format - the format string to print
-        * additional args are accepted to use with the format string
-        * (similar to printf)
-        * return is the return of mvwaddnwstr
-        */
         int len, r;
         wchar_t *wstr;
         char *str;
@@ -54,15 +46,9 @@ int umvaddstr(WINDOW *win, const int y, const int x, const int width, const char
         return r;
 }
 
+/* function to split string and print aligned sections */
 int umvaddstr_align(WINDOW *win, const int y, const int width, char *str)
 {
-        /* evaluate an aligned string
-        * win - the window to print the string in
-        * y   - the y coordinates to print the string at
-        * str - the string to parse and print
-        * the return is the return of the first umvaddstr, if it failed
-        * or the return of the second umvaddstr otherwise
-        */
         char *right, *pos;
         int ret, tmp;
 
