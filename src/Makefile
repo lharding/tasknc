@@ -24,8 +24,14 @@ task.o: task.c config.h json.h task.h
 json.o: json.c json.h
 	$(CC) -c $(CFLAGS) json.c -o json.o
 
+tasklist.o: tasklist.c tasklist.h task.h
+	$(CC) -c $(CFLAGS) tasklist.c -o tasklist.o
+
+cursutil.o: cursutil.c cursutil.h
+	$(CC) -c $(CFLAGS) cursutil.c -o cursutil.o
+
 $(OUT): $(OBJ)
-	$(CC) -o $@ $(OBJ)
+	$(CC) -lncursesw -o $@ $(OBJ)
 
 clean:
 		rm $(OBJ) $(OUT)
