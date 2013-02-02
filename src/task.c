@@ -285,3 +285,14 @@ void free_tasks(struct task ** tasks) {
                 free_task(*h);
         free(tasks);
 }
+
+/* function to count number of tasks */
+int count_tasks(struct task ** tasks) {
+        int ntasks = 0;
+        struct task ** h;
+
+        for (h = tasks; *h != 0; h++)
+                ntasks++;
+
+        return ntasks;
+}

@@ -95,11 +95,8 @@ int task_compare(const void * t1, const void * t2, void * sortorder) {
 /* function to sort tasks in a specified order */
 void sort_tasks(struct task ** tasks, int ntasks, const char * sortmode) {
         /* count tasks if necessary */
-        if (ntasks == 0) {
-                struct task ** h;
-                for (h = tasks; *h != 0; h++)
-                        ntasks++;
-        }
+        if (ntasks == 0)
+                ntasks = count_tasks(tasks);
 
         /* set sort order and run qsort */
         qsort_r(tasks, ntasks, sizeof(struct task *), task_compare, (void *)sortmode);
