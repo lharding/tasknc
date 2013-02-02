@@ -17,6 +17,7 @@ int main() {
         for (t = tasks; *t != 0; t++) {
                 printf("%d: '%s' (%s)\n", task_get_index(*t), task_get_description(*t), task_get_project(*t));
         }
+        free_tasks(tasks);
 
         int * version = task_version();
         if (version != NULL) {

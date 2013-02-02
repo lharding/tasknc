@@ -29,6 +29,11 @@ char *task_get_description(const struct task *);
  */
 struct task ** get_tasks(const char *);
 
+/*
+ * free array of tasks
+ */
+void free_tasks(struct task **);
+
 /* get task version */
 int * task_version();
 

@@ -264,3 +264,24 @@ done:
 
         return version;
 }
+
+/* function to free an individual task */
+void free_task(struct task *t ) {
+        if (t->description != NULL)
+                free(t->description);
+        if (t->project != NULL)
+                free(t->project);
+        if (t->tags != NULL)
+                free(t->tags);
+        if (t->uuid != NULL)
+                free(t->uuid);
+        free(t);
+}
+
+/* function to free all tasks */
+void free_tasks(struct task ** tasks) {
+        struct task ** h;
+        for (h = tasks; *h != NULL; h++)
+                free_task(*h);
+        free(tasks);
+}
