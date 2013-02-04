@@ -7,7 +7,7 @@ CFLAGS = -Wall -g -Wextra -O2
 SRC = $(wildcard *.c)
 OBJ = $(SRC:.c=.o)
 
-.PHONY: clean doc all
+.PHONY: clean doc tags all
 
 all: $(OUT)
 
@@ -40,3 +40,6 @@ clean:
 
 doc:
 	doxygen Doxyfile
+
+tags:
+	ctags *.c *.h
