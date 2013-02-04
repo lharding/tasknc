@@ -55,4 +55,27 @@ enum ncurses_mode {
  */
 void set_curses_mode(WINDOW *win, const enum ncurses_mode mode);
 
+/**
+ * ncurses window types
+ */
+enum ncurses_window_type {
+        TASKNC_TASKLIST,        /**< tasklist for displaying tasks */
+        TASKNC_STATUSLINE,      /**< statusline for displaying messages and
+                                  getting user input */
+        TASKNC_HEADER,          /**< header window */
+        TASKNC_PAGER,           /**< window for displaying miscellaneous data */
+};
+
+/**
+ * ncurses window data container
+ */
+struct nc_win {
+        WINDOW *win;                    /**< ncurses window pointer */
+        enum ncurses_window_type type;  /**< window type */
+        int height;                     /**< window height */
+        int offset;                     /**< lines window is offset */
+        int nlines;                     /**< number of lines of data to display */
+        int selline;                    /**< selected line number */
+};
+
 #endif
