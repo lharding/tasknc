@@ -23,17 +23,21 @@ void tasklist_window(struct task ** tasks) {
         int cols = COLS;
 
         /* create windows */
-        WINDOW *tasklist = newwin(rows-2, cols, 1, 0);
-        set_curses_mode(tasklist, NCURSES_MODE_STD_BLOCKING);
+        struct nc_win * tasklist = make_window(rows-2, cols, 1, 0, TASKNC_TASKLIST);
+        if (tasklist == NULL) {
+                endwin();
+                return;
+        }
+        set_curses_mode(tasklist->win, NCURSES_MODE_STD_BLOCKING);
 
         /* print test lines */
         int n;
         for (n = 0; n < rows-2 && tasks[n] != NULL; n++)
-                simple_print_task(tasklist, n, cols, tasks[n]);
-        wrefresh(tasklist);
-        wgetch(tasklist);
+                simple_print_task(tasklist->win, n, cols, tasks[n]);
+        wrefresh(tasklist->win);
+        wgetch(tasklist->win);
 
         /* close windows */
-        delwin(tasklist);
+        delwin(tasklist->win);
         endwin();
 }

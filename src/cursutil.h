@@ -78,4 +78,18 @@ struct nc_win {
         int selline;                    /**< selected line number */
 };
 
+/**
+ * function to create a new ncurses window and its environment
+ *
+ * @param height number of lines in window
+ * @param width number of columns in window
+ * @param ypos y position to start window
+ * @param xpos x position to start window
+ * @param type type of window to create
+ *
+ * @return nc_win struct pointer containing window and its environment, or
+ * NULL on error
+ */
+struct nc_win * make_window(int height, int width, int ypos, int xpos,
+                enum ncurses_window_type type);
 #endif

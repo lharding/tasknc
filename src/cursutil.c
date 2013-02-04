@@ -10,8 +10,7 @@
 #include "cursutil.h"
 
 /* evaluate a format string, convert to wchar, and print it to window */
-int umvaddstr(WINDOW *win, const int y, const int x, const int width, const char *format, ...)
-{
+int umvaddstr(WINDOW *win, const int y, const int x, const int width, const char *format, ...) {
         int len, r;
         wchar_t *wstr;
         char *str;
@@ -47,8 +46,7 @@ int umvaddstr(WINDOW *win, const int y, const int x, const int width, const char
 }
 
 /* function to split string and print aligned sections */
-int umvaddstr_align(WINDOW *win, const int y, const int width, char *str)
-{
+int umvaddstr_align(WINDOW *win, const int y, const int width, char *str) {
         char *right, *pos;
         int ret, tmp;
 
@@ -83,8 +81,7 @@ int umvaddstr_align(WINDOW *win, const int y, const int width, char *str)
 }
 
 /* function to change curses input modes */
-void set_curses_mode(WINDOW *win, const enum ncurses_mode mode)
-{
+void set_curses_mode(WINDOW *win, const enum ncurses_mode mode) {
         switch (mode)
         {
                 case NCURSES_MODE_STD:
@@ -112,4 +109,24 @@ void set_curses_mode(WINDOW *win, const enum ncurses_mode mode)
                 default:
                         break;
         }
+}
+
+/* function to create a ncurses window and its environment */
+struct nc_win * make_window(int height, int width, int ypos, int xpos,
+                enum ncurses_window_type type) {
+        /* create ncurses window */
+        WINDOW * win = newwin(height, width, ypos, xpos);
+        if (win == NULL)
+                return NULL;
+
+        /* create nc_win struct */
+        struct nc_win * env = calloc(1, sizeof(struct nc_win));
+        env->win = win;
+        env->type = type;
+        env->height = height;
+        env->offset = 0;
+        env->nlines = 0;
+        env->selline = 0;
+
+        return env;
 }
