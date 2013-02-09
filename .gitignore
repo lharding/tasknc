@@ -9,9 +9,6 @@ Makefile.in
 src/Makefile
 src/Makefile.in
 aclocal.m4
-depcomp
-missing
-install-sh
 src/.deps
 config.log
 config.status
