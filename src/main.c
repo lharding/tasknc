@@ -26,7 +26,6 @@ int main(int argc, char ** argv) {
         action run = NULL;
         bool need_tasks = false;
         bool need_conf = false;
-        char *filter = "status:pending";
 
         /* determine which action to take */
         static struct option long_opt[] = {
@@ -51,7 +50,7 @@ int main(int argc, char ** argv) {
 
         /* get necessary variables */
         if (need_tasks)
-                tasks = get_tasks(filter);
+                tasks = get_tasks(conf_get_filter(conf));
 
         /* run function */
         if (run)

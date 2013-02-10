@@ -19,6 +19,7 @@
 
 /* configuration struct */
 struct config {
+        char *filter;
         FILE *logfd;
         int nc_timeout;
         int *version;
@@ -29,6 +30,7 @@ struct config *default_config() {
         struct config *conf = calloc(1, sizeof(struct config));
 
         conf->nc_timeout = 1000;
+        conf->filter = strdup("status:pending");
 
         return conf;
 }
@@ -37,6 +39,7 @@ struct config *default_config() {
 void free_config(struct config *conf) {
         check_free(conf->version);
         check_fclose(conf->logfd);
+        check_free(conf->filter);
 
         free(conf);
 }
@@ -176,4 +179,15 @@ int conf_get_nc_timeout(struct config *conf) {
 /* get log file descriptor from configuration struct */
 FILE *conf_get_logfd(struct config *conf) {
         return conf->logfd;
+}
+
+/* get task filter */
+char *conf_get_filter(struct config *conf) {
+        return conf->filter;
+}
+
+/* set task filter */
+void conf_set_filter(struct config *conf, char *filter) {
+        check_free(conf->filter);
+        conf->filter = strdup(filter);
 }

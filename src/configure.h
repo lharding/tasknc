@@ -9,7 +9,7 @@
 
 /**
  * opaque representation of configuration struct
- * use the conf_get_* functions to access the struct's fields
+ * use the conf_get_* and conf_set_* functions to access the struct's fields
  */
 struct config;
 
@@ -73,5 +73,22 @@ int *conf_get_version(struct config *conf);
  * @return file descriptor for log file
  */
 FILE *conf_get_logfd(struct config *conf);
+
+/**
+ * get task filter
+ *
+ * @param conf configuration struct to obtain field from
+ *
+ * @return string filter on tasks
+ */
+char *conf_get_filter(struct config *conf);
+
+/**
+ * set task filter
+ *
+ * @param conf configuration struct to set field in
+ * @param filter the filter to set
+ */
+void conf_set_filter(struct config *conf, char *filter);
 
 #endif
