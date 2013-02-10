@@ -9,6 +9,7 @@
 #include <string.h>
 #include <time.h>
 #include "config.h"
+#include "common.h"
 #include "json.h"
 #include "task.h"
 
@@ -270,14 +271,11 @@ done:
 
 /* function to free an individual task */
 void free_task(struct task *t ) {
-        if (t->description != NULL)
-                free(t->description);
-        if (t->project != NULL)
-                free(t->project);
-        if (t->tags != NULL)
-                free(t->tags);
-        if (t->uuid != NULL)
-                free(t->uuid);
+        check_free(t->description);
+        check_free(t->project);
+        check_free(t->tags);
+        check_free(t->uuid);
+
         free(t);
 }
 

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "configure.h"
+#include "common.h"
 #include "task.h"
 
 /* error codes */
@@ -34,10 +35,9 @@ struct config *default_config() {
 
 /* free allocated fields in a config and the struct itself */
 void free_config(struct config *conf) {
-        if (conf->version)
-                free(conf->version);
-        if (conf->logfd)
-                fclose(conf->logfd);
+        check_free(conf->version);
+        check_fclose(conf->logfd);
+
         free(conf);
 }
 
@@ -57,8 +57,7 @@ int config_set(struct config *conf, const int argc, char **argv) {
         if (strcmp(argv[0], "nc_timeout") == 0)
                 conf->nc_timeout = config_parse_int(argv[1]);
         else if (strcmp(argv[0], "logpath") == 0) {
-                if (conf->logfd)
-                        fclose(conf->logfd);
+                check_fclose(conf->logfd);
                 conf->logfd = fopen(argv[1], "a");
         }
         else
