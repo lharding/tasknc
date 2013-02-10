@@ -13,7 +13,9 @@
 int main() {
         /* configure */
         struct config *conf = default_config();
+        printf("initial nc_timeout: %d\n", conf_get_nc_timeout(conf));
         config_parse_string(conf, "set nc_timeout 3000");
+        printf("final nc_timeout: %d\n", conf_get_nc_timeout(conf));
 
         /* get tasks and print */
         struct task ** tasks = get_tasks("status:pending");

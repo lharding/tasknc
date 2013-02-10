@@ -47,4 +47,13 @@ int config_parse_file(struct config *conf, FILE *file);
  */
 void free_config(struct config *conf);
 
+/**
+ * get nc_timeout from configuration struct
+ *
+ * @param conf configuration struct to obtain field from
+ *
+ * @return nc_timeout setting
+ */
+int conf_get_nc_timeout(struct config *conf);
+
 #endif

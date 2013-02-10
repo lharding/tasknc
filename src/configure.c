@@ -24,8 +24,6 @@ struct config {
 struct config *default_config() {
         struct config *conf = calloc(1, sizeof(struct config));
 
-        conf->version = NULL;
-
         return conf;
 }
 
@@ -134,4 +132,9 @@ int config_parse_file(struct config *conf, FILE *file) {
         free(line);
 
         return CONFIG_SUCCESS;
+}
+
+/* get nc_timeput from configuration struct */
+int conf_get_nc_timeout(struct config *conf) {
+        return conf->nc_timeout;
 }
