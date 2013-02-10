@@ -1,0 +1,51 @@
+# tasknc config file
+# by mjheagle
+########
+
+# time for ncurses cmds (getch) to expire (in ms)
+set curs_timeout 200
+
+# time for statusbar messages to expire (in s)
+set statusbar_timeout 2
+
+set nc_timeout 3000
+
+# formats
+set title_format "$program_name ($selected_line/$task_count) ?$filter_string?filter=$filter_string? ? $> $date"
+set task_format  "$-3index $project $description $> ?$due?$due?$-6priority?"
+
+# priority modifications
+  bind tasklist  L  modify pri:L
+  bind tasklist  M  modify pri:M
+  bind tasklist  H  modify pri:H
+  bind tasklist  C  modify pri:
+
+# question mark for help
+  bind tasklist  ?  help
+  bind pager     ?  help
+
+# sort with o like mutt
+  bind tasklist  o  sort
+  bind tasklist  O  sort drpu
+unbind tasklist  s
+
+# predefined sorts
+  bind tasklist  N  sort n
+  bind tasklist  P  sort pu
+  bind tasklist  D  sort drpu
+
+# stats with S
+  bind tasklist  S  stats
+
+# clear filters
+  bind tasklist  F  filter status:pending
+
+# show only tasknc
+  bind tasklist  t  filter status:pending pro:tasknc
+
+# toggle start
+  bind tasklist  s  toggle_start
+
+# color rules
+color task -1 1 ~t ~S
+color task  6 1 ~t ~s
