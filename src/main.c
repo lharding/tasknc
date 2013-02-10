@@ -5,25 +5,37 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "configure.h"
 #include "sort.h"
 #include "task.h"
 #include "tasklist.h"
 
 int main() {
+        /* configure */
+        struct config *conf = default_config();
+        config_parse_string(conf, "set nc_timeout 3000");
+
+        /* get tasks and print */
         struct task ** tasks = get_tasks("status:pending");
         sort_tasks(tasks, 0, "N");
         struct task ** t;
         for (t = tasks; *t != 0; t++) {
                 printf("%d: '%s' (%s)\n", task_get_index(*t), task_get_description(*t), task_get_project(*t));
         }
+
+        /* run tasklist window, then free tasks */
         tasklist_window(tasks);
         free_tasks(tasks);
 
+        /* get task version */
         int * version = task_version();
         if (version != NULL) {
                 printf("task version: %d.%d.%d\n", version[0], version[1], version[2]);
                 free(version);
         }
+
+        /* free configuration */
+        free_config(conf);
 
         return 0;
 }
