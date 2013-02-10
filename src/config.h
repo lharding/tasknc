@@ -9,5 +9,6 @@
 
 /* task executable */
 #define TASKBIN         "task "
+#define PROGNAME        "tasknc"
 
 #endif

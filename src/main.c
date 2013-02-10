@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "config.h"
 #include "configure.h"
 #include "sort.h"
 #include "task.h"
@@ -17,8 +18,9 @@
 
 /* local functions */
 typedef int (*action)(struct task **, struct config *);
-int version(struct task ** tasks, struct config * conf);
 int print_tasks(struct task ** tasks, struct config * conf);
+int version(struct task ** tasks, struct config * conf);
+void help();
 
 int main(int argc, char ** argv) {
         /* initialize */
@@ -30,12 +32,14 @@ int main(int argc, char ** argv) {
 
         /* determine which action to take */
         static struct option long_opt[] = {
+                {"help",        no_argument,    0, 'h'},
+                {"print",       no_argument,    0, 'p'},
                 {"version",     no_argument,    0, 'v'},
                 {0,             0,              0, 0}
         };
         int opt_index = 0;
         int c;
-        while ((c = getopt_long(argc, argv, "pv", long_opt, &opt_index)) != -1) {
+        while ((c = getopt_long(argc, argv, "hpv", long_opt, &opt_index)) != -1) {
                 switch (c) {
                         case 'p':
                                 run = print_tasks;
@@ -44,10 +48,10 @@ int main(int argc, char ** argv) {
                         case 'v':
                                 run = version;
                                 break;
+                        case 'h':
                         case '?':
                         default:
-                                printf("unknown arg: '%c'\n", c);
-                                printf("TODO: implement help function here\n");
+                                help();
                                 return 1;
                                 break;
                 }
@@ -89,4 +93,14 @@ int print_tasks(struct task ** tasks, struct config *conf) {
         clean(tasks, conf);
 
         return 0;
+}
+
+/* help function */
+void help() {
+        fprintf(stderr, "\nUsage: %s [options]\n\n", PROGNAME);
+        fprintf(stderr, "  Options:\n"
+                        "    -h, --help         print this help message\n"
+                        "    -v, --version      print task version\n"
+                        "    -p, --print        print task list to stdout\n"
+               );
 }
