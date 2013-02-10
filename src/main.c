@@ -14,7 +14,11 @@ int main() {
         /* configure */
         struct config *conf = default_config();
         printf("initial nc_timeout: %d\n", conf_get_nc_timeout(conf));
-        config_parse_string(conf, "set nc_timeout 3000");
+        /* config_parse_string(conf, "set nc_timeout 3000"); */
+        FILE *fd = fopen("config", "r");
+        if (fd)
+                config_parse_file(conf, fd);
+        fclose(fd);
         printf("final nc_timeout: %d\n", conf_get_nc_timeout(conf));
 
         /* get tasks and print */

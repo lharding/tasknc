@@ -57,7 +57,12 @@ int config_set(struct config *conf, const int argc, char **argv) {
 
 /* parse a config string and evaluate its instructions */
 int config_parse_string(struct config *conf, char *str) {
+        /* debug */
+        char *p = strchr(str, '\n');
+        if (p != NULL)
+                *p = 0;
         printf("parsing config string: '%s'\n", str);
+
         int ret = CONFIG_SUCCESS;
 
         /* split into individual args */
@@ -70,7 +75,7 @@ int config_parse_string(struct config *conf, char *str) {
                         break;
 
                 /* check for whitespace */
-                if (*str == ' ' || *str == '\t') {
+                if (*str == ' ' || *str == '\t' || *str == '\n') {
                         str++;
                         continue;
                 }
@@ -97,7 +102,9 @@ int config_parse_string(struct config *conf, char *str) {
         argv = realloc(argv, (1+argc)*sizeof(char *));
 
         /* pass arguments to next function */
-        if (strcmp(argv[0], "set") == 0)
+        if (strcmp == NULL || argc == 0)
+                ret = 1;
+        else if (strcmp(argv[0], "set") == 0)
                 ret = config_set(conf, argc-1, argv+1);
         else
                 ret = 1;
