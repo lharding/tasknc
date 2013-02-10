@@ -32,15 +32,16 @@ int main(int argc, char ** argv) {
 
         /* determine which action to take */
         static struct option long_opt[] = {
+                {"filter",      required_argument,      0, 'f'},
                 {"help",        no_argument,            0, 'h'},
                 {"print",       no_argument,            0, 'p'},
+                {"sort",        required_argument,      0, 's'},
                 {"version",     no_argument,            0, 'v'},
-                {"filter",      required_argument,      0, 'f'},
                 {0,             0,                      0, 0}
         };
         int opt_index = 0;
         int c;
-        while ((c = getopt_long(argc, argv, "f:hpv", long_opt, &opt_index)) != -1) {
+        while ((c = getopt_long(argc, argv, "f:hps:v", long_opt, &opt_index)) != -1) {
                 switch (c) {
                         case 'f':
                                 conf_set_filter(conf, optarg);
@@ -48,6 +49,9 @@ int main(int argc, char ** argv) {
                         case 'p':
                                 run = print_tasks;
                                 need_tasks = true;
+                                break;
+                        case 's':
+                                conf_set_sort(conf, optarg);
                                 break;
                         case 'v':
                                 run = version;
@@ -62,8 +66,10 @@ int main(int argc, char ** argv) {
         }
 
         /* get necessary variables */
-        if (need_tasks)
+        if (need_tasks) {
                 tasks = get_tasks(conf_get_filter(conf));
+                sort_tasks(tasks, 0, conf_get_sort(conf));
+        }
 
         /* run function */
         if (run)
@@ -103,9 +109,10 @@ int print_tasks(struct task ** tasks, struct config *conf) {
 void help() {
         fprintf(stderr, "\nUsage: %s [options]\n\n", PROGNAME);
         fprintf(stderr, "  Options:\n"
-                        "    -h, --help         print this help message\n"
-                        "    -v, --version      print task version\n"
-                        "    -p, --print        print task list to stdout\n"
                         "    -f, --filter       set the task list filter\n"
+                        "    -h, --help         print this help message\n"
+                        "    -p, --print        print task list to stdout\n"
+                        "    -s, --sort         set the task list sort mode\n"
+                        "    -v, --version      print task version\n"
                );
 }
