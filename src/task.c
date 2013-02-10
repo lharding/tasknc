@@ -230,7 +230,10 @@ struct task ** get_tasks(const char *filter) {
                 }
                 tasks[counter] = this;
                 counter++;
+
+                memset(line, 0, linelen);
         }
+        free(line);
 
         /* shrink task list */
         tasks = realloc(tasks, (counter+1)*sizeof(struct task *));
