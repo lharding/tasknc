@@ -10,6 +10,7 @@
 #include "configure.h"
 #include "task.h"
 
+/* error codes */
 #define CONFIG_SUCCESS 0
 #define CONFIG_ERROR_ARGC 2
 #define CONFIG_CMD_UNHANDLED 3
@@ -17,6 +18,7 @@
 
 /* configuration struct */
 struct config {
+        FILE *logfd;
         int nc_timeout;
         int *version;
 };
@@ -34,6 +36,8 @@ struct config *default_config() {
 void free_config(struct config *conf) {
         if (conf->version)
                 free(conf->version);
+        if (conf->logfd)
+                fclose(conf->logfd);
         free(conf);
 }
 
@@ -52,6 +56,11 @@ int config_set(struct config *conf, const int argc, char **argv) {
 
         if (strcmp(argv[0], "nc_timeout") == 0)
                 conf->nc_timeout = config_parse_int(argv[1]);
+        else if (strcmp(argv[0], "logpath") == 0) {
+                if (conf->logfd)
+                        fclose(conf->logfd);
+                conf->logfd = fopen(argv[1], "a");
+        }
         else
                 return CONFIG_VAR_UNHANDLED;
 
@@ -165,4 +174,9 @@ int *conf_get_version(struct config *conf) {
 /* get nc_timeput from configuration struct */
 int conf_get_nc_timeout(struct config *conf) {
         return conf->nc_timeout;
+}
+
+/* get log file descriptor from configuration struct */
+FILE *conf_get_logfd(struct config *conf) {
+        return conf->logfd;
 }

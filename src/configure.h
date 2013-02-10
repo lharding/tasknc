@@ -65,4 +65,13 @@ int conf_get_nc_timeout(struct config *conf);
  */
 int *conf_get_version(struct config *conf);
 
+/**
+ * get log file descriptor
+ *
+ * @param conf configuration struct to obtain field from
+ *
+ * @return file descriptor for log file
+ */
+FILE *conf_get_logfd(struct config *conf);
+
 #endif
