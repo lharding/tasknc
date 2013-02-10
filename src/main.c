@@ -3,6 +3,7 @@
  * by mjheagle
  */
 
+#define _GNU_SOURCE
 #include <getopt.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -30,9 +31,12 @@ int main(int argc, char ** argv) {
         action run = NULL;
         bool need_tasks = false;
         bool need_conf = false;
+        bool configured = false;
+        FILE *fd;
 
         /* determine which action to take */
         static struct option long_opt[] = {
+                {"config",      required_argument,      0, 'c'},
                 {"cfgdump",     no_argument,            0, 'd'},
                 {"filter",      required_argument,      0, 'f'},
                 {"help",        no_argument,            0, 'h'},
@@ -43,8 +47,18 @@ int main(int argc, char ** argv) {
         };
         int opt_index = 0;
         int c;
-        while ((c = getopt_long(argc, argv, "df:hps:v", long_opt, &opt_index)) != -1) {
+        while ((c = getopt_long(argc, argv, "c:df:hps:v", long_opt, &opt_index)) != -1) {
                 switch (c) {
+                        case 'c':
+                                fd = fopen(optarg, "r");
+                                if (fd == NULL) {
+                                        printf("failed to open file '%s'\n", optarg);
+                                        return 1;
+                                }
+                                config_parse_file(conf, fd);
+                                fclose(fd);
+                                configured = true;
+                                break;
                         case 'd':
                                 run = dump_config;
                                 need_conf = true;
@@ -79,6 +93,17 @@ int main(int argc, char ** argv) {
         }
 
         /* get necessary variables */
+        if (need_conf && !configured) {
+                char *fp;
+                asprintf(&fp, "%s/.config/tasknc/config", getenv("HOME"));
+                fd = fopen(fp, "r");
+                if (fd == NULL) {
+                        printf("failed to open file '%s'\n", optarg);
+                        return 1;
+                }
+                config_parse_file(conf, fd);
+                fclose(fd);
+        }
         if (need_tasks) {
                 tasks = get_tasks(conf_get_filter(conf));
                 sort_tasks(tasks, 0, conf_get_sort(conf));
@@ -136,6 +161,7 @@ int dump_config(struct task ** tasks, struct config *conf) {
 void help() {
         fprintf(stderr, "\nUsage: %s [options]\n\n", PROGNAME);
         fprintf(stderr, "  Options:\n"
+                        "    -c, --config       source a custom configuration file\n"
                         "    -d, --cfgdump      dump the configuration settings\n"
                         "    -f, --filter       set the task list filter\n"
                         "    -h, --help         print this help message\n"
