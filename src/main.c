@@ -34,11 +34,9 @@ int main() {
         free_tasks(tasks);
 
         /* get task version */
-        int * version = task_version();
-        if (version != NULL) {
+        int * version = conf_get_version(conf);
+        if (version != NULL)
                 printf("task version: %d.%d.%d\n", version[0], version[1], version[2]);
-                free(version);
-        }
 
         /* free configuration */
         free_config(conf);

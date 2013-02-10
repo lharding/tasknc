@@ -56,4 +56,13 @@ void free_config(struct config *conf);
  */
 int conf_get_nc_timeout(struct config *conf);
 
+/**
+ * get task version from configuration struct
+ *
+ * @param conf configuration struct to obtain field from
+ *
+ * @return three digit array of integers
+ */
+int *conf_get_version(struct config *conf);
+
 #endif

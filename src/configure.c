@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "configure.h"
+#include "task.h"
 
 #define CONFIG_SUCCESS 0
 #define CONFIG_ERROR_ARGC 2
@@ -149,6 +150,14 @@ int config_parse_file(struct config *conf, FILE *file) {
         free(line);
 
         return CONFIG_SUCCESS;
+}
+
+/* get version */
+int *conf_get_version(struct config *conf) {
+        if (conf->version == NULL)
+                conf->version = task_version();
+
+        return conf->version;
 }
 
 /* get nc_timeput from configuration struct */
