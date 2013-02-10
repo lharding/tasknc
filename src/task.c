@@ -281,6 +281,9 @@ void free_task(struct task *t ) {
 
 /* function to free all tasks */
 void free_tasks(struct task ** tasks) {
+        if (tasks == NULL)
+                return;
+
         struct task ** h;
         for (h = tasks; *h != NULL; h++)
                 free_task(*h);
