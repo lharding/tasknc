@@ -72,7 +72,6 @@ int config_parse_string(struct config *conf, char *str) {
         char *p = strchr(str, '\n');
         if (p != NULL)
                 *p = 0;
-        printf("parsing config string: '%s'\n", str);
 
         int ret = CONFIG_SUCCESS;
 
@@ -110,7 +109,6 @@ int config_parse_string(struct config *conf, char *str) {
                         continue;
                 argv[argc] = calloc(len, sizeof(char));
                 strncpy(argv[argc], str, len);
-                printf("%d: (%d) %s\n", argc, len, argv[argc]);
 
                 /* move to next field */
                 argc++;

@@ -24,10 +24,6 @@ int main() {
         /* get tasks and print */
         struct task ** tasks = get_tasks("status:pending");
         sort_tasks(tasks, 0, "N");
-        struct task ** t;
-        for (t = tasks; *t != 0; t++) {
-                printf("%d: '%s' (%s)\n", task_get_index(*t), task_get_description(*t), task_get_project(*t));
-        }
 
         /* run tasklist window, then free tasks */
         tasklist_window(tasks, conf);
