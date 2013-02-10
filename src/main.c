@@ -63,11 +63,14 @@ int main(int argc, char ** argv) {
 
 /* get task version */
 int version(struct task ** tasks, struct config * conf) {
+        int ret = 0;
         int * version = conf_get_version(conf);
         if (version != NULL)
                 printf("task version: %d.%d.%d\n", version[0], version[1], version[2]);
+        else
+                ret = 1;
 
         clean(tasks, conf);
 
-        return 0;
+        return ret;
 }
