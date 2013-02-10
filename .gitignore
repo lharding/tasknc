@@ -5,9 +5,7 @@ tasknc.1
 *.o
 autom4te.cache
 Makefile
-Makefile.in
 src/Makefile
-src/Makefile.in
 aclocal.m4
 src/.deps
 config.log
