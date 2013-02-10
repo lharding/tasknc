@@ -3,6 +3,8 @@
  * by mjheagle
  */
 
+#include <getopt.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "configure.h"
@@ -10,32 +12,63 @@
 #include "task.h"
 #include "tasklist.h"
 
-int main() {
-        /* configure */
+/* macros */
+#define clean(t, c) { free_config(c); free_tasks(t); }
+
+/* local functions */
+typedef int (*action)(struct task **, struct config *);
+int version(struct task ** tasks, struct config * conf);
+
+int main(int argc, char ** argv) {
+        /* initialize */
         struct config *conf = default_config();
-        printf("initial nc_timeout: %d\n", conf_get_nc_timeout(conf));
-        /* config_parse_string(conf, "set nc_timeout 3000"); */
-        FILE *fd = fopen("config", "r");
-        if (fd)
-                config_parse_file(conf, fd);
-        fclose(fd);
-        printf("final nc_timeout: %d\n", conf_get_nc_timeout(conf));
+        struct task ** tasks = NULL;
+        action run = NULL;
+        bool need_tasks = false;
+        bool need_conf = false;
+        char *filter = "status:pending";
 
-        /* get tasks and print */
-        struct task ** tasks = get_tasks("status:pending");
-        sort_tasks(tasks, 0, "N");
+        /* determine which action to take */
+        static struct option long_opt[] = {
+                {"version",     no_argument,    0, 'v'},
+                {0,             0,              0, 0}
+        };
+        int opt_index = 0;
+        int c;
+        while ((c = getopt_long(argc, argv, "v", long_opt, &opt_index)) != -1) {
+                switch (c) {
+                        case 'v':
+                                run = version;
+                                break;
+                        case '?':
+                        default:
+                                printf("unknown arg: '%c'\n", c);
+                                printf("TODO: implement help function here\n");
+                                return 1;
+                                break;
+                }
+        }
 
-        /* run tasklist window, then free tasks */
-        tasklist_window(tasks, conf);
-        free_tasks(tasks);
+        /* get necessary variables */
+        if (need_tasks)
+                tasks = get_tasks(filter);
 
-        /* get task version */
+        /* run function */
+        if (run)
+                return run(tasks, conf);
+        else {
+                printf("no action to run\n");
+                return 1;
+        }
+}
+
+/* get task version */
+int version(struct task ** tasks, struct config * conf) {
         int * version = conf_get_version(conf);
         if (version != NULL)
                 printf("task version: %d.%d.%d\n", version[0], version[1], version[2]);
 
-        /* free configuration */
-        free_config(conf);
+        clean(tasks, conf);
 
         return 0;
 }
