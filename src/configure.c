@@ -87,14 +87,24 @@ int config_parse_string(struct config *conf, char *str) {
                 }
 
                 /* get this arg */
-                char *end = strchrnul(str, ' ');
+                char *end = NULL;
+                if (*str == '"') {
+                        end = strchrnul(str+1, '"');
+                        str++;
+                }
+                else
+                        end = strchrnul(str, ' ');
                 const int len = end-str;
+                if (len == 0)
+                        continue;
                 argv[argc] = calloc(len, sizeof(char));
                 strncpy(argv[argc], str, len);
                 printf("%d: (%d) %s\n", argc, len, argv[argc]);
 
                 /* move to next field */
                 argc++;
+                if (*str == '"')
+                        end++;
                 str = end;
         }
 
@@ -102,7 +112,7 @@ int config_parse_string(struct config *conf, char *str) {
         argv = realloc(argv, (1+argc)*sizeof(char *));
 
         /* pass arguments to next function */
-        if (strcmp == NULL || argc == 0)
+        if (argc == 0)
                 ret = 1;
         else if (strcmp(argv[0], "set") == 0)
                 ret = config_set(conf, argc-1, argv+1);
