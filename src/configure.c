@@ -20,6 +20,7 @@
 /* configuration struct */
 struct config {
         char *filter;
+        char *sort;
         FILE *logfd;
         int nc_timeout;
         int *version;
@@ -31,6 +32,7 @@ struct config *default_config() {
 
         conf->nc_timeout = 1000;
         conf->filter = strdup("status:pending");
+        conf->sort = strdup("n");
 
         return conf;
 }
@@ -40,6 +42,7 @@ void free_config(struct config *conf) {
         check_free(conf->version);
         check_fclose(conf->logfd);
         check_free(conf->filter);
+        check_free(conf->sort);
 
         free(conf);
 }
@@ -63,6 +66,10 @@ int config_set(struct config *conf, const int argc, char **argv) {
                 check_fclose(conf->logfd);
                 conf->logfd = fopen(argv[1], "a");
         }
+        else if (strcmp(argv[0], "filter") == 0)
+                conf_set_filter(conf, argv[1]);
+        else if (strcmp(argv[0], "sort") == 0)
+                conf_set_sort(conf, argv[1]);
         else
                 return CONFIG_VAR_UNHANDLED;
 
@@ -190,4 +197,15 @@ char *conf_get_filter(struct config *conf) {
 void conf_set_filter(struct config *conf, char *filter) {
         check_free(conf->filter);
         conf->filter = strdup(filter);
+}
+
+/* get task sort */
+char *conf_get_sort(struct config *conf) {
+        return conf->sort;
+}
+
+/* set task sort */
+void conf_set_sort(struct config *conf, char *sort) {
+        check_free(conf->sort);
+        conf->sort = strdup(sort);
 }

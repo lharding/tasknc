@@ -91,4 +91,21 @@ char *conf_get_filter(struct config *conf);
  */
 void conf_set_filter(struct config *conf, char *filter);
 
+/**
+ * get task sort
+ *
+ * @param conf configuration struct to obtain field from
+ *
+ * @return task sort order
+ */
+char *conf_get_sort(struct config *conf);
+
+/**
+ * set task sort
+ *
+ * @param conf configuration struct to set field in
+ * @param sort the sort to set
+ */
+void conf_set_sort(struct config *conf, char *sort);
+
 #endif
