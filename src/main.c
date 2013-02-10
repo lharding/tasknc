@@ -32,15 +32,19 @@ int main(int argc, char ** argv) {
 
         /* determine which action to take */
         static struct option long_opt[] = {
-                {"help",        no_argument,    0, 'h'},
-                {"print",       no_argument,    0, 'p'},
-                {"version",     no_argument,    0, 'v'},
-                {0,             0,              0, 0}
+                {"help",        no_argument,            0, 'h'},
+                {"print",       no_argument,            0, 'p'},
+                {"version",     no_argument,            0, 'v'},
+                {"filter",      required_argument,      0, 'f'},
+                {0,             0,                      0, 0}
         };
         int opt_index = 0;
         int c;
-        while ((c = getopt_long(argc, argv, "hpv", long_opt, &opt_index)) != -1) {
+        while ((c = getopt_long(argc, argv, "f:hpv", long_opt, &opt_index)) != -1) {
                 switch (c) {
+                        case 'f':
+                                conf_set_filter(conf, optarg);
+                                break;
                         case 'p':
                                 run = print_tasks;
                                 need_tasks = true;
@@ -102,5 +106,6 @@ void help() {
                         "    -h, --help         print this help message\n"
                         "    -v, --version      print task version\n"
                         "    -p, --print        print task list to stdout\n"
+                        "    -f, --filter       set the task list filter\n"
                );
 }
