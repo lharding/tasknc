@@ -16,7 +16,7 @@ int simple_print_task(WINDOW *win, const int line, const int width, struct task 
         return umvaddstr(win, line, 0, width, "%3d %10s %s", task_get_index(task), task_get_project(task), task_get_description(task));
 }
 
-void tasklist_window(struct task ** tasks, struct config * conf) {
+int tasklist_window(struct task ** tasks, struct config * conf) {
         /* ncurses main function */
         initscr();
         int rows = LINES;
@@ -26,7 +26,7 @@ void tasklist_window(struct task ** tasks, struct config * conf) {
         struct nc_win * tasklist = make_window(rows-2, cols, 1, 0, TASKNC_TASKLIST);
         if (tasklist == NULL) {
                 endwin();
-                return;
+                return 1;
         }
         set_curses_mode(conf, tasklist->win, NCURSES_MODE_STD_BLOCKING);
 
@@ -40,4 +40,6 @@ void tasklist_window(struct task ** tasks, struct config * conf) {
         /* close windows */
         delwin(tasklist->win);
         endwin();
+
+        return 0;
 }

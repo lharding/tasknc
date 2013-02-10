@@ -15,7 +15,9 @@
  *
  * @param tasks the array of tasks to be displayed in the window
  * @param conf configuration struct pointer
+ *
+ * @return indicator of success
  */
-void tasklist_window(struct task ** tasks, struct config * conf);
+int tasklist_window(struct task ** tasks, struct config * conf);
 
 #endif

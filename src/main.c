@@ -65,6 +65,13 @@ int main(int argc, char ** argv) {
                 }
         }
 
+        /* set action to tasklist if no action was set */
+        if (run == NULL) {
+                run = tasklist_window;
+                need_tasks = true;
+                need_conf = true;
+        }
+
         /* get necessary variables */
         if (need_tasks) {
                 tasks = get_tasks(conf_get_filter(conf));
