@@ -8,6 +8,7 @@
 #include <string.h>
 #include <wchar.h>
 #include "cursutil.h"
+#include "configure.h"
 
 /* evaluate a format string, convert to wchar, and print it to window */
 int umvaddstr(WINDOW *win, const int y, const int x, const int width, const char *format, ...) {
@@ -81,7 +82,7 @@ int umvaddstr_align(WINDOW *win, const int y, const int width, char *str) {
 }
 
 /* function to change curses input modes */
-void set_curses_mode(WINDOW *win, const enum ncurses_mode mode) {
+void set_curses_mode(struct config * conf, WINDOW *win, const enum ncurses_mode mode) {
         switch (mode)
         {
                 case NCURSES_MODE_STD:
@@ -90,7 +91,7 @@ void set_curses_mode(WINDOW *win, const enum ncurses_mode mode) {
                         cbreak();               /* take input chars one at a time, no wait for \n */
                         noecho();               /* dont echo input */
                         curs_set(0);            /* set cursor invisible */
-                        wtimeout(win, 1000);    /* timeout getch */
+                        wtimeout(win, conf_get_nc_timeout(conf)); /* timeout getch */
                         break;
                 case NCURSES_MODE_STD_BLOCKING:
                         keypad(win, TRUE);      /* enable keyboard mapping */

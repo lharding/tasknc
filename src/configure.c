@@ -25,6 +25,8 @@ struct config {
 struct config *default_config() {
         struct config *conf = calloc(1, sizeof(struct config));
 
+        conf->nc_timeout = 1000;
+
         return conf;
 }
 

@@ -9,6 +9,7 @@
 #define _TASKNC_CURSUTIL_H
 
 #include <curses.h>
+#include "configure.h"
 
 /**
  * evaluate a 'char *' format string, convert to 'wchar_t *' and print to ncurses
@@ -48,12 +49,13 @@ enum ncurses_mode {
 /**
  * set ncurses input mode
  *
+ * @param conf configuration struct pointer
  * @param win ncurses window that will be handling input
  * @param mode ncurses mode describing input parameters.
  *
  * @todo get timeout from config
  */
-void set_curses_mode(WINDOW *win, const enum ncurses_mode mode);
+void set_curses_mode(struct config *conf, WINDOW *win, const enum ncurses_mode mode);
 
 /**
  * ncurses window types

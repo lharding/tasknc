@@ -30,7 +30,7 @@ int main() {
         }
 
         /* run tasklist window, then free tasks */
-        tasklist_window(tasks);
+        tasklist_window(tasks, conf);
         free_tasks(tasks);
 
         /* get task version */
