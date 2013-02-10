@@ -18,6 +18,7 @@
 /* local functions */
 typedef int (*action)(struct task **, struct config *);
 int version(struct task ** tasks, struct config * conf);
+int print_tasks(struct task ** tasks, struct config * conf);
 
 int main(int argc, char ** argv) {
         /* initialize */
@@ -34,8 +35,12 @@ int main(int argc, char ** argv) {
         };
         int opt_index = 0;
         int c;
-        while ((c = getopt_long(argc, argv, "v", long_opt, &opt_index)) != -1) {
+        while ((c = getopt_long(argc, argv, "pv", long_opt, &opt_index)) != -1) {
                 switch (c) {
+                        case 'p':
+                                run = print_tasks;
+                                need_tasks = true;
+                                break;
                         case 'v':
                                 run = version;
                                 break;
@@ -73,4 +78,15 @@ int version(struct task ** tasks, struct config * conf) {
         clean(tasks, conf);
 
         return ret;
+}
+
+/* display task list */
+int print_tasks(struct task ** tasks, struct config *conf) {
+        struct task ** t;
+        for (t = tasks; *t != NULL; t++)
+                printf("%d:%s\n", task_get_index(*t), task_get_description(*t));
+
+        clean(tasks, conf);
+
+        return 0;
 }
