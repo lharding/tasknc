@@ -18,6 +18,7 @@
 
 /* local functions */
 typedef int (*action)(struct task **, struct config *);
+int dump_config(struct task ** tasks, struct config * conf);
 int print_tasks(struct task ** tasks, struct config * conf);
 int version(struct task ** tasks, struct config * conf);
 void help();
@@ -32,6 +33,7 @@ int main(int argc, char ** argv) {
 
         /* determine which action to take */
         static struct option long_opt[] = {
+                {"cfgdump",     no_argument,            0, 'd'},
                 {"filter",      required_argument,      0, 'f'},
                 {"help",        no_argument,            0, 'h'},
                 {"print",       no_argument,            0, 'p'},
@@ -41,8 +43,12 @@ int main(int argc, char ** argv) {
         };
         int opt_index = 0;
         int c;
-        while ((c = getopt_long(argc, argv, "f:hps:v", long_opt, &opt_index)) != -1) {
+        while ((c = getopt_long(argc, argv, "df:hps:v", long_opt, &opt_index)) != -1) {
                 switch (c) {
+                        case 'd':
+                                run = dump_config;
+                                need_conf = true;
+                                break;
                         case 'f':
                                 conf_set_filter(conf, optarg);
                                 break;
@@ -112,10 +118,25 @@ int print_tasks(struct task ** tasks, struct config *conf) {
         return 0;
 }
 
+/* dump config */
+int dump_config(struct task ** tasks, struct config *conf) {
+        printf("%s: %d\n", "nc_timeout", conf_get_nc_timeout(conf));
+        int * version = conf_get_version(conf);
+        if (version)
+                printf("%s: %d.%d.%d\n", "version", version[0], version[1], version[2]);
+        printf("%s: %s\n", "filter", conf_get_filter(conf));
+        printf("%s: %s\n", "sort", conf_get_sort(conf));
+
+        clean(tasks, conf);
+
+        return 0;
+}
+
 /* help function */
 void help() {
         fprintf(stderr, "\nUsage: %s [options]\n\n", PROGNAME);
         fprintf(stderr, "  Options:\n"
+                        "    -d, --cfgdump      dump the configuration settings\n"
                         "    -f, --filter       set the task list filter\n"
                         "    -h, --help         print this help message\n"
                         "    -p, --print        print task list to stdout\n"
