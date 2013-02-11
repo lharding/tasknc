@@ -42,12 +42,13 @@ int main(int argc, char ** argv) {
                 {"help",        no_argument,            0, 'h'},
                 {"print",       no_argument,            0, 'p'},
                 {"sort",        required_argument,      0, 's'},
+                {"task_format", required_argument,      0, 't'},
                 {"version",     no_argument,            0, 'v'},
                 {0,             0,                      0, 0}
         };
         int opt_index = 0;
         int c;
-        while ((c = getopt_long(argc, argv, "c:df:hps:v", long_opt, &opt_index)) != -1) {
+        while ((c = getopt_long(argc, argv, "c:df:hps:t:v", long_opt, &opt_index)) != -1) {
                 switch (c) {
                         case 'c':
                                 fd = fopen(optarg, "r");
@@ -72,6 +73,9 @@ int main(int argc, char ** argv) {
                                 break;
                         case 's':
                                 conf_set_sort(conf, optarg);
+                                break;
+                        case 't':
+                                conf_set_task_format(conf, optarg);
                                 break;
                         case 'v':
                                 run = version;
@@ -170,6 +174,7 @@ void help() {
                         "    -h, --help         print this help message\n"
                         "    -p, --print        print task list to stdout\n"
                         "    -s, --sort         set the task list sort mode\n"
+                        "    -t, --task_format  set the task format string\n"
                         "    -v, --version      print task version\n"
                );
 }
