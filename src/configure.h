@@ -108,4 +108,21 @@ char *conf_get_sort(struct config *conf);
  */
 void conf_set_sort(struct config *conf, char *sort);
 
+/**
+ * get task task_format
+ *
+ * @param conf configuration struct to obtain field from
+ *
+ * @return task task format string
+ */
+char *conf_get_task_format(struct config *conf);
+
+/**
+ * set task task_format
+ *
+ * @param conf configuration struct to set field in
+ * @param task_format task format string to apply
+ */
+void conf_set_task_format(struct config *conf, char *task_format);
+
 #endif

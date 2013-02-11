@@ -10,10 +10,10 @@
 #include "cursutil.h"
 
 /* temporary function to test printing tasks */
-int simple_print_task(WINDOW *win, const int line, const int width, struct task * task) {
+int simple_print_task(WINDOW *win, const int line, const int width, struct task * task, struct config * conf) {
         if (task == NULL)
                 return ERR;
-        char * str = task_snprintf(width, "%3n (%-10p) %d", task);
+        char * str = task_snprintf(width, conf_get_task_format(conf), task);
         int ret = umvaddstr(win, line, 0, width, "%s", str);
         free(str);
         return ret;
@@ -36,7 +36,7 @@ int tasklist_window(struct task ** tasks, struct config * conf) {
         /* print test lines */
         int n;
         for (n = 0; n < rows-2 && tasks[n] != NULL; n++)
-                simple_print_task(tasklist->win, n, cols, tasks[n]);
+                simple_print_task(tasklist->win, n, cols, tasks[n], conf);
         wrefresh(tasklist->win);
         wgetch(tasklist->win);
 
