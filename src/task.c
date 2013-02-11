@@ -39,6 +39,9 @@ enum task_fields { TASK_INDEX, TASK_UUID, TASK_TAGS, TASK_START, TASK_END, TASK_
 unsigned short task_get_index(const struct task *t) {
         return t->index;
 }
+float task_get_urgency(const struct task *t) {
+        return t->urgency;
+}
 char *task_get_uuid(const struct task *t) {
         return t->uuid;
 }
@@ -332,6 +335,22 @@ char * task_snprintf(int len, char * format, struct task * t) {
                                 fmttype = 's';
                                 arg.s = task_get_project(t);
                                 break;
+                        case 'r': /* priority */
+                                fmttype = 'c';
+                                arg.c = task_get_priority(t);
+                                break;
+                        case 'u': /* uuid */
+                                fmttype = 's';
+                                arg.s = task_get_uuid(t);
+                                break;
+                        case 't': /* tags */
+                                fmttype = 's';
+                                arg.s = task_get_tags(t);
+                                break;
+                        case 'g': /* urgency */
+                                fmttype = 'f';
+                                arg.f = task_get_urgency(t);
+                                break;
                         default:
                                 if (!fmtstart) {
                                         ret[pos] = *format;
@@ -352,7 +371,15 @@ char * task_snprintf(int len, char * format, struct task * t) {
                                         asprintf(&field, fmt, arg.d);
                                         break;
                                 case 's':
+                                        if (arg.s == NULL)
+                                                arg.s = "";
                                         asprintf(&field, fmt, arg.s);
+                                        break;
+                                case 'c':
+                                        asprintf(&field, fmt, arg.c);
+                                        break;
+                                case 'f':
+                                        asprintf(&field, fmt, arg.f);
                                         break;
                                 default:
                                         break;

@@ -136,7 +136,7 @@ int version(struct task ** tasks, struct config * conf) {
 int print_tasks(struct task ** tasks, struct config *conf) {
         struct task ** t;
         for (t = tasks; *t != NULL; t++) {
-                char * str = task_snprintf(70, "%3n (%p) %d", *t);
+                char * str = task_snprintf(100, "%3n (%-10p) %d", *t);
                 printf("%s\n", str);
                 free(str);
         }

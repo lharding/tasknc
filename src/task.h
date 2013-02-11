@@ -25,6 +25,15 @@ struct task;
 unsigned short task_get_index(const struct task *t);
 
 /**
+ * access task urgency
+ *
+ * @param t task to obtain field from
+ *
+ * @return task urgency
+ */
+float task_get_urgency(const struct task *t);
+
+/**
  * access task uuid
  *
  * @param t task to obtain field from
