@@ -13,7 +13,10 @@
 int simple_print_task(WINDOW *win, const int line, const int width, struct task * task) {
         if (task == NULL)
                 return ERR;
-        return umvaddstr(win, line, 0, width, "%3d %10s %s", task_get_index(task), task_get_project(task), task_get_description(task));
+        char * str = task_snprintf(width, "%3n (%-10p) %d", task);
+        int ret = umvaddstr(win, line, 0, width, "%s", str);
+        free(str);
+        return ret;
 }
 
 int tasklist_window(struct task ** tasks, struct config * conf) {
