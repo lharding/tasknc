@@ -141,4 +141,15 @@ int * task_version();
  */
 int count_tasks(struct task ** tasks);
 
+/**
+ * a custom version of snprintf to format task output
+ *
+ * @param len length of the string
+ * @param format format string
+ * @param task task to format
+ *
+ * @return the formatted task string
+ */
+char * task_snprintf(int len, char * format, struct task * t);
+
 #endif

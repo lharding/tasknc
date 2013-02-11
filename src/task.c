@@ -4,6 +4,7 @@
  */
 
 #define _GNU_SOURCE
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -299,4 +300,82 @@ int count_tasks(struct task ** tasks) {
                 ntasks++;
 
         return ntasks;
+}
+
+/* task snprintf implementation */
+char * task_snprintf(int len, char * format, struct task * t) {
+        char * ret = calloc(len+1, sizeof(char));
+        int pos = 0; /* position in output string */
+        char * fmtstart = NULL;
+        char fmttype = 0;
+        union {
+                int d;
+                char * s;
+                char c;
+                float f;
+        } arg;
+
+        while (*format != 0 && pos < len) {
+                switch (*format) {
+                        case '%':
+                                fmtstart = format;
+                                break;
+                        case 'n': /* index */
+                                fmttype = 'd';
+                                arg.d = task_get_index(t);
+                                break;
+                        case 'd': /* description */
+                                fmttype = 's';
+                                arg.s = task_get_description(t);
+                                break;
+                        case 'p': /* project */
+                                fmttype = 's';
+                                arg.s = task_get_project(t);
+                                break;
+                        default:
+                                if (!fmtstart) {
+                                        ret[pos] = *format;
+                                        pos++;
+                                }
+                                break;
+                }
+
+                /* handle format string */
+                if (fmttype) {
+                        char * fmt = calloc(format-fmtstart+2, sizeof(char));
+                        strncpy(fmt, fmtstart, format-fmtstart+1);
+                        fmt[format-fmtstart] = fmttype;
+                        /* printf("fmt: %s\n", fmt); */
+                        char * field = NULL;
+                        switch (fmttype) {
+                                case 'd':
+                                        asprintf(&field, fmt, arg.d);
+                                        break;
+                                case 's':
+                                        asprintf(&field, fmt, arg.s);
+                                        break;
+                                default:
+                                        break;
+                        }
+
+                        if (field) {
+                                int flen = strlen(field);
+                                if (pos+flen >= len) {
+                                        flen = len-pos;
+                                }
+                                strncat(ret+pos, field, flen);
+                                pos += flen;
+                                free(field);
+                        }
+
+                        free(fmt);
+                        fmttype = 0;
+                        fmtstart = NULL;
+                }
+
+                /* move to next char */
+                format++;
+        }
+
+        return ret;
 }

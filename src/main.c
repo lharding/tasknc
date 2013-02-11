@@ -135,8 +135,11 @@ int version(struct task ** tasks, struct config * conf) {
 /* display task list */
 int print_tasks(struct task ** tasks, struct config *conf) {
         struct task ** t;
-        for (t = tasks; *t != NULL; t++)
-                printf("%d:%s\n", task_get_index(*t), task_get_description(*t));
+        for (t = tasks; *t != NULL; t++) {
+                char * str = task_snprintf(70, "%3n (%p) %d", *t);
+                printf("%s\n", str);
+                free(str);
+        }
 
         clean(tasks, conf);
 
