@@ -33,13 +33,21 @@ char ** parse_json(const char *json) {
                 /* parse value */
                 char *value_start = field_end+2;
                 char *value_end = strchr(value_start, ',');
+                /* handle quoted value */
                 if (*value_start == '"') {
                         while (value_end != NULL && (*(value_end-1) != '"' || *(value_end-2) == '\\'))
                                 value_end = strchr(value_end+1, ',');
                 }
+                /* handle array */
+                if (*value_start == '[') {
+                        while (value_end != NULL && (*(value_end-1) != ']' || *(value_end-2) == '\\'))
+                                value_end = strchr(value_end+1, ',');
+                }
+                /* handle end of line */
                 if (value_end == NULL)
                         value_end = strchr(value_start, '}');
-                if (*value_start == '"') {
+                /* remove start/end char from string if appropriate */
+                if (*value_start == '"' || *value_start == '[') {
                         value_start++;
                         value_end--;
                 }
