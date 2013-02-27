@@ -18,8 +18,15 @@ Installation can be performed by pasting the commands below:
 
     git clone https://github.com/mjheagle8/tasknc.git
     cd tasknc.git
+    mkdir build
+    cd build
+    cmake..
     make
     sudo make install
+
+Similiarily, uninstallation can be done:
+    cd build
+    sudo make uninstall
 
 Requirements
 ------------
@@ -29,6 +36,8 @@ Requirements
 `pod2man` is required to generate the manual page.  In Arch Linux, this is provided by the `perl` package.
 
 `ncursesw` headers are required to compile with unicode support.  In Arch Linux, this is provided by the `ncurses` package.
+
+`cmake` is the build system.
 
 Bugs
 ----
