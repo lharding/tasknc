@@ -4,9 +4,10 @@
 OUT 		= tasknc
 
 #variables
-CC      	= cc
+CC		?= cc
 CFLAGS 		= -Wall -g -Wextra -std=c99 -O2
-LDFLAGS 	= ${CFLAGS} -lncursesw
+LDFLAGS 	= ${CFLAGS}
+LDLIBS 		= -lncursesw
 VERSION 	= $(shell git describe)
 
 PREFIX 	   ?= /usr/local
@@ -42,7 +43,7 @@ uninstall:
 	$(CC) -c $(CFLAGS) $<
 
 $(OUT): $(OBJ)
-	$(CC) $(LDFLAGS) -o $@ $(OBJ)
+	$(CC) $(LDFLAGS) -o $@ $(OBJ) $(LDLIBS)
 
 tags: $(SRC)
 		ctags *.c *.h
