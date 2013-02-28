@@ -20,7 +20,7 @@ Installation can be performed by pasting the commands below:
     cd tasknc.git
     mkdir build
     cd build
-    cmake..
+    cmake ..
     make
     sudo make install
 
