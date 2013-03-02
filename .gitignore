@@ -7,6 +7,9 @@ autom4te.cache
 Makefile
 src/Makefile
 aclocal.m4
+depcomp
+missing
+install-sh
 src/.deps
 config.log
 config.status
