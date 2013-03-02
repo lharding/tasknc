@@ -1,4 +1,4 @@
-OUT 		= tn
+OUT 		= tnc
 
 #variables
 CC = gcc
