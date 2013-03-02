@@ -4,3 +4,14 @@ tags
 tasknc.1
 *.o
 build
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+cmake_uninstall.cmake
+doc/CMakeFiles/
+doc/Makefile
+doc/cmake_install.cmake
+src/CMakeFiles/
+src/Makefile
+src/cmake_install.cmake
