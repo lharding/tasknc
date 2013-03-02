@@ -1,0 +1,2 @@
+/* cmake configured options */
+#define VERSION "${VERSION}"

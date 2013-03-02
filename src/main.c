@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "cmake.h"
 #include "config.h"
 #include "configure.h"
 #include "sort.h"
@@ -130,6 +131,10 @@ int version(struct task ** tasks, struct config * conf) {
                 printf("task version: %d.%d.%d\n", version[0], version[1], version[2]);
         else
                 ret = 1;
+
+#ifdef VERSION
+        printf("tasknc version: " VERSION "\n");
+#endif
 
         clean(tasks, conf);
 
