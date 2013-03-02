@@ -10,12 +10,29 @@
 #include "cursutil.h"
 
 /* temporary function to test printing tasks */
-int simple_print_task(WINDOW *win, const int line, const int width, struct task * task, struct config * conf) {
+int print_task(struct nc_win * nc, const int line, const int width, struct task * task, struct config * conf) {
+        /* check for NULL task */
         if (task == NULL)
                 return ERR;
+
+        /* determine if task is selected */
+        const bool is_selected = (line == nc->selline - nc->offset);
+
+        /* generate string to display */
         char * str = task_snprintf(width, conf_get_task_format(conf), task);
-        int ret = umvaddstr(win, line, 0, width, "%s", str);
+
+        /* set color */
+        /* TODO: determine color based on rules */
+        if (is_selected)
+                wattrset(nc->win, COLOR_PAIR(1));
+
+        /* display string */
+        int ret = umvaddstr(nc->win, line, 0, width, "%s", str);
         free(str);
+
+        /* reset color */
+        wattrset(nc->win, COLOR_PAIR(0));
+
         return ret;
 }
 
@@ -33,10 +50,19 @@ int tasklist_window(struct task ** tasks, struct config * conf) {
         }
         set_curses_mode(conf, tasklist->win, NCURSES_MODE_STD_BLOCKING);
 
+        /* initialize colors */
+        /* TODO: do this in configuration */
+        if (start_color() == ERR)
+                return -2;
+        if (assume_default_colors(-1, -1) == ERR)
+                return -3;
+        if (init_pair(1, COLOR_BLUE, -1) == ERR)
+                return -1;
+
         /* print test lines */
         int n;
         for (n = 0; n < rows-2 && tasks[n] != NULL; n++)
-                simple_print_task(tasklist->win, n, cols, tasks[n], conf);
+                print_task(tasklist, n, cols, tasks[n], conf);
         wrefresh(tasklist->win);
         wgetch(tasklist->win);
 
