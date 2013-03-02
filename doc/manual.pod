@@ -515,7 +515,7 @@ mjheagle E<lt>mjheagle8@gmail.comE<gt>
 
 =head1 CONTRIBUTORS
 
-Special thanks to the following contributor: irl
+Special thanks to the following contributors: irl marcusmueller
 
 =head1 SEE ALSO
 

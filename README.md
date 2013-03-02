@@ -18,6 +18,9 @@ Installation can be performed by pasting the commands below:
 
     git clone https://github.com/mjheagle8/tasknc.git
     cd tasknc.git
+    mkdir build
+    cd build
+    cmake ..
     make
     sudo make install
 
