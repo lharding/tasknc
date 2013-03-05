@@ -1,11 +1,11 @@
 /**
  * @file json.h
  * @author mjheagle
- * @brief simple json parser for tasknc
+ * @brief simple json parser for libtask
  */
 
-#ifndef _TASKNC_JSON_H
-#define _TASKNC_JSON_H
+#ifndef _TASK_JSON_H
+#define _TASK_JSON_H
 
 /**
  * parse a string containing json formatted text

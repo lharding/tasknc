@@ -10,9 +10,10 @@
 #include <string.h>
 #include <time.h>
 #include "config.h"
-#include "common.h"
 #include "json.h"
 #include "task.h"
+
+#define check_free(a) { if (a != NULL) free(a); }
 
 /* task struct definition */
 struct task

@@ -4,8 +4,8 @@
  * @brief taskwarrior interface
  */
 
-#ifndef _TASKNC_TASK_H
-#define _TASKNC_TASK_H
+#ifndef _TASK_H
+#define _TASK_H
 
 #include <time.h>
 

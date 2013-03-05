@@ -1,5 +1,5 @@
 /*
- * simple json parser for tasknc
+ * simple json parser for libtask
  * by mjheagle
  */
 

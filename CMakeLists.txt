@@ -25,6 +25,7 @@ configure_file (
 #set up includes
 include_directories (
     ${CURSES_NCURSES_INCLUDE_PATH}
+    "${PROJECT_SOURCE_DIR}/libtask/"
     )
 
 #set up uninstall target
@@ -37,6 +38,7 @@ add_custom_target( uninstall
     )
 
 #add subdirectories to build
+add_subdirectory (libtask)
 add_subdirectory (src)
 add_subdirectory (doc)
 
