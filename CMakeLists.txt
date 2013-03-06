@@ -1,12 +1,15 @@
-# CMakeLists for tasknc
+#CMakeLists for tasknc
 CMake_minimum_required (VERSION 2.6)
 project (tasknc C)
+
+#set variables
 exec_program (
     "git"
     ${CMAKE_CURRENT_SOURCE_DIR}
     ARGS "describe"
     OUTPUT_VARIABLE VERSION
     )
+set ( CMAKE_C_FLAGS "-Wall -g -Wextra -O2" )
 
 #cmake pkg finder scripts
 list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
@@ -33,7 +36,7 @@ configure_file (
     ${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
     @ONLY)
-add_custom_target( uninstall
+add_custom_target ( uninstall
     ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
     )
 
@@ -41,6 +44,3 @@ add_custom_target( uninstall
 add_subdirectory (libtask)
 add_subdirectory (src)
 add_subdirectory (doc)
-
-#files to install
-install(FILES config  DESTINATION share/tasknc)
