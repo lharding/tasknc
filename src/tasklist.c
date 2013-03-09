@@ -325,7 +325,8 @@ void key_tasklist_toggle_started() /* {{{ */
 	bool started;
 	time_t now;
 	task *cur = get_task_by_position(selline);
-	char *cmdstr, *action, *actionpast, *reply;
+	char *cmdstr, *reply;
+	const char *action, *actionpast;
 	FILE *cmdout;
 	int ret;
 

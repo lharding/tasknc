@@ -26,7 +26,8 @@ static void source_fp(const FILE *);
 void handle_command(char *cmdstr) /* {{{ */
 {
 	/* accept a command string, determine what action to take, and execute */
-	char *command, *args, *modestr, *pos;
+	char *command, *args, *pos;
+	const char *modestr;
 	funcmap *fmap;
 	prog_mode mode;
 	int ret = 0;

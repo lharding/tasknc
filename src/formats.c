@@ -22,7 +22,7 @@ static fmt_field *buffer_field(char *, int);
 static char *eval_conditional(conditional_fmt_field *, task *);
 static char *field_to_str(fmt_field *, bool *, task *);
 static void free_format(fmt_field *);
-static conditional_fmt_field *parse_conditional(char **);
+static conditional_fmt_field *parse_conditional(const char **);
 
 char *append_buffer(char *buffer, const char append, int *bufferlen) /* {{{ */
 {
@@ -78,7 +78,7 @@ void compile_formats() /* {{{ */
 	cfg.formats.view_compiled = compile_format_string(cfg.formats.view);
 } /* }}} */
 
-fmt_field *compile_format_string(char *fmt) /* {{{ */
+fmt_field *compile_format_string(const char *fmt) /* {{{ */
 {
 	/* compile a given format string */
 	fmt_field *head = NULL, *this, *last = NULL;
@@ -403,7 +403,7 @@ void free_formats() /* {{{ */
 	free_format(cfg.formats.task_compiled);
 } /* }}} */
 
-conditional_fmt_field *parse_conditional(char **str) /* {{{ */
+conditional_fmt_field *parse_conditional(const char **str) /* {{{ */
 {
 	/* parse a conditional struct from a string at a position */
 	conditional_fmt_field *this = calloc(1, sizeof(conditional_fmt_field));

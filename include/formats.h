@@ -9,7 +9,7 @@
 
 #include "common.h"
 
-fmt_field *compile_format_string(char *);
+fmt_field *compile_format_string(const char *);
 char *eval_format(fmt_field *, task *);
 void compile_formats();
 void free_formats();

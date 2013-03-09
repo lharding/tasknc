@@ -79,7 +79,8 @@ void test_compile_fmt() /* {{{ */
 {
 	/* test compiling a format to a series of fields */
 	fmt_field *fmts;
-	char *eval, *teststr;
+	char *eval;
+	const char *teststr;
 
 	teststr = "first $date $-8program_version $4program_name $10program_author ++?$search_string?SEARCH??++ ++?$active_filter??NO?++ second";
 	fmts = compile_format_string(teststr);
@@ -100,7 +101,7 @@ void test_compile_fmt() /* {{{ */
 void test_result(const char *testname, const bool passed) /* {{{ */
 {
 	/* print a colored result for a test */
-	char *color, *msg;
+	const char *color, *msg;
 
 	/* determine color and message */
 	if (passed)

@@ -47,7 +47,7 @@ void print_version(void);
 void set_curses_mode(const ncurses_mode);
 char *str_trim(char *);
 int umvaddstr(WINDOW *, const int, const int, const char *, ...) __attribute__((format(printf,4,5)));
-int umvaddstr_align(WINDOW *, const int, char *);
+int umvaddstr_align(WINDOW *, const int, const char *);
 void wipe_screen(WINDOW *, const short, const short);
 void wipe_window(WINDOW *);
 

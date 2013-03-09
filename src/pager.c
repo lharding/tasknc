@@ -23,7 +23,7 @@
 #include "tasknc.h"
 
 /* local functions */
-static void pager_window(line *, const bool, int, char *);
+static void pager_window(line *, const bool, int, const char *);
 
 /* global variables */
 int offset, height, linecount;
@@ -49,7 +49,8 @@ void help_window() /* {{{ */
 	/* display a help window */
 	line *head, *cur, *last;
 	keybind *this;
-	char *modestr, *keyname;
+	const char *modestr;
+	char *keyname;
 	static bool help_running = false;
 
 	/* check for existing help window */
@@ -190,7 +191,7 @@ void pager_command(const char *cmdstr, const char *title, const bool fullscreen,
 	free_lines(head);
 } /* }}} */
 
-void pager_window(line *head, const bool fullscreen, int nlines, char *title) /* {{{ */
+void pager_window(line *head, const bool fullscreen, int nlines, const char *title) /* {{{ */
 {
 	/**
 	 * page through a linked list of lines

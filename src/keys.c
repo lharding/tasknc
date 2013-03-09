@@ -25,7 +25,7 @@
 struct keymap
 {
 	int value;
-	char *name;
+	const char *name;
 };
 
 /* keymaps {{{ */
@@ -180,7 +180,8 @@ void add_keybind(const int key, void *function, char *arg, const prog_mode mode)
 	 */
 	keybind *this_bind, *new;
 	int n = 0;
-	char *modestr, *name;
+	const char *modestr;
+	char *name;
 
 	/* create new bind */
 	new = calloc(1, sizeof(keybind));
@@ -224,7 +225,8 @@ void handle_keypress(const int c, const prog_mode mode) /* {{{ */
 	 * mode - the mode the key was pressed during
 	 */
 	keybind *this_bind;
-	char *modestr, *keyname;
+	const char *modestr;
+	char *keyname;
 	bool match = false;
 
 	/* exit if timeout occurred */

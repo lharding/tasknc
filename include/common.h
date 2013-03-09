@@ -29,7 +29,7 @@ typedef enum { VAR_RW, VAR_RC, VAR_RO } var_perms;
  */
 typedef struct _var
 {
-	char *name;
+	const char *name;
 	var_type type;
 	var_perms perms;
 	void *ptr;
@@ -118,7 +118,7 @@ typedef struct _conditional_fmt_field
  */
 typedef struct _funcmap
 {
-	char *name;
+	const char *name;
 	void (*function)();
 	int argn;
 	prog_mode mode;
