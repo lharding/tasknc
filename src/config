@@ -16,7 +16,7 @@ set logpath /tmp/.tasknc_log
 
 # formats
 set title_format "$program_name ($selected_line/$task_count) ?$filter_string?filter=$filter_string? ? $> $date"
-set task_format  "$-3index $project $description $> ?$due?$due?$-6priority?"
+set task_format  "%3n (%-10p) %d"
 
 # priority modifications
   bind tasklist  L  modify pri:L
