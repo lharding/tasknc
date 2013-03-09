@@ -125,4 +125,12 @@ char *conf_get_task_format(struct config *conf);
  */
 void conf_set_task_format(struct config *conf, char *task_format);
 
+/**
+ * dump a config struct to a file
+ *
+ * @param out file to write to
+ * @param conf configuration struct to dump
+ */
+void dump_config_file(FILE *out, struct config *conf);
+
 #endif

@@ -157,12 +157,7 @@ int print_tasks(struct task ** tasks, struct config *conf) {
 
 /* dump config */
 int dump_config(struct task ** tasks, struct config *conf) {
-        printf("%s: %d\n", "nc_timeout", conf_get_nc_timeout(conf));
-        int * version = conf_get_version(conf);
-        if (version)
-                printf("%s: %d.%d.%d\n", "version", version[0], version[1], version[2]);
-        printf("%s: '%s'\n", "filter", conf_get_filter(conf));
-        printf("%s: '%s'\n", "sort", conf_get_sort(conf));
+        dump_config_file(stdout, conf);
 
         clean(tasks, conf);
 

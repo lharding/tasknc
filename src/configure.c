@@ -225,3 +225,14 @@ void conf_set_task_format(struct config *conf, char *task_format) {
         check_free(conf->task_format);
         conf->task_format = strdup(task_format);
 }
+
+/* dump config to file*/
+void dump_config_file(FILE *out, struct config *conf) {
+        fprintf(out, "%s:\t%d\n", "nc_timeout", conf_get_nc_timeout(conf));
+        int * version = conf_get_version(conf);
+        if (version)
+                printf("%s:\t%d.%d.%d\n", "version", version[0], version[1], version[2]);
+        fprintf(out, "%s:\t\t'%s'\n", "filter", conf_get_filter(conf));
+        fprintf(out, "%s:\t\t'%s'\n", "sort", conf_get_sort(conf));
+        fprintf(out, "%s:\t'%s'\n", "task_format", conf_get_task_format(conf));
+}
