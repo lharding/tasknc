@@ -742,7 +742,7 @@ int umvaddstr(WINDOW *win, const int y, const int x, const char *format, ...) /*
 	return r;
 } /* }}} */
 
-int umvaddstr_align(WINDOW *win, const int y, char *str) /* {{{ */
+int umvaddstr_align(WINDOW *win, const int y, const char *str) /* {{{ */
 {
 	/* evaluate an aligned string
 	 * win - the window to print the string in
