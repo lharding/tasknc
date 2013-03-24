@@ -8,12 +8,13 @@
 #define _TASKNC_KEYBIND_H
 
 #include "configure.h"
+#include "cursutil.h"
 #include "task.h"
 
 /**
  * keybind function typedef
  */
-typedef int (*bindfunc)(struct config *, struct task **);
+typedef int (*bindfunc)(struct config *, struct task **, struct nc_win *);
 
 /**
  * opaque representation of keybind list struct
@@ -53,7 +54,6 @@ int dump_keybind_list(struct keybind_list *list);
  * @param list the keybind list to free
  */
 void free_keybind_list(struct keybind_list *list);
-
 
 /**
  * opaque representation of function register struct

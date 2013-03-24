@@ -6,8 +6,9 @@
 #include <curses.h>
 #include <stdlib.h>
 #include <string.h>
-#include "tasklist.h"
 #include "cursutil.h"
+#include "keybind.h"
+#include "tasklist.h"
 
 /* temporary function to test printing tasks */
 int print_task(struct nc_win * nc, const int line, const int width, struct task * task, struct config * conf) {
@@ -36,6 +37,38 @@ int print_task(struct nc_win * nc, const int line, const int width, struct task 
         return ret;
 }
 
+/* scrolling functions */
+int tasklist_scroll_down(struct config *conf, struct task **tasks, struct nc_win *win) {
+        /* check if scroll is possible */
+        if (win->selline < win->nlines - 1)
+                return 0;
+
+        /* increment selected line */
+        win->selline++;
+
+        /* check if offset needs to be increased */
+        if (win->selline > win->offset+win->height)
+                win->offset++;
+
+        return 1;
+}
+
+int tasklist_scroll_up(struct config *conf, struct task **tasks, struct nc_win *win) {
+        /* check if scroll is possible */
+        if (win->selline < 1)
+                return 0;
+
+        /* increment selected line */
+        win->selline--;
+
+        /* check if offset needs to be decreased */
+        if (win->selline < win->offset)
+                win->offset = win->selline;
+
+        return 1;
+}
+
+/* display an array of tasks in a ncurses window */
 int tasklist_window(struct task ** tasks, struct config * conf) {
         /* ncurses main function */
         initscr();
@@ -59,12 +92,35 @@ int tasklist_window(struct task ** tasks, struct config * conf) {
         if (init_pair(1, COLOR_BLUE, -1) == ERR)
                 return -1;
 
+        /* apply default keybinds */
+        struct keybind_list *binds;
+        binds = new_keybind_list();
+        add_keybind(binds, 'j', tasklist_scroll_down);
+
         /* print test lines */
         int n;
         for (n = 0; n < rows-2 && tasks[n] != NULL; n++)
                 print_task(tasklist, n, cols, tasks[n], conf);
         wrefresh(tasklist->win);
         wgetch(tasklist->win);
+        int i;
+        for (i = 0; i < 5; i++) {
+                tasklist_scroll_down(conf, tasks, tasklist);
+                for (n = 0; n < rows-2 && tasks[n] != NULL; n++)
+                        print_task(tasklist, n, cols, tasks[n], conf);
+                wrefresh(tasklist->win);
+                wgetch(tasklist->win);
+        }
+        for (i = 0; i < 3; i++) {
+                tasklist_scroll_up(conf, tasks, tasklist);
+                for (n = 0; n < rows-2 && tasks[n] != NULL; n++)
+                        print_task(tasklist, n, cols, tasks[n], conf);
+                wrefresh(tasklist->win);
+                wgetch(tasklist->win);
+        }
+
+        /* free keybinds */
+        free_keybind_list(binds);
 
         /* close windows */
         delwin(tasklist->win);
