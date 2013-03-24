@@ -4,6 +4,7 @@ add_executable (tasknc
     main.c
     sort.c
     tasklist.c
+    keybind.c
     )
 
 install (TARGETS tasknc DESTINATION bin)
