@@ -78,6 +78,26 @@ int tasklist_scroll_up(struct bindarg *arg) {
         return 1;
 }
 
+int tasklist_scroll_home(struct bindarg *arg) {
+        struct nc_win *win = arg->win;
+
+        win->selline = 0;
+        win->offset = 0;
+
+        return 1;
+}
+
+int tasklist_scroll_end(struct bindarg *arg) {
+        struct nc_win *win = arg->win;
+        struct tasklist *list = arg->list;
+
+        win->selline = list->ntasks-1;
+        if (list->ntasks > win->height)
+                win->offset = list->ntasks - win->height;
+
+        return 1;
+}
+
 /* display an array of tasks in a ncurses window */
 int tasklist_window(struct tasklist * list, struct config * conf) {
         /* ncurses main function */
@@ -107,6 +127,8 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
         binds = new_keybind_list();
         add_keybind(binds, 'j', tasklist_scroll_down);
         add_keybind(binds, 'k', tasklist_scroll_up);
+        add_keybind(binds, 'g', tasklist_scroll_home);
+        add_keybind(binds, 'G', tasklist_scroll_end);
 
         /* create bindarg structure */
         struct bindarg arg;
