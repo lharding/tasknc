@@ -12,9 +12,18 @@
 #include "task.h"
 
 /**
+ * bindarg structure
+ */
+struct bindarg {
+        struct tasklist * list;
+        struct config * conf;
+        struct nc_win * win;
+};
+
+/**
  * keybind function typedef
  */
-typedef int (*bindfunc)(struct config *, struct tasklist *, struct nc_win *);
+typedef int (*bindfunc)(struct bindarg *);
 
 /**
  * opaque representation of keybind list struct
@@ -60,13 +69,11 @@ void free_keybind_list(struct keybind_list *list);
  *
  * @param list the keybind list to evaluate from
  * @param key the key that was pressed
- * @param conf the configuration struct
- * @param list the task list
- * @param win the window being operated on
+ * @param arg the bindarg struct with function arguments
  *
  * @return an indicator of success
  */
-int eval_keybind(struct keybind_list *list, int key, struct config *conf, struct tasklist *tasklist, struct nc_win *win);
+int eval_keybind(struct keybind_list *list, int key, struct bindarg *arg);
 
 /**
  * opaque representation of function register struct

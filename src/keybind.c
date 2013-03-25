@@ -119,12 +119,12 @@ void free_keybind_list(struct keybind_list *list) {
 }
 
 /* evaluate a keybind */
-int eval_keybind(struct keybind_list *list, int key, struct config *conf, struct tasklist *tasklist, struct nc_win *win) {
+int eval_keybind(struct keybind_list * list, int key, struct bindarg * arg) {
         int ret = -2;
         struct keybind *head;
         for (head = list->first; head != NULL; head = head->next) {
                 if (head->key == key)
-                        ret = (head->run)(conf, tasklist, win);
+                        ret = (head->run)(arg);
                 if (ret == 0)
                         break;
         }

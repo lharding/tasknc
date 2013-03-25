@@ -43,7 +43,10 @@ int print_task(struct nc_win * nc, const int line, const int width, struct task 
 }
 
 /* scrolling functions */
-int tasklist_scroll_down(struct config *conf, struct tasklist *list, struct nc_win *win) {
+int tasklist_scroll_down(struct bindarg *arg) {
+        struct nc_win *win = arg->win;
+        struct tasklist *list = arg->list;
+
         /* check if scroll is possible */
         if (win->selline >= list->ntasks - 1)
                 return 0;
@@ -58,7 +61,9 @@ int tasklist_scroll_down(struct config *conf, struct tasklist *list, struct nc_w
         return 1;
 }
 
-int tasklist_scroll_up(struct config *conf, struct tasklist *list, struct nc_win *win) {
+int tasklist_scroll_up(struct bindarg *arg) {
+        struct nc_win *win = arg->win;
+
         /* check if scroll is possible */
         if (win->selline < 1)
                 return 0;
@@ -103,6 +108,12 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
         add_keybind(binds, 'j', tasklist_scroll_down);
         add_keybind(binds, 'k', tasklist_scroll_up);
 
+        /* create bindarg structure */
+        struct bindarg arg;
+        arg.win = tasklist;
+        arg.list = list;
+        arg.conf = conf;
+
         /* print test lines */
         while (true) {
                 int n;
@@ -112,7 +123,7 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
                 int key = wgetch(tasklist->win);
                 if (key == 'q')
                         break;
-                int ret = eval_keybind(binds, key, conf, list, tasklist);
+                int ret = eval_keybind(binds, key, &arg);
         }
 
         /* free keybinds */
