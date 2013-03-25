@@ -40,7 +40,7 @@ int print_task(struct nc_win * nc, const int line, const int width, struct task 
 /* scrolling functions */
 int tasklist_scroll_down(struct config *conf, struct tasklist *list, struct nc_win *win) {
         /* check if scroll is possible */
-        if (win->selline < win->nlines - 1)
+        if (win->selline >= list->ntasks - 1)
                 return 0;
 
         /* increment selected line */
