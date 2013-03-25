@@ -108,6 +108,15 @@ time_t strtotime(const char *timestr) {
         return mktime(&tmr);
 }
 
+/* get task command to run */
+const char *task_cmd() {
+        char *taskbin = getenv("TASKCMD");
+        if (taskbin != NULL)
+                return taskbin;
+        else
+                return TASKBIN;
+}
+
 /* parse a task struct from a string */
 struct task * parse_task(const char *str) {
         /* parse json */
@@ -199,10 +208,11 @@ struct task * parse_task(const char *str) {
 struct tasklist * get_tasks(const char *filter) {
         /* generate command to run */
         char *cmd;
+        const char *taskbin = task_cmd();
         if (filter != NULL)
-                asprintf(&cmd, TASKBIN " export %s", filter);
+                asprintf(&cmd, "%s export %s", taskbin, filter);
         else
-                cmd = strdup(TASKBIN " export");
+                asprintf(&cmd, "%s export", taskbin);
 
         /* allocate task array */
         int ntasks = 16;
