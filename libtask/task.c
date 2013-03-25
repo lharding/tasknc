@@ -196,7 +196,7 @@ struct task * parse_task(const char *str) {
 }
 
 /* function to get all tasks' data */
-struct task ** get_tasks(const char *filter) {
+struct tasklist * get_tasks(const char *filter) {
         /* generate command to run */
         char *cmd;
         if (filter != NULL)
@@ -240,12 +240,17 @@ struct task ** get_tasks(const char *filter) {
                 memset(line, 0, linelen);
         }
         free(line);
+        pclose(out);
 
         /* shrink task list */
         tasks = realloc(tasks, (counter+1)*sizeof(struct task *));
 
-        pclose(out);
-        return tasks;
+        /* create tasklist */
+        struct tasklist *list = calloc(1, sizeof(struct tasklist));
+        list->tasks = tasks;
+        list->ntasks = count_tasks(tasks);
+
+        return list;
 }
 
 /* function to get task version */
@@ -293,6 +298,12 @@ void free_tasks(struct task ** tasks) {
         for (h = tasks; *h != NULL; h++)
                 free_task(*h);
         free(tasks);
+}
+
+/* function to free a tasklist */
+void free_tasklist(struct tasklist * list) {
+        free_tasks(list->tasks);
+        free(list);
 }
 
 /* function to count number of tasks */

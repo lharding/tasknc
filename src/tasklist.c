@@ -38,7 +38,7 @@ int print_task(struct nc_win * nc, const int line, const int width, struct task 
 }
 
 /* scrolling functions */
-int tasklist_scroll_down(struct config *conf, struct task **tasks, struct nc_win *win) {
+int tasklist_scroll_down(struct config *conf, struct tasklist *list, struct nc_win *win) {
         /* check if scroll is possible */
         if (win->selline < win->nlines - 1)
                 return 0;
@@ -53,7 +53,7 @@ int tasklist_scroll_down(struct config *conf, struct task **tasks, struct nc_win
         return 1;
 }
 
-int tasklist_scroll_up(struct config *conf, struct task **tasks, struct nc_win *win) {
+int tasklist_scroll_up(struct config *conf, struct tasklist *list, struct nc_win *win) {
         /* check if scroll is possible */
         if (win->selline < 1)
                 return 0;
@@ -69,7 +69,7 @@ int tasklist_scroll_up(struct config *conf, struct task **tasks, struct nc_win *
 }
 
 /* display an array of tasks in a ncurses window */
-int tasklist_window(struct task ** tasks, struct config * conf) {
+int tasklist_window(struct tasklist * list, struct config * conf) {
         /* ncurses main function */
         initscr();
         int rows = LINES;
@@ -101,13 +101,13 @@ int tasklist_window(struct task ** tasks, struct config * conf) {
         /* print test lines */
         while (true) {
                 int n;
-                for (n = 0; n < rows-2 && tasks[n] != NULL; n++)
-                        print_task(tasklist, n, cols, tasks[n], conf);
+                for (n = 0; n < rows-2 && list->tasks[n] != NULL; n++)
+                        print_task(tasklist, n, cols, list->tasks[n], conf);
                 wrefresh(tasklist->win);
                 int key = wgetch(tasklist->win);
                 if (key == 'q')
                         break;
-                int ret = eval_keybind(binds, key, conf, tasks, tasklist);
+                int ret = eval_keybind(binds, key, conf, list, tasklist);
         }
 
         /* free keybinds */

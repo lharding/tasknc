@@ -16,6 +16,16 @@
 struct task;
 
 /**
+ * tasklist struct
+ * contains an array of tasks and the number of tasks
+ */
+struct tasklist
+{
+        struct task **tasks;
+        int ntasks;
+};
+
+/**
  * access task index
  *
  * @param t task to obtain field from
@@ -120,17 +130,17 @@ char *task_get_description(const struct task *t);
  * @param filter string to be passed on the command line as the filter.
  * the string is appended to 'task export' and executed.
  *
- * @return an array of tasks.  this array is alloc'd and must be free'd
- * using the free_tasks function.
+ * @return a task list. this list is alloc'd and must be free'd
+ * using the free_tasklist function.
  */
-struct task ** get_tasks(const char *filter);
+struct tasklist * get_tasks(const char *filter);
 
 /**
- * free array of tasks
+ * free a task list
  *
- * @param tasks the array of tasks to be free'd
+ * @param the task list struct to be free'd
  */
-void free_tasks(struct task ** tasks);
+void free_tasklist(struct tasklist * list);
 
 /**
  * get task version

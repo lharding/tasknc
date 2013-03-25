@@ -16,19 +16,19 @@
 #include "tasklist.h"
 
 /* macros */
-#define clean(t, c) { free_config(c); free_tasks(t); }
+#define clean(t, c) { free_config(c); free_tasklist(t); }
 
 /* local functions */
-typedef int (*action)(struct task **, struct config *);
-int dump_config(struct task ** tasks, struct config * conf);
-int print_tasks(struct task ** tasks, struct config * conf);
-int version(struct task ** tasks, struct config * conf);
+typedef int (*action)(struct tasklist *, struct config *);
+int dump_config(struct tasklist * list, struct config * conf);
+int print_tasks(struct tasklist * list, struct config * conf);
+int version(struct tasklist * list, struct config * conf);
 void help();
 
 int main(int argc, char ** argv) {
         /* initialize */
         struct config *conf = default_config();
-        struct task ** tasks = NULL;
+        struct tasklist * list = NULL;
         action run = NULL;
         bool need_tasks = false;
         bool need_conf = false;
@@ -110,13 +110,13 @@ int main(int argc, char ** argv) {
                 fclose(fd);
         }
         if (need_tasks) {
-                tasks = get_tasks(conf_get_filter(conf));
-                sort_tasks(tasks, 0, conf_get_sort(conf));
+                list = get_tasks(conf_get_filter(conf));
+                sort_tasks(list->tasks, 0, conf_get_sort(conf));
         }
 
         /* run function */
         if (run)
-                return run(tasks, conf);
+                return run(list, conf);
         else {
                 printf("no action to run\n");
                 return 1;
@@ -124,7 +124,7 @@ int main(int argc, char ** argv) {
 }
 
 /* get task version */
-int version(struct task ** tasks, struct config * conf) {
+int version(struct tasklist * list, struct config * conf) {
         int ret = 0;
         int * version = conf_get_version(conf);
         if (version != NULL)
@@ -136,30 +136,31 @@ int version(struct task ** tasks, struct config * conf) {
         printf("tasknc version: " VERSION "\n");
 #endif
 
-        clean(tasks, conf);
+        clean(list, conf);
 
         return ret;
 }
 
 /* display task list */
-int print_tasks(struct task ** tasks, struct config *conf) {
+int print_tasks(struct tasklist * list, struct config *conf) {
+        printf("tasks: %d\n", list->ntasks);
         struct task ** t;
-        for (t = tasks; *t != NULL; t++) {
+        for (t = list->tasks; *t != NULL; t++) {
                 char * str = task_snprintf(100, conf_get_task_format(conf), *t);
                 printf("%s\n", str);
                 free(str);
         }
 
-        clean(tasks, conf);
+        clean(list, conf);
 
         return 0;
 }
 
 /* dump config */
-int dump_config(struct task ** tasks, struct config *conf) {
+int dump_config(struct tasklist * list, struct config *conf) {
         dump_config_file(stdout, conf);
 
-        clean(tasks, conf);
+        clean(list, conf);
 
         return 0;
 }

@@ -13,11 +13,11 @@
 /**
  * display an array of tasks in a ncurses window
  *
- * @param tasks the array of tasks to be displayed in the window
+ * @param list the task list to be displayed in the window
  * @param conf configuration struct pointer
  *
  * @return indicator of success
  */
-int tasklist_window(struct task ** tasks, struct config * conf);
+int tasklist_window(struct tasklist * list, struct config * conf);
 
 #endif
