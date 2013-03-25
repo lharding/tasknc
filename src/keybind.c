@@ -118,6 +118,20 @@ void free_keybind_list(struct keybind_list *list) {
         free(list);
 }
 
+/* evaluate a keybind */
+int eval_keybind(struct keybind_list *list, int key, struct config *conf, struct task **tasks, struct nc_win *win) {
+        int ret = -2;
+        struct keybind *head;
+        for (head = list->first; head != NULL; head = head->next) {
+                if (head->key == key)
+                        ret = (head->run)(conf, tasks, win);
+                if (ret == 0)
+                        break;
+        }
+
+        return ret;
+}
+
 /* create a new function register */
 struct function_register *new_function_register() {
         struct function_register *new = calloc(1, sizeof(struct function_register));

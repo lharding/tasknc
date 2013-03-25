@@ -56,6 +56,19 @@ int dump_keybind_list(struct keybind_list *list);
 void free_keybind_list(struct keybind_list *list);
 
 /**
+ * evaluate a keybind
+ *
+ * @param list the keybind list to evaluate from
+ * @param key the key that was pressed
+ * @param conf the configuration struct
+ * @param tasks the task array
+ * @param win the window being operated on
+ *
+ * @return an indicator of success
+ */
+int eval_keybind(struct keybind_list *list, int key, struct config *conf, struct task **tasks, struct nc_win *win);
+
+/**
  * opaque representation of function register struct
  */
 struct function_register;

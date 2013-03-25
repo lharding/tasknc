@@ -96,27 +96,18 @@ int tasklist_window(struct task ** tasks, struct config * conf) {
         struct keybind_list *binds;
         binds = new_keybind_list();
         add_keybind(binds, 'j', tasklist_scroll_down);
+        add_keybind(binds, 'k', tasklist_scroll_up);
 
         /* print test lines */
-        int n;
-        for (n = 0; n < rows-2 && tasks[n] != NULL; n++)
-                print_task(tasklist, n, cols, tasks[n], conf);
-        wrefresh(tasklist->win);
-        wgetch(tasklist->win);
-        int i;
-        for (i = 0; i < 5; i++) {
-                tasklist_scroll_down(conf, tasks, tasklist);
+        while (true) {
+                int n;
                 for (n = 0; n < rows-2 && tasks[n] != NULL; n++)
                         print_task(tasklist, n, cols, tasks[n], conf);
                 wrefresh(tasklist->win);
-                wgetch(tasklist->win);
-        }
-        for (i = 0; i < 3; i++) {
-                tasklist_scroll_up(conf, tasks, tasklist);
-                for (n = 0; n < rows-2 && tasks[n] != NULL; n++)
-                        print_task(tasklist, n, cols, tasks[n], conf);
-                wrefresh(tasklist->win);
-                wgetch(tasklist->win);
+                int key = wgetch(tasklist->win);
+                if (key == 'q')
+                        break;
+                int ret = eval_keybind(binds, key, conf, tasks, tasklist);
         }
 
         /* free keybinds */
