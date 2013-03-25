@@ -27,6 +27,11 @@ int print_task(struct nc_win * nc, const int line, const int width, struct task 
         if (is_selected)
                 wattrset(nc->win, COLOR_PAIR(1));
 
+        /* wipe line */
+        int n;
+        for (n = 0; n < width; n++)
+                mvwaddch(nc->win, line, n, ' ');
+
         /* display string */
         int ret = umvaddstr(nc->win, line, 0, width, "%s", str);
         free(str);
