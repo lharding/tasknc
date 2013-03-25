@@ -47,7 +47,7 @@ int tasklist_scroll_down(struct config *conf, struct tasklist *list, struct nc_w
         win->selline++;
 
         /* check if offset needs to be increased */
-        if (win->selline > win->offset+win->height)
+        if (win->selline >= win->offset+win->height)
                 win->offset++;
 
         return 1;
@@ -101,8 +101,8 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
         /* print test lines */
         while (true) {
                 int n;
-                for (n = 0; n < rows-2 && list->tasks[n] != NULL; n++)
-                        print_task(tasklist, n, cols, list->tasks[n], conf);
+                for (n = tasklist->offset; n < tasklist->offset + rows - 2 && list->tasks[n] != NULL; n++)
+                        print_task(tasklist, n - tasklist->offset, cols, list->tasks[n], conf);
                 wrefresh(tasklist->win);
                 int key = wgetch(tasklist->win);
                 if (key == 'q')
