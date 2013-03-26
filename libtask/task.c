@@ -4,6 +4,7 @@
  */
 
 #define _GNU_SOURCE
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -425,6 +426,38 @@ char * task_snprintf(int len, char * format, struct task * t) {
                 /* move to next char */
                 format++;
         }
+
+        return ret;
+}
+
+/* run a command in the background */
+int task_background_command(const char *cmdfmt, const char *uuids) {
+        char *cmdstr, *line;
+        FILE *cmd;
+        int ret;
+
+        /* build command */
+        asprintf(&cmdstr, cmdfmt, task_cmd(), uuids);
+        cmdstr = realloc(cmdstr, (strlen(cmdstr)+6)*sizeof(char));
+        strcat(cmdstr, " 2>&1");
+
+        /* run command in background */
+        cmd = popen(cmdstr, "r");
+        free(cmdstr);
+        while (!feof(cmd)) {
+                ret = fscanf(cmd, "%m[^\n]*", &line);
+                if (ret == 1)
+                        free(line);
+                else
+                        break;
+        }
+        ret = pclose(cmd);
+
+        /* log command return value */
+        if (WEXITSTATUS(ret) == 0 || WEXITSTATUS(ret) == 128+SIGPIPE)
+                ret = 0;
+        else
+                ret = WEXITSTATUS(ret);
 
         return ret;
 }
