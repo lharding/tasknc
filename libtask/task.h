@@ -193,4 +193,14 @@ int reload_tasklist(struct tasklist *list, const char *filter);
  */
 int task_complete(struct tasklist *list, int *indexes, const int ntasks, const char *filter);
 
+/**
+ * undo last task action
+ *
+ * @param list tasklist to undo from
+ * @param filter filter to use reloading tasks
+ *
+ * @return an indicator of success
+ */
+int task_undo(struct tasklist *list, const char *filter);
+
 #endif

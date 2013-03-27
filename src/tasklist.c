@@ -100,7 +100,11 @@ int tasklist_scroll_end(struct bindarg *arg) {
 
 /* task actions */
 int tasklist_reload(struct bindarg *arg) {
-        return reload_tasklist(arg->list, conf_get_filter(arg->conf));
+        int ret = reload_tasklist(arg->list, conf_get_filter(arg->conf));
+        if (ret == 0)
+                sort_tasks(arg->list->tasks, 0, conf_get_sort(arg->conf));
+
+        return ret;
 }
 
 int tasklist_complete_tasks(struct bindarg *arg) {
@@ -110,6 +114,17 @@ int tasklist_complete_tasks(struct bindarg *arg) {
 
         ret = task_complete(arg->list, indexes, 1, conf_get_filter(arg->conf));
         free(indexes);
+
+        if (ret == 0)
+                sort_tasks(arg->list->tasks, 0, conf_get_sort(arg->conf));
+
+        return ret;
+}
+
+int tasklist_undo(struct bindarg *arg) {
+        int ret = task_undo(arg->list, conf_get_filter(arg->conf));
+        if (ret == 0)
+                sort_tasks(arg->list->tasks, 0, conf_get_sort(arg->conf));
 
         return ret;
 }
@@ -147,6 +162,7 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
         add_keybind(binds, 'G', tasklist_scroll_end);
         add_keybind(binds, 'r', tasklist_reload);
         add_keybind(binds, 'c', tasklist_complete_tasks);
+        add_keybind(binds, 'u', tasklist_undo);
 
         /* create bindarg structure */
         struct bindarg arg;

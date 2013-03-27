@@ -501,3 +501,18 @@ int task_complete(struct tasklist *list, int *indexes, const int ntasks, const c
                 return 99;
         return ret;
 }
+
+/* undo the last task action */
+int task_undo(struct tasklist *list, const char *filter) {
+        /* run command */
+        int ret = task_background_command("%s %s undo", "");
+
+        /* return on failure */
+        if (ret != 0)
+                return ret;
+
+        /* reload task list */
+        if (reload_tasklist(list, filter) != 0)
+                return 99;
+        return ret;
+}
