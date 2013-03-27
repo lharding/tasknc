@@ -502,6 +502,31 @@ int task_complete(struct tasklist *list, int *indexes, const int ntasks, const c
         return ret;
 }
 
+/* delete a task */
+int task_delete(struct tasklist *list, int *indexes, const int ntasks, const char *filter) {
+        /* generate uuids string */
+        char *uuids = calloc(ntasks*(UUIDLEN+1), sizeof(char));
+        int n;
+        for (n = 0; n < ntasks; n++) {
+                if (n>0)
+                        strcat(uuids, " ");
+                strcat(uuids, task_get_uuid(list->tasks[indexes[n]]));
+        }
+
+        /* run command */
+        int ret = task_background_command("%s %s delete", uuids);
+        free(uuids);
+
+        /* return on failure */
+        if (ret != 0)
+                return ret;
+
+        /* reload task list */
+        if (reload_tasklist(list, filter) != 0)
+                return 99;
+        return ret;
+}
+
 /* undo the last task action */
 int task_undo(struct tasklist *list, const char *filter) {
         /* run command */

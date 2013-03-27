@@ -8,6 +8,7 @@
 #include <string.h>
 #include "cursutil.h"
 #include "keybind.h"
+#include "sort.h"
 #include "tasklist.h"
 
 /* temporary function to test printing tasks */
@@ -121,6 +122,20 @@ int tasklist_complete_tasks(struct bindarg *arg) {
         return ret;
 }
 
+int tasklist_delete_tasks(struct bindarg *arg) {
+        int ret;
+        int *indexes = calloc(2, sizeof(int));
+        indexes[0] = arg->win->selline;
+
+        ret = task_delete(arg->list, indexes, 1, conf_get_filter(arg->conf));
+        free(indexes);
+
+        if (ret == 0)
+                sort_tasks(arg->list->tasks, 0, conf_get_sort(arg->conf));
+
+        return ret;
+}
+
 int tasklist_undo(struct bindarg *arg) {
         int ret = task_undo(arg->list, conf_get_filter(arg->conf));
         if (ret == 0)
@@ -162,6 +177,7 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
         add_keybind(binds, 'G', tasklist_scroll_end);
         add_keybind(binds, 'r', tasklist_reload);
         add_keybind(binds, 'c', tasklist_complete_tasks);
+        add_keybind(binds, 'd', tasklist_delete_tasks);
         add_keybind(binds, 'u', tasklist_undo);
 
         /* create bindarg structure */

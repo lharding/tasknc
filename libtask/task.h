@@ -194,6 +194,18 @@ int reload_tasklist(struct tasklist *list, const char *filter);
 int task_complete(struct tasklist *list, int *indexes, const int ntasks, const char *filter);
 
 /**
+ * delete tasks
+ *
+ * @param list tasklist to delete from
+ * @param indexes an array of indexes of tasks to be deleted
+ * @param ntasks the number of indexes contained in the indexes array
+ * @param filter the task filter to apply
+ *
+ * @return an indicator of success
+ */
+int task_delete(struct tasklist *list, int *indexes, const int ntasks, const char *filter);
+
+/**
  * undo last task action
  *
  * @param list tasklist to undo from
