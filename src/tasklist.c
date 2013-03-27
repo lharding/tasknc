@@ -99,6 +99,10 @@ int tasklist_scroll_end(struct bindarg *arg) {
 }
 
 /* task actions */
+int tasklist_reload(struct bindarg *arg) {
+        return reload_tasklist(arg->list, conf_get_filter(arg->conf));
+}
+
 int tasklist_complete_tasks(struct bindarg *arg) {
         int ret;
         int *indexes = calloc(2, sizeof(int));
@@ -141,6 +145,7 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
         add_keybind(binds, 'k', tasklist_scroll_up);
         add_keybind(binds, 'g', tasklist_scroll_home);
         add_keybind(binds, 'G', tasklist_scroll_end);
+        add_keybind(binds, 'r', tasklist_reload);
         add_keybind(binds, 'c', tasklist_complete_tasks);
 
         /* create bindarg structure */

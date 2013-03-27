@@ -462,6 +462,21 @@ int task_background_command(const char *cmdfmt, const char *uuids) {
         return ret;
 }
 
+/* reload task list */
+int reload_tasklist(struct tasklist *list, const char *filter) {
+        /* get new tasklist */
+        struct tasklist *new = get_tasks(filter);
+        if (new == NULL)
+                return 1;
+
+        /* replace fields and free new tasklist */
+        list->tasks = new->tasks;
+        list->ntasks = new->ntasks;
+        free(new);
+
+        return 0;
+}
+
 /* complete a task */
 int task_complete(struct tasklist *list, int *indexes, const int ntasks, const char *filter) {
         /* generate uuids string */
@@ -477,14 +492,12 @@ int task_complete(struct tasklist *list, int *indexes, const int ntasks, const c
         int ret = task_background_command("%s %s done", uuids);
         free(uuids);
 
-        /* modify task list */
-        if (ret == 0) {
-                free_tasks(list->tasks);
-                struct tasklist *new = get_tasks(filter);
-                list->tasks = new->tasks;
-                list->ntasks = new->ntasks;
-                free(new);
-        }
+        /* return on failure */
+        if (ret != 0)
+                return ret;
 
+        /* reload task list */
+        if (reload_tasklist(list, filter) != 0)
+                return 99;
         return ret;
 }

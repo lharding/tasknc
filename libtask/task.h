@@ -172,9 +172,19 @@ int count_tasks(struct task ** tasks);
 char * task_snprintf(int len, char * format, struct task * t);
 
 /**
+ * reload task list
+ *
+ * @param list tasklist to reload
+ * @param filter filter to use reloading tasks
+ *
+ * @return an indicator of succes
+ */
+int reload_tasklist(struct tasklist *list, const char *filter);
+
+/**
  * complete tasks
  *
- * @param list tasklist
+ * @param list tasklist to complete from
  * @param indexes an array of indexes of tasks to be completed
  * @param ntasks the number of indexes contained in the indexes array
  * @param filter the task filter to apply
