@@ -11,8 +11,8 @@
 #include "sort.h"
 #include "tasklist.h"
 
-/* temporary function to test printing tasks */
-int print_task(struct nc_win * nc, const int line, const int width, struct task * task, struct config * conf) {
+/* function to print task */
+int curses_print_task(struct nc_win * nc, const int line, const int width, struct task * task, struct config * conf) {
         /* check for NULL task */
         if (task == NULL)
                 return ERR;
@@ -41,6 +41,27 @@ int print_task(struct nc_win * nc, const int line, const int width, struct task 
         wattrset(nc->win, COLOR_PAIR(0));
 
         return ret;
+}
+
+/* function to print tasks */
+int curses_print_tasks(struct nc_win *nc, struct tasklist *list, struct config *conf) {
+        int line;
+        for (line = 0; line < nc->height; line++) {
+                /* print task */
+                int ntask = line-nc->offset;
+                if (ntask >= 0 && ntask < list->ntasks && list->tasks[ntask] != NULL) {
+                        if (curses_print_task(nc, line, COLS, list->tasks[ntask], conf) == ERR)
+                                return ERR;
+                }
+                /* print blank line */
+                else {
+                        int n;
+                        for (n = 0; n < COLS; n++)
+                                mvwaddch(nc->win, line, n, ' ');
+                }
+        }
+
+        return OK;
 }
 
 /* scrolling functions */
@@ -188,9 +209,7 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
 
         /* print test lines */
         while (true) {
-                int n;
-                for (n = tasklist->offset; n < tasklist->offset + rows - 2 && list->tasks[n] != NULL; n++)
-                        print_task(tasklist, n - tasklist->offset, cols, list->tasks[n], conf);
+                curses_print_tasks(tasklist, list, conf);
                 wrefresh(tasklist->win);
                 int key = wgetch(tasklist->win);
                 if (key == 'q')
