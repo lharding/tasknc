@@ -10,4 +10,7 @@
 /* task executable */
 #define TASKBIN         "task "
 
+/* length of uuids */
+#define UUIDLEN         36
+
 #endif

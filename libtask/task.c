@@ -461,3 +461,30 @@ int task_background_command(const char *cmdfmt, const char *uuids) {
 
         return ret;
 }
+
+/* complete a task */
+int task_complete(struct tasklist *list, int *indexes, const int ntasks, const char *filter) {
+        /* generate uuids string */
+        char *uuids = calloc(ntasks*(UUIDLEN+1), sizeof(char));
+        int n;
+        for (n = 0; n < ntasks; n++) {
+                if (n>0)
+                        strcat(uuids, " ");
+                strcat(uuids, task_get_uuid(list->tasks[indexes[n]]));
+        }
+
+        /* run command */
+        int ret = task_background_command("%s %s done", uuids);
+        free(uuids);
+
+        /* modify task list */
+        if (ret == 0) {
+                free_tasks(list->tasks);
+                struct tasklist *new = get_tasks(filter);
+                list->tasks = new->tasks;
+                list->ntasks = new->ntasks;
+                free(new);
+        }
+
+        return ret;
+}

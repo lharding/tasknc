@@ -171,4 +171,16 @@ int count_tasks(struct task ** tasks);
  */
 char * task_snprintf(int len, char * format, struct task * t);
 
+/**
+ * complete tasks
+ *
+ * @param list tasklist
+ * @param indexes an array of indexes of tasks to be completed
+ * @param ntasks the number of indexes contained in the indexes array
+ * @param filter the task filter to apply
+ *
+ * @return an indicator of success
+ */
+int task_complete(struct tasklist *list, int *indexes, const int ntasks, const char *filter);
+
 #endif

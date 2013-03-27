@@ -98,6 +98,18 @@ int tasklist_scroll_end(struct bindarg *arg) {
         return 1;
 }
 
+/* task actions */
+int tasklist_complete_tasks(struct bindarg *arg) {
+        int ret;
+        int *indexes = calloc(2, sizeof(int));
+        indexes[0] = arg->win->selline;
+
+        ret = task_complete(arg->list, indexes, 1, conf_get_filter(arg->conf));
+        free(indexes);
+
+        return ret;
+}
+
 /* display an array of tasks in a ncurses window */
 int tasklist_window(struct tasklist * list, struct config * conf) {
         /* ncurses main function */
@@ -129,6 +141,7 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
         add_keybind(binds, 'k', tasklist_scroll_up);
         add_keybind(binds, 'g', tasklist_scroll_home);
         add_keybind(binds, 'G', tasklist_scroll_end);
+        add_keybind(binds, 'c', tasklist_complete_tasks);
 
         /* create bindarg structure */
         struct bindarg arg;
