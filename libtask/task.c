@@ -462,6 +462,19 @@ int task_background_command(const char *cmdfmt, const char *uuids) {
         return ret;
 }
 
+/* generate a string of uuids from a tasklist and array of indices */
+char *cat_uuids(struct tasklist *list, int *indexes, const int ntasks) {
+        char *uuids = calloc(ntasks*(UUIDLEN+1), sizeof(char));
+        int n;
+        for (n = 0; n < ntasks; n++) {
+                if (n>0)
+                        strcat(uuids, " ");
+                strcat(uuids, task_get_uuid(list->tasks[indexes[n]]));
+        }
+
+        return uuids;
+}
+
 /* reload task list */
 int reload_tasklist(struct tasklist *list, const char *filter) {
         /* get new tasklist */
@@ -480,13 +493,7 @@ int reload_tasklist(struct tasklist *list, const char *filter) {
 /* complete a task */
 int task_complete(struct tasklist *list, int *indexes, const int ntasks, const char *filter) {
         /* generate uuids string */
-        char *uuids = calloc(ntasks*(UUIDLEN+1), sizeof(char));
-        int n;
-        for (n = 0; n < ntasks; n++) {
-                if (n>0)
-                        strcat(uuids, " ");
-                strcat(uuids, task_get_uuid(list->tasks[indexes[n]]));
-        }
+        char *uuids = cat_uuids(list, indexes, ntasks);
 
         /* run command */
         int ret = task_background_command("%s %s done", uuids);
@@ -505,13 +512,7 @@ int task_complete(struct tasklist *list, int *indexes, const int ntasks, const c
 /* delete a task */
 int task_delete(struct tasklist *list, int *indexes, const int ntasks, const char *filter) {
         /* generate uuids string */
-        char *uuids = calloc(ntasks*(UUIDLEN+1), sizeof(char));
-        int n;
-        for (n = 0; n < ntasks; n++) {
-                if (n>0)
-                        strcat(uuids, " ");
-                strcat(uuids, task_get_uuid(list->tasks[indexes[n]]));
-        }
+        char *uuids = cat_uuids(list, indexes, ntasks);
 
         /* run command */
         int ret = task_background_command("%s %s delete", uuids);
