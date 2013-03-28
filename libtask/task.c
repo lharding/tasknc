@@ -315,7 +315,10 @@ void free_tasks(struct task ** tasks) {
 
 /* function to free a tasklist */
 void free_tasklist(struct tasklist * list) {
-        free_tasks(list->tasks);
+        if (list == NULL)
+                return;
+        if (list->tasks != NULL)
+                free_tasks(list->tasks);
         free(list);
 }
 
