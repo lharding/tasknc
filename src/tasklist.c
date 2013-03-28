@@ -73,7 +73,7 @@ int tasklist_scroll_down(struct bindarg *arg) {
 
         /* check if scroll is possible */
         if (win->selline >= list->ntasks - 1)
-                return 0;
+                return 1;
 
         /* increment selected line */
         win->selline++;
@@ -82,7 +82,7 @@ int tasklist_scroll_down(struct bindarg *arg) {
         if (win->selline >= win->offset+win->height)
                 win->offset++;
 
-        return 1;
+        return 0;
 }
 
 int tasklist_scroll_up(struct bindarg *arg) {
@@ -90,7 +90,7 @@ int tasklist_scroll_up(struct bindarg *arg) {
 
         /* check if scroll is possible */
         if (win->selline < 1)
-                return 0;
+                return 1;
 
         /* increment selected line */
         win->selline--;
@@ -99,7 +99,7 @@ int tasklist_scroll_up(struct bindarg *arg) {
         if (win->selline < win->offset)
                 win->offset = win->selline;
 
-        return 1;
+        return 0;
 }
 
 int tasklist_scroll_home(struct bindarg *arg) {
@@ -108,7 +108,7 @@ int tasklist_scroll_home(struct bindarg *arg) {
         win->selline = 0;
         win->offset = 0;
 
-        return 1;
+        return 0;
 }
 
 int tasklist_scroll_end(struct bindarg *arg) {
@@ -119,7 +119,7 @@ int tasklist_scroll_end(struct bindarg *arg) {
         if (list->ntasks > win->height)
                 win->offset = list->ntasks - win->height;
 
-        return 1;
+        return 0;
 }
 
 /* task actions */
