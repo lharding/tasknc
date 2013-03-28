@@ -82,8 +82,8 @@ char ** parse_json(const char *json) {
 
         /* shrink ptrs array */
         if (counter) {
-                ptrs = realloc(ptrs, 2*counter*sizeof(char *));
-                ptrs[2*counter] = NULL;
+                ptrs = realloc(ptrs, (2*counter-1)*sizeof(char *));
+                ptrs[2*counter-2] = NULL;
         }
 
         return ptrs;
