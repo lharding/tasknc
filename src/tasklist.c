@@ -223,6 +223,7 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
         add_keybind(binds, 'c', tasklist_complete_tasks);
         add_keybind(binds, 'd', tasklist_delete_tasks);
         add_keybind(binds, 'u', tasklist_undo);
+        add_keybind(binds, 'l', statusbar_clear);
 
         /* create bindarg structure */
         struct bindarg arg;
@@ -245,6 +246,7 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
                         break;
                 printtasks = true;
                 int ret = eval_keybind(binds, key, &arg);
+                fprintf(stderr, "%c - ret: %d\n", key, ret);
         }
 
         /* free keybinds */

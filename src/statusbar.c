@@ -14,10 +14,9 @@
 /* function to wipe the statusbar */
 int statusbar_wipe(struct nc_win * bar) {
         int n;
-        for (n = 0; n < COLS; n++) {
-                if (mvwaddch(bar->win, 0, n, ' ') == ERR)
-                        return ERR;
-        }
+        for (n = 0; n < COLS; n++)
+                mvwaddch(bar->win, 0, n, ' ');
+        wrefresh(bar->win);
         return OK;
 }
 
