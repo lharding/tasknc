@@ -18,6 +18,9 @@
 #define check_free(a) { if (a != NULL) free(a); }
 #define write_debug() { fprintf(stderr, "libtask[%d]: ", getpid()); }
 
+/* internal functions */
+int count_tasks(struct task ** tasks);
+
 /* task struct definition */
 struct task
 {

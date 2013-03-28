@@ -127,7 +127,7 @@ int tasklist_reload(struct bindarg *arg) {
         statusbar_printf(arg->statusbar, arg->conf, "%s", "executing reload...");
         int ret = reload_tasklist(arg->list, conf_get_filter(arg->conf));
         if (ret == 0) {
-                sort_tasks(arg->list->tasks, 0, conf_get_sort(arg->conf));
+                sort_tasks(arg->list, conf_get_sort(arg->conf));
                 statusbar_printf(arg->statusbar, arg->conf, "%s", "reload executed");
         }
         else
@@ -146,7 +146,7 @@ int tasklist_complete_tasks(struct bindarg *arg) {
         free(indexes);
 
         if (ret == 0) {
-                sort_tasks(arg->list->tasks, 0, conf_get_sort(arg->conf));
+                sort_tasks(arg->list, conf_get_sort(arg->conf));
                 statusbar_printf(arg->statusbar, arg->conf, "%s", "complete executed");
         }
         else
@@ -165,7 +165,7 @@ int tasklist_delete_tasks(struct bindarg *arg) {
         free(indexes);
 
         if (ret == 0) {
-                sort_tasks(arg->list->tasks, 0, conf_get_sort(arg->conf));
+                sort_tasks(arg->list, conf_get_sort(arg->conf));
                 statusbar_printf(arg->statusbar, arg->conf, "%s", "delete executed");
         }
         else
@@ -178,7 +178,7 @@ int tasklist_undo(struct bindarg *arg) {
         statusbar_printf(arg->statusbar, arg->conf, "%s", "executing undo...");
         int ret = task_undo(arg->list, conf_get_filter(arg->conf));
         if (ret == 0) {
-                sort_tasks(arg->list->tasks, 0, conf_get_sort(arg->conf));
+                sort_tasks(arg->list, conf_get_sort(arg->conf));
                 statusbar_printf(arg->statusbar, arg->conf, "%s", "undo executed");
         }
         else

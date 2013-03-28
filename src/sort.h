@@ -12,8 +12,7 @@
 /**
  * sort an array of tasks
  *
- * @param tasks the array of tasks to be sorted
- * @param ntasks the number of tasks to be sorted.  if this is zero, the number
+ * @param list the task list to be sorted
  * of tasks in the array will be counted.
  * @param sortmode a string containing the order of comparisons between tasks
  * when sorting.  a capital letter indicates to invert the order of the sort.
@@ -30,6 +29,6 @@
  *
  *  @todo add more sort modes
  */
-void sort_tasks(struct task ** tasks, int ntasks, const char * sortmode);
+void sort_tasks(struct tasklist * list, const char * sortmode);
 
 #endif

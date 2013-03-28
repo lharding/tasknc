@@ -116,7 +116,7 @@ int main(int argc, char ** argv) {
         }
         if (need_tasks) {
                 list = get_tasks(conf_get_filter(conf));
-                sort_tasks(list->tasks, 0, conf_get_sort(conf));
+                sort_tasks(list, conf_get_sort(conf));
         }
 
         /* redirect stderr for libtask */

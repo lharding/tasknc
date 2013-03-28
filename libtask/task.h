@@ -152,15 +152,6 @@ void free_tasklist(struct tasklist * list);
 int * task_version();
 
 /**
- * count number of tasks in an array
- *
- * @param tasks the array of tasks to be counted
- *
- * @return the number of tasks in the array.
- */
-int count_tasks(struct task ** tasks);
-
-/**
  * a custom version of snprintf to format task output
  *
  * @param len length of the string
