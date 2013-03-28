@@ -50,7 +50,7 @@ int curses_print_tasks(struct nc_win *nc, struct tasklist *list, struct config *
         int line;
         for (line = 0; line < nc->height; line++) {
                 /* print task */
-                int ntask = line-nc->offset;
+                int ntask = line+nc->offset;
                 if (ntask >= 0 && ntask < list->ntasks && list->tasks[ntask] != NULL) {
                         if (curses_print_task(nc, line, COLS, list->tasks[ntask], conf) == ERR)
                                 return ERR;
