@@ -235,18 +235,27 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
         /* print test lines */
         bool printtasks = true;
         while (true) {
+                /* print task list */
                 if (printtasks)
                         curses_print_tasks(tasklist, list, conf);
                 printtasks = false;
                 wrefresh(tasklist->win);
+
+                /* get keypress */
                 wint_t key;
                 if (ERR == wget_wch(tasklist->win, &key))
                         continue;
                 if (key == 'q')
                         break;
                 printtasks = true;
+
+                /* evaluate keybind */
                 int ret = eval_keybind(binds, key, &arg);
                 fprintf(stderr, "%c - ret: %d\n", key, ret);
+
+                /* check cursor is in a valid position */
+                if (tasklist->selline > list->ntasks-1)
+                        tasklist_scroll_end(&arg);
         }
 
         /* free keybinds */
