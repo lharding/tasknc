@@ -19,6 +19,7 @@
 
 /* configuration struct */
 struct config {
+        bool debug;
         char *filter;
         char *sort;
         char *task_format;
@@ -31,6 +32,7 @@ struct config {
 struct config *default_config() {
         struct config *conf = calloc(1, sizeof(struct config));
 
+        conf->debug = false;
         conf->nc_timeout = 1000;
         conf->filter = strdup("status:pending");
         conf->sort = strdup("n");
@@ -226,8 +228,19 @@ void conf_set_task_format(struct config *conf, char *task_format) {
         conf->task_format = strdup(task_format);
 }
 
+/* get debug */
+bool conf_get_debug(struct config *conf) {
+        return conf->debug;
+}
+
+/* set debug */
+void conf_set_debug(struct config *conf, bool debug) {
+        conf->debug = debug;
+}
+
 /* dump config to file*/
 void dump_config_file(FILE *out, struct config *conf) {
+        fprintf(out, "%s:\t\t%d\n", "debug", conf_get_debug(conf));
         fprintf(out, "%s:\t%d\n", "nc_timeout", conf_get_nc_timeout(conf));
         int * version = conf_get_version(conf);
         if (version)

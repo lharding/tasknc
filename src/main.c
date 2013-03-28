@@ -40,6 +40,7 @@ int main(int argc, char ** argv) {
         static struct option long_opt[] = {
                 {"config",      required_argument,      0, 'c'},
                 {"cfgdump",     no_argument,            0, 'd'},
+                {"debug",       no_argument,            0, 'u'},
                 {"filter",      required_argument,      0, 'f'},
                 {"help",        no_argument,            0, 'h'},
                 {"print",       no_argument,            0, 'p'},
@@ -50,7 +51,7 @@ int main(int argc, char ** argv) {
         };
         int opt_index = 0;
         int c;
-        while ((c = getopt_long(argc, argv, "c:df:hps:t:v", long_opt, &opt_index)) != -1) {
+        while ((c = getopt_long(argc, argv, "c:df:hps:t:uv", long_opt, &opt_index)) != -1) {
                 switch (c) {
                         case 'c':
                                 fd = fopen(optarg, "r");
@@ -81,6 +82,9 @@ int main(int argc, char ** argv) {
                                 break;
                         case 'v':
                                 run = version;
+                                break;
+                        case 'u':
+                                conf_set_debug(conf, true);
                                 break;
                         case 'h':
                         case '?':
@@ -116,9 +120,13 @@ int main(int argc, char ** argv) {
         }
 
         /* redirect stderr for libtask */
-        char *stderr_template = strdup("/tmp/taskncXXXXXX");
-        stderr = fdopen(mkstemp(stderr_template), "w");
-        free(stderr_template);
+        if (conf_get_debug(conf)) {
+                char *stderr_template = strdup("/tmp/taskncXXXXXX");
+                stderr = fdopen(mkstemp(stderr_template), "w");
+                free(stderr_template);
+        }
+        else
+                stderr = fopen("/dev/null", "w");
 
         /* run function */
         if (run)
@@ -182,6 +190,7 @@ void help() {
                         "    -p, --print        print task list to stdout\n"
                         "    -s, --sort         set the task list sort mode\n"
                         "    -t, --task_format  set the task format string\n"
+                        "    -u, --debug        write debug output to a file\n"
                         "    -v, --version      print task version\n"
                );
 }

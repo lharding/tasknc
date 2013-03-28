@@ -7,6 +7,8 @@
 #ifndef _TASKNC_CONFIGURE_H
 #define _TASKNC_CONFIGURE_H
 
+#include <stdbool.h>
+
 /**
  * opaque representation of configuration struct
  * use the conf_get_* and conf_set_* functions to access the struct's fields
@@ -124,6 +126,23 @@ char *conf_get_task_format(struct config *conf);
  * @param task_format task format string to apply
  */
 void conf_set_task_format(struct config *conf, char *task_format);
+
+/**
+ * get debug state
+ *
+ * @param conf configuration struct to obtain field from
+ *
+ * @return debug state
+ */
+bool conf_get_debug(struct config *conf);
+
+/**
+ * set debug state
+ *
+ * @param conf configuration struct to set field in
+ * @param debug debug state to set
+ */
+void conf_set_debug(struct config *conf, bool debug);
 
 /**
  * dump a config struct to a file
