@@ -10,11 +10,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 #include "config.h"
 #include "json.h"
 #include "task.h"
 
 #define check_free(a) { if (a != NULL) free(a); }
+#define write_debug() { fprintf(stderr, "libtask[%d]: ", getpid()); }
 
 /* task struct definition */
 struct task
@@ -440,14 +442,19 @@ int task_background_command(const char *cmdfmt, const char *uuids) {
         asprintf(&cmdstr, cmdfmt, task_cmd(), uuids);
         cmdstr = realloc(cmdstr, (strlen(cmdstr)+6)*sizeof(char));
         strcat(cmdstr, " 2>&1");
+        write_debug();
+        fprintf(stderr, "run: '%s'\n", cmdstr);
 
         /* run command in background */
         cmd = popen(cmdstr, "r");
         free(cmdstr);
         while (!feof(cmd)) {
                 ret = fscanf(cmd, "%m[^\n]*", &line);
-                if (ret == 1)
+                if (ret == 1) {
+                        write_debug();
+                        fprintf(stderr, "out: %s\n", line);
                         free(line);
+                }
                 else
                         break;
         }
@@ -459,6 +466,8 @@ int task_background_command(const char *cmdfmt, const char *uuids) {
         else
                 ret = WEXITSTATUS(ret);
 
+        write_debug();
+        fprintf(stderr, "return: %d\n", ret);
         return ret;
 }
 

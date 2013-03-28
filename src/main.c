@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "cmake.h"
 #include "config.h"
 #include "configure.h"
@@ -113,6 +114,11 @@ int main(int argc, char ** argv) {
                 list = get_tasks(conf_get_filter(conf));
                 sort_tasks(list->tasks, 0, conf_get_sort(conf));
         }
+
+        /* redirect stderr for libtask */
+        char *stderr_template = strdup("/tmp/taskncXXXXXX");
+        stderr = fdopen(mkstemp(stderr_template), "w");
+        free(stderr_template);
 
         /* run function */
         if (run)
