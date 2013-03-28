@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 #include "keybind.h"
 
 /*
@@ -15,7 +16,7 @@
  */
 struct keybind
 {
-        int key;
+        wint_t key;
         bindfunc run;
         struct keybind *next;
 };
@@ -64,7 +65,7 @@ struct keybind_list *new_keybind_list() {
 }
 
 /* add a keybind to the keybind list */
-int add_keybind(struct keybind_list *list, int key, bindfunc run) {
+int add_keybind(struct keybind_list *list, wint_t key, bindfunc run) {
         /* create a new keybind struct and assign fields */
         struct keybind *new = calloc(1, sizeof(struct keybind));
         if (!new)
@@ -119,7 +120,7 @@ void free_keybind_list(struct keybind_list *list) {
 }
 
 /* evaluate a keybind */
-int eval_keybind(struct keybind_list * list, int key, struct bindarg * arg) {
+int eval_keybind(struct keybind_list * list, wint_t key, struct bindarg * arg) {
         int ret = -2;
         struct keybind *head;
         for (head = list->first; head != NULL; head = head->next) {

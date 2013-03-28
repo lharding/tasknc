@@ -46,7 +46,7 @@ struct keybind_list *new_keybind_list();
  *
  * @return an indicator of success
  */
-int add_keybind(struct keybind_list *list, int key, bindfunc run);
+int add_keybind(struct keybind_list *list, wint_t key, bindfunc run);
 
 /**
  * dump the contents of a keybind list
@@ -73,7 +73,7 @@ void free_keybind_list(struct keybind_list *list);
  *
  * @return an indicator of success
  */
-int eval_keybind(struct keybind_list *list, int key, struct bindarg *arg);
+int eval_keybind(struct keybind_list *list, wint_t key, struct bindarg *arg);
 
 /**
  * opaque representation of function register struct

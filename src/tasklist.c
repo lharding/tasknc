@@ -6,6 +6,7 @@
 #include <curses.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 #include "cursutil.h"
 #include "keybind.h"
 #include "sort.h"
@@ -208,12 +209,18 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
         arg.conf = conf;
 
         /* print test lines */
+        bool printtasks = true;
         while (true) {
-                curses_print_tasks(tasklist, list, conf);
+                if (printtasks)
+                        curses_print_tasks(tasklist, list, conf);
+                printtasks = false;
                 wrefresh(tasklist->win);
-                int key = wgetch(tasklist->win);
+                wint_t key;
+                if (ERR == wget_wch(tasklist->win, &key))
+                        continue;
                 if (key == 'q')
                         break;
+                printtasks = true;
                 int ret = eval_keybind(binds, key, &arg);
         }
 
