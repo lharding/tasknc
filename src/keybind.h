@@ -18,6 +18,7 @@ struct bindarg {
         struct tasklist * list;
         struct config * conf;
         struct nc_win * win;
+        struct nc_win * statusbar;
 };
 
 /**

@@ -10,6 +10,7 @@
 #include "cursutil.h"
 #include "keybind.h"
 #include "sort.h"
+#include "statusbar.h"
 #include "tasklist.h"
 
 /* function to print task */
@@ -123,9 +124,14 @@ int tasklist_scroll_end(struct bindarg *arg) {
 
 /* task actions */
 int tasklist_reload(struct bindarg *arg) {
+        statusbar_printf(arg->statusbar, arg->conf, "%s", "executing reload...");
         int ret = reload_tasklist(arg->list, conf_get_filter(arg->conf));
-        if (ret == 0)
+        if (ret == 0) {
                 sort_tasks(arg->list->tasks, 0, conf_get_sort(arg->conf));
+                statusbar_printf(arg->statusbar, arg->conf, "%s", "reload executed");
+        }
+        else
+                statusbar_printf(arg->statusbar, arg->conf, "%s", "reload failed");
 
         return ret;
 }
@@ -135,11 +141,16 @@ int tasklist_complete_tasks(struct bindarg *arg) {
         int *indexes = calloc(2, sizeof(int));
         indexes[0] = arg->win->selline;
 
+        statusbar_printf(arg->statusbar, arg->conf, "%s", "executing complete...");
         ret = task_complete(arg->list, indexes, 1, conf_get_filter(arg->conf));
         free(indexes);
 
-        if (ret == 0)
+        if (ret == 0) {
                 sort_tasks(arg->list->tasks, 0, conf_get_sort(arg->conf));
+                statusbar_printf(arg->statusbar, arg->conf, "%s", "complete executed");
+        }
+        else
+                statusbar_printf(arg->statusbar, arg->conf, "%s", "complete failed");
 
         return ret;
 }
@@ -149,19 +160,29 @@ int tasklist_delete_tasks(struct bindarg *arg) {
         int *indexes = calloc(2, sizeof(int));
         indexes[0] = arg->win->selline;
 
+        statusbar_printf(arg->statusbar, arg->conf, "%s", "executing delete...");
         ret = task_delete(arg->list, indexes, 1, conf_get_filter(arg->conf));
         free(indexes);
 
-        if (ret == 0)
+        if (ret == 0) {
                 sort_tasks(arg->list->tasks, 0, conf_get_sort(arg->conf));
+                statusbar_printf(arg->statusbar, arg->conf, "%s", "delete executed");
+        }
+        else
+                statusbar_printf(arg->statusbar, arg->conf, "%s", "delete failed");
 
         return ret;
 }
 
 int tasklist_undo(struct bindarg *arg) {
+        statusbar_printf(arg->statusbar, arg->conf, "%s", "executing undo...");
         int ret = task_undo(arg->list, conf_get_filter(arg->conf));
-        if (ret == 0)
+        if (ret == 0) {
                 sort_tasks(arg->list->tasks, 0, conf_get_sort(arg->conf));
+                statusbar_printf(arg->statusbar, arg->conf, "%s", "undo executed");
+        }
+        else
+                statusbar_printf(arg->statusbar, arg->conf, "%s", "undo failed");
 
         return ret;
 }
@@ -175,7 +196,8 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
 
         /* create windows */
         struct nc_win * tasklist = make_window(rows-2, cols, 1, 0, TASKNC_TASKLIST);
-        if (tasklist == NULL) {
+        struct nc_win * statusbar = make_window(1, cols, rows-1, 0, TASKNC_STATUSLINE);
+        if (tasklist == NULL || statusbar == NULL) {
                 endwin();
                 return 1;
         }
@@ -205,6 +227,7 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
         /* create bindarg structure */
         struct bindarg arg;
         arg.win = tasklist;
+        arg.statusbar = statusbar;
         arg.list = list;
         arg.conf = conf;
 
