@@ -18,9 +18,6 @@
 #define check_free(a) { if (a != NULL) free(a); }
 #define write_debug() { fprintf(stderr, "libtask[%d]: ", getpid()); }
 
-/* internal functions */
-int count_tasks(struct task ** tasks);
-
 /* task struct definition */
 struct task
 {
@@ -264,7 +261,7 @@ struct tasklist * get_tasks(const char *filter) {
         /* create tasklist */
         struct tasklist *list = calloc(1, sizeof(struct tasklist));
         list->tasks = tasks;
-        list->ntasks = count_tasks(tasks);
+        list->ntasks = counter;
 
         return list;
 }
@@ -323,17 +320,6 @@ void free_tasklist(struct tasklist * list) {
         if (list->tasks != NULL)
                 free_tasks(list->tasks);
         free(list);
-}
-
-/* function to count number of tasks */
-int count_tasks(struct task ** tasks) {
-        int ntasks = 0;
-        struct task ** h;
-
-        for (h = tasks; *h != 0; h++)
-                ntasks++;
-
-        return ntasks;
 }
 
 /* task snprintf implementation */
