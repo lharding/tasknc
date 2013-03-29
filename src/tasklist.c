@@ -265,5 +265,9 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
         delwin(tasklist->win);
         endwin();
 
+        /* free config and tasklist */
+        free_config(conf);
+        free_tasklist(list);
+
         return 0;
 }
