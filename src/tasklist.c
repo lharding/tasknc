@@ -263,6 +263,9 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
 
         /* close windows */
         delwin(tasklist->win);
+        delwin(statusbar->win);
+        free(tasklist);
+        free(statusbar);
         endwin();
 
         /* free config and tasklist */

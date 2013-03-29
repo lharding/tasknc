@@ -65,6 +65,8 @@ int config_set(struct config *conf, const int argc, char **argv) {
         if (argc != 2)
                 return CONFIG_ERROR_ARGC;
 
+        int ret = CONFIG_SUCCESS;
+
         if (strcmp(argv[0], "nc_timeout") == 0)
                 conf->nc_timeout = config_parse_int(argv[1]);
         else if (strcmp(argv[0], "logpath") == 0) {
@@ -78,9 +80,9 @@ int config_set(struct config *conf, const int argc, char **argv) {
         else if (strcmp(argv[0], "task_format") == 0)
                 conf_set_task_format(conf, argv[1]);
         else
-                return CONFIG_VAR_UNHANDLED;
+                ret = CONFIG_VAR_UNHANDLED;
 
-        return CONFIG_SUCCESS;
+        return ret;
 }
 
 /* parse a config string and evaluate its instructions */
@@ -146,6 +148,9 @@ int config_parse_string(struct config *conf, char *str) {
                 ret = 1;
 
         /* free allocated memory */
+        int n;
+        for (n = 0; n < argc; n++)
+                free(argv[n]);
         free(argv);
 
         return ret;

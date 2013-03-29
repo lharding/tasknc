@@ -111,6 +111,7 @@ int main(int argc, char ** argv) {
                         printf("failed to open file '%s'\n", optarg);
                         return 1;
                 }
+                free(fp);
                 config_parse_file(conf, fd);
                 fclose(fd);
         }
@@ -129,12 +130,13 @@ int main(int argc, char ** argv) {
                 stderr = fopen("/dev/null", "w");
 
         /* run function */
+        int ret = 1;
         if (run)
-                return run(list, conf);
-        else {
+                ret = run(list, conf);
+        else
                 printf("no action to run\n");
-                return 1;
-        }
+        fclose(stderr);
+        return ret;
 }
 
 /* get task version */

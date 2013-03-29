@@ -190,6 +190,7 @@ struct task * parse_task(const char *str) {
                                 break;
                         case TASK_UNKNOWN:
                         default:
+                                free(value);
                                 break;
                 }
                 free(field);
@@ -311,6 +312,7 @@ void free_tasklist(struct tasklist * list) {
                 for (n = 0; n < list->ntasks; n++)
                         free_task(list->tasks[n]);
         }
+        free(list->tasks);
         free(list);
 }
 
@@ -474,6 +476,12 @@ int reload_tasklist(struct tasklist *list, const char *filter) {
         struct tasklist *new = get_tasks(filter);
         if (new == NULL)
                 return 1;
+
+        /* free tasks */
+        int n;
+        for (n = 0; n < list->ntasks; n++)
+                free_task(list->tasks[n]);
+        free(list->tasks);
 
         /* replace fields and free new tasklist */
         list->tasks = new->tasks;
