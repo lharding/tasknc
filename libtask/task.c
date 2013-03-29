@@ -293,7 +293,7 @@ done:
 }
 
 /* function to free an individual task */
-void free_task(struct task *t ) {
+void free_task(struct task *t) {
         check_free(t->description);
         check_free(t->project);
         check_free(t->tags);
@@ -302,23 +302,15 @@ void free_task(struct task *t ) {
         free(t);
 }
 
-/* function to free all tasks */
-void free_tasks(struct task ** tasks) {
-        if (tasks == NULL)
-                return;
-
-        struct task ** h;
-        for (h = tasks; *h != NULL; h++)
-                free_task(*h);
-        free(tasks);
-}
-
 /* function to free a tasklist */
 void free_tasklist(struct tasklist * list) {
         if (list == NULL)
                 return;
-        if (list->tasks != NULL)
-                free_tasks(list->tasks);
+        if (list->tasks != NULL) {
+                int n;
+                for (n = 0; n < list->ntasks; n++)
+                        free_task(list->tasks[n]);
+        }
         free(list);
 }
 
