@@ -124,14 +124,14 @@ int tasklist_scroll_end(struct bindarg *arg) {
 
 /* task actions */
 int tasklist_reload(struct bindarg *arg) {
-        statusbar_printf(arg->statusbar, arg->conf, "%s", "executing reload...");
+        statusbar_printf(arg, "%s", "executing reload...");
         int ret = reload_tasklist(arg->list, conf_get_filter(arg->conf));
         if (ret == 0) {
                 sort_tasks(arg->list, conf_get_sort(arg->conf));
-                statusbar_printf(arg->statusbar, arg->conf, "%s", "reload executed");
+                statusbar_printf(arg, "%s", "reload executed");
         }
         else
-                statusbar_printf(arg->statusbar, arg->conf, "%s", "reload failed");
+                statusbar_printf(arg, "%s", "reload failed");
 
         return ret;
 }
@@ -141,16 +141,16 @@ int tasklist_complete_tasks(struct bindarg *arg) {
         int *indexes = calloc(2, sizeof(int));
         indexes[0] = arg->win->selline;
 
-        statusbar_printf(arg->statusbar, arg->conf, "%s", "executing complete...");
+        statusbar_printf(arg, "%s", "executing complete...");
         ret = task_complete(arg->list, indexes, 1, conf_get_filter(arg->conf));
         free(indexes);
 
         if (ret == 0) {
                 sort_tasks(arg->list, conf_get_sort(arg->conf));
-                statusbar_printf(arg->statusbar, arg->conf, "%s", "complete executed");
+                statusbar_printf(arg, "%s", "complete executed");
         }
         else
-                statusbar_printf(arg->statusbar, arg->conf, "%s", "complete failed");
+                statusbar_printf(arg, "%s", "complete failed");
 
         return ret;
 }
@@ -160,29 +160,29 @@ int tasklist_delete_tasks(struct bindarg *arg) {
         int *indexes = calloc(2, sizeof(int));
         indexes[0] = arg->win->selline;
 
-        statusbar_printf(arg->statusbar, arg->conf, "%s", "executing delete...");
+        statusbar_printf(arg, "%s", "executing delete...");
         ret = task_delete(arg->list, indexes, 1, conf_get_filter(arg->conf));
         free(indexes);
 
         if (ret == 0) {
                 sort_tasks(arg->list, conf_get_sort(arg->conf));
-                statusbar_printf(arg->statusbar, arg->conf, "%s", "delete executed");
+                statusbar_printf(arg, "%s", "delete executed");
         }
         else
-                statusbar_printf(arg->statusbar, arg->conf, "%s", "delete failed");
+                statusbar_printf(arg, "%s", "delete failed");
 
         return ret;
 }
 
 int tasklist_undo(struct bindarg *arg) {
-        statusbar_printf(arg->statusbar, arg->conf, "%s", "executing undo...");
+        statusbar_printf(arg, "%s", "executing undo...");
         int ret = task_undo(arg->list, conf_get_filter(arg->conf));
         if (ret == 0) {
                 sort_tasks(arg->list, conf_get_sort(arg->conf));
-                statusbar_printf(arg->statusbar, arg->conf, "%s", "undo executed");
+                statusbar_printf(arg, "%s", "undo executed");
         }
         else
-                statusbar_printf(arg->statusbar, arg->conf, "%s", "undo failed");
+                statusbar_printf(arg, "%s", "undo failed");
 
         return ret;
 }

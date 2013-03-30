@@ -8,6 +8,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "cursutil.h"
+#include "configure.h"
 #include "keybind.h"
 #include "statusbar.h"
 
@@ -26,7 +28,7 @@ int statusbar_clear(struct bindarg * arg) {
 }
 
 /* print a formatted string to the statusbar */
-int statusbar_printf(struct nc_win * bar, struct config * conf, const char *format, ...) {
+int statusbar_printf(struct bindarg * arg, const char *format, ...) {
         va_list args;
         char *message = calloc(COLS+1, sizeof(char));
 
@@ -35,11 +37,12 @@ int statusbar_printf(struct nc_win * bar, struct config * conf, const char *form
         vsnprintf(message, COLS, format, args);
         va_end(args);
 
-        statusbar_wipe(bar);
+        statusbar_wipe(arg->statusbar);
 
         /* print message */
-        umvaddstr(bar->win, 0, 0, COLS, "%s", message);
+        int ret = umvaddstr(arg->statusbar->win, 0, 0, COLS, "%s", message);
         free(message);
 
-        wrefresh(bar->win);
+        wrefresh(arg->statusbar->win);
+        return ret;
 }
