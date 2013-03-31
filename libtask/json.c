@@ -11,7 +11,7 @@ char ** parse_json(const char *json) {
 
         /* check for valid start */
         if (*json != '{')
-                return 0;
+                return NULL;
 
         /* create an array of 'char *' to store field/value pairs */
         int array_size = 12;

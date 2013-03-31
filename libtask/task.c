@@ -214,9 +214,9 @@ struct tasklist * get_tasks(const char *filter) {
         char *cmd;
         const char *taskbin = task_cmd();
         if (filter != NULL)
-                asprintf(&cmd, "%s export %s", taskbin, filter);
+                asprintf(&cmd, "%s export %s 2>&1", taskbin, filter);
         else
-                asprintf(&cmd, "%s export", taskbin);
+                asprintf(&cmd, "%s export 2>&1", taskbin);
 
         /* allocate task array */
         int ntasks = 16;
@@ -243,6 +243,13 @@ struct tasklist * get_tasks(const char *filter) {
                 /* parse task */
                 struct task * this = parse_task(line);
 
+                /* wipe line */
+                memset(line, 0, linelen);
+
+                /* check if task was parsed */
+                if (this == NULL)
+                        continue;
+
                 /* store task in list */
                 if (counter >= ntasks-1) {
                         ntasks *= 2;
@@ -250,8 +257,6 @@ struct tasklist * get_tasks(const char *filter) {
                 }
                 tasks[counter] = this;
                 counter++;
-
-                memset(line, 0, linelen);
         }
         free(line);
         pclose(out);
