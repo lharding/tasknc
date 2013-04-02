@@ -124,6 +124,7 @@ int main(int argc, char ** argv) {
         if (conf_get_debug(conf)) {
                 char *stderr_template = strdup("/tmp/taskncXXXXXX");
                 stderr = fdopen(mkstemp(stderr_template), "w");
+                printf("writing log output to file: %s\n", stderr_template);
                 free(stderr_template);
         }
         else
