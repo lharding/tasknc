@@ -187,6 +187,15 @@ int tasklist_undo(struct bindarg *arg) {
         return ret;
 }
 
+/* get string input */
+int tasklist_get_string(struct bindarg * arg) {
+        char *str = calloc(128, sizeof(char));
+        int ret = statusbar_get_string(arg, ":", &str);
+        statusbar_printf(arg, "input: '%s'", str);
+        free(str);
+        return ret;
+}
+
 /* display an array of tasks in a ncurses window */
 int tasklist_window(struct tasklist * list, struct config * conf) {
         /* ncurses main function */
@@ -201,6 +210,7 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
                 endwin();
                 return 1;
         }
+        set_curses_mode(conf, statusbar->win, NCURSES_MODE_STRING);
         set_curses_mode(conf, tasklist->win, NCURSES_MODE_STD_BLOCKING);
 
         /* initialize colors */
@@ -224,6 +234,7 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
         add_keybind(binds, 'd', tasklist_delete_tasks);
         add_keybind(binds, 'u', tasklist_undo);
         add_keybind(binds, 'l', statusbar_clear);
+        add_keybind(binds, ':', tasklist_get_string);
 
         /* create bindarg structure */
         struct bindarg arg;

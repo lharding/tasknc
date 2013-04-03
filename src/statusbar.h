@@ -26,4 +26,15 @@ int statusbar_printf(struct bindarg * arg, const char *format, ...);
  */
 int statusbar_clear(struct bindarg * arg);
 
+/**
+ * get string input from the statusbar
+ *
+ * @param arg the bindarg struct
+ * @param msg the prefix to input
+ * @param str a pointer to the memory where the string will be stored
+ *
+ * @return indicator of success
+ */
+int statusbar_get_string(struct bindarg * arg, const char *msg, char **str);
+
 #endif
