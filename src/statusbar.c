@@ -12,6 +12,7 @@
 #include <wchar.h>
 #include "cursutil.h"
 #include "configure.h"
+#include "history.h"
 #include "keybind.h"
 #include "statusbar.h"
 
@@ -57,15 +58,49 @@ void remove_first_char(wchar_t *str) {
         }
 }
 
+/**
+ * replace a string with a different and return the length
+ * of the new string
+ * str - the old string
+ * len - the length of the old string
+ * tmp - the new string
+ */
+int replace_entry(wchar_t *str, const int len, const wchar_t *tmp)
+{
+        int ret, i;
+
+        /* empty new string */
+        if (tmp == NULL)
+        {
+                ret = 0;
+                goto done;
+        }
+
+        /* rotate in new chars */
+        for (i=0; tmp[i] != 0; i++)
+                str[i] = tmp[i];
+        ret = i;
+        goto done;
+
+done:
+        for (i=ret; i<len; i++)
+                str[i] = 0;
+        return ret;
+}
+
 /* get string input */
 int statusbar_get_string(struct bindarg * arg, const char *msg, char **str) {
         WINDOW *win = arg->statusbar->win;
         int position = 0, histindex = -1, str_len = 0, charlen, ret = 0;
         bool done = false;
         const int msglen = strlen(msg);
-        /* const prompt_index *pindex = get_prompt_index(msg); */
         wchar_t *tmp, *wstr = calloc(3*COLS, sizeof(wchar_t));
         wint_t c;
+        struct cmd_history *hist = conf_get_history(arg->conf);
+
+        /* get wchar prompt */
+        wchar_t *wmsg = calloc(msglen, sizeof(wchar_t));
+        mbstowcs(wmsg, msg, msglen);
 
         /* set cursor */
         curs_set(1);
@@ -133,18 +168,18 @@ int statusbar_get_string(struct bindarg * arg, const char *msg, char **str) {
                                 position = wstr[position] != 0 ? position+1 : position;
                                 break;
                         case KEY_UP:
-                                /* histindex++; */
-                                /* position = 0; */
-                                /* tmp = get_history(pindex, histindex); */
-                                /* if (tmp == NULL) */
-                                        /* histindex = -1; */
-                                /* str_len = replace_entry(wstr, str_len, tmp); */
+                                histindex++;
+                                position = 0;
+                                tmp = get_history(hist, wmsg, histindex);
+                                if (tmp == NULL)
+                                        histindex = -1;
+                                str_len = replace_entry(wstr, str_len, tmp);
                                 break;
                         case KEY_DOWN:
-                                /* histindex = histindex > 0 ? histindex-1 : 0; */
-                                /* position = 0; */
-                                /* tmp = get_history(pindex, histindex); */
-                                /* str_len = replace_entry(wstr, str_len, tmp); */
+                                histindex = histindex > 0 ? histindex-1 : 0;
+                                position = 0;
+                                tmp = get_history(hist, wmsg, histindex);
+                                str_len = replace_entry(wstr, str_len, tmp);
                                 break;
                         case KEY_HOME:
                                 position = 0;
@@ -166,7 +201,8 @@ int statusbar_get_string(struct bindarg * arg, const char *msg, char **str) {
         wcstombs(*str, wstr, charlen);
 
         /* add to history */
-        /* add_to_history((prompt_index *)pindex, wstr); */
+        if (*wstr != 0)
+                add_history_entry(hist, wmsg, wstr);
 
         /* reset cursor */
         curs_set(0);
