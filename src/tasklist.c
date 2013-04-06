@@ -210,8 +210,9 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
                 endwin();
                 return 1;
         }
-        set_curses_mode(conf, statusbar->win, NCURSES_MODE_STRING);
-        set_curses_mode(conf, tasklist->win, NCURSES_MODE_STD_BLOCKING);
+
+        /* set curses input mode */
+        set_curses_mode(conf, statusbar->win, NCURSES_MODE_STD_BLOCKING);
 
         /* initialize colors */
         /* TODO: do this in configuration */
@@ -254,7 +255,7 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
 
                 /* get keypress */
                 wint_t key;
-                if (ERR == wget_wch(tasklist->win, &key))
+                if (ERR == wget_wch(statusbar->win, &key))
                         continue;
                 if (key == 'q')
                         break;
