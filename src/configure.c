@@ -9,6 +9,7 @@
 #include <string.h>
 #include "configure.h"
 #include "common.h"
+#include "history.h"
 #include "task.h"
 
 /* error codes */
@@ -26,6 +27,7 @@ struct config {
         FILE *logfd;
         int nc_timeout;
         int *version;
+        struct cmd_history *hist;
 };
 
 /* allocate a config struct with default options */
@@ -37,6 +39,7 @@ struct config *default_config() {
         conf->filter = strdup("status:pending");
         conf->sort = strdup("n");
         conf->task_format = strdup("%3n (%-10p) %d");
+        conf->hist = init_history(conf);
 
         return conf;
 }
@@ -48,6 +51,7 @@ void free_config(struct config *conf) {
         check_free(conf->filter);
         check_free(conf->sort);
         check_free(conf->task_format);
+        free_cmd_history(conf->hist);
 
         free(conf);
 }
@@ -241,6 +245,11 @@ bool conf_get_debug(struct config *conf) {
 /* set debug */
 void conf_set_debug(struct config *conf, bool debug) {
         conf->debug = debug;
+}
+
+/* get history */
+struct cmd_history *conf_get_history(struct config *conf) {
+        return conf->hist;
 }
 
 /* dump config to file*/

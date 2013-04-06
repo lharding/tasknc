@@ -145,6 +145,15 @@ bool conf_get_debug(struct config *conf);
 void conf_set_debug(struct config *conf, bool debug);
 
 /**
+ * get command history
+ *
+ * @param conf configuration struct to obtain field from
+ *
+ * @return cmd_history struct
+ */
+struct cmd_history *conf_get_history(struct config *conf);
+
+/**
  * dump a config struct to a file
  *
  * @param out file to write to

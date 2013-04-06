@@ -1,11 +1,12 @@
 add_executable (tasknc
     configure.c
     cursutil.c
+    history.c
+    keybind.c
     main.c
     sort.c
-    tasklist.c
-    keybind.c
     statusbar.c
+    tasklist.c
     )
 
 install (TARGETS tasknc DESTINATION bin)
