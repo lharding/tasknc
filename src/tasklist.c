@@ -265,6 +265,10 @@ int tasklist_window(struct tasklist * list, struct config * conf) {
                 int ret = eval_keybind(binds, key, &arg);
                 fprintf(stderr, "%c - ret: %d\n", key, ret);
 
+                /* display message if no bind was found */
+                if (ret == -2)
+                        statusbar_printf(&arg, "key %d (%c) unbound", key, key);
+
                 /* check cursor is in a valid position */
                 if (tasklist->selline > list->ntasks-1)
                         tasklist_scroll_end(&arg);
