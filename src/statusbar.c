@@ -51,8 +51,7 @@ int statusbar_printf(struct bindarg * arg, const char *format, ...) {
 
 /* remove the first character from a string, shift the remainder back */
 void remove_first_char(wchar_t *str) {
-        while (*str != 0)
-        {
+        while (*str != 0) {
                 *str = *(str+1);
                 str++;
         }
@@ -72,8 +71,7 @@ int statusbar_get_string(struct bindarg * arg, const char *msg, char **str) {
         curs_set(1);
 
         /* get keys and buffer them */
-        while (!done)
-        {
+        while (!done) {
                 statusbar_wipe(arg->statusbar);
                 umvaddstr(win, 0, 0, COLS, "%s", msg);
                 mvwaddnwstr(win, 0, msglen, wstr, str_len);
@@ -134,20 +132,20 @@ int statusbar_get_string(struct bindarg * arg, const char *msg, char **str) {
                         case KEY_RIGHT:
                                 position = wstr[position] != 0 ? position+1 : position;
                                 break;
-                        /* case KEY_UP: */
+                        case KEY_UP:
                                 /* histindex++; */
                                 /* position = 0; */
                                 /* tmp = get_history(pindex, histindex); */
                                 /* if (tmp == NULL) */
                                         /* histindex = -1; */
                                 /* str_len = replace_entry(wstr, str_len, tmp); */
-                                /* break; */
-                        /* case KEY_DOWN: */
+                                break;
+                        case KEY_DOWN:
                                 /* histindex = histindex > 0 ? histindex-1 : 0; */
                                 /* position = 0; */
                                 /* tmp = get_history(pindex, histindex); */
                                 /* str_len = replace_entry(wstr, str_len, tmp); */
-                                /* break; */
+                                break;
                         case KEY_HOME:
                                 position = 0;
                                 break;
