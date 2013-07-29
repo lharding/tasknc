@@ -41,8 +41,6 @@ Debug mode (no curses gui).  Modes may be specified as a list, as long as they a
 
 =item I<set_var>
 
-=item
-
 =back
 
 =item B<-f, --filter>
@@ -151,11 +149,7 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item B<add> creates a new task and opens it for editing.
 
-=item
-
 =item B<bind> I<mode> I<key> I<function> I<args> assign I<function> to run every time a I<key> is pressed in I<mode>.  Defining I<key>s is described in the KEYS section.  I<function>s are anything listed in COMMANDS.
-
-=item
 
 =item B<color> I<object> I<foreground> I<background> I<rule> assign an I<object> to be a color when I<rule> is satisfied.  Only task I<object>s evaluate I<rule>s.  The following objects are available:
 
@@ -199,95 +193,49 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =back
 
-=item
-
 =item B<command> I<optarg> runs the command I<optarg> or prompts the user for a command with no arg.
-
-=item
 
 =item B<complete> marks selected task as complete
 
-=item
-
 =item B<delete> deletes selected task
-
-=item
 
 =item B<edit> opens task for editing
 
-=item
-
 =item B<dump> will write active task info to the log file.  This is mostly for debugging.
-
-=item
 
 =item B<scrdump> will write the ncurses screen dump to file.  This is mostly for debugging.
 
-=item
-
 =item B<filter> applies filter string I<optarg> or prompts user for a filter string with no arg.
-
-=item
 
 =item B<f_redraw> force a redraw of theh whole screen.
 
-=item
-
 =item B<help> will open the help window, which will list keybinds.
-
-=item
 
 =item B<modify> I<optarg> runs task modify on the selected task with modifications specified in I<optarg> or gathered from a user prompt with no arg.
 
-=item
-
 =item B<quit> will exit tasknc.
-
-=item
 
 =item B<reload> will force tasknc to re-import the task list.
 
-=item
-
 =item B<scroll_down> moves the cursor down
-
-=item
 
 =item B<scroll_end> moves the cursor to the end of the task list
 
-=item
-
 =item B<scroll_home> moves the cursor to the first task
-
-=item
 
 =item B<scroll_up> moves the cursor up
 
-=item
-
 =item B<search> I<optarg> searches task list for string I<optarg> or prompts user for a search string with no arg.
-
-=item
 
 =item B<search_next> goes to the next item in the task list that matches the search string.
 
-=item
-
 =item B<set> I<variable> I<value> will attempt to set I<variable> to a parsed I<value>.  A list of available I<variable>s are listed in the VARIABLES section.
-
-=item
 
 =item B<shell> I<command> will run an interactive command.  A %s will be replaced with the active task's uuid.  The task list will be reloaded after.
 
-=item
-
 =item B<shell_bg> I<command> will run a background command.  A %s will be replaced with the active task's uuid.  The task list will be reloaded after.
 
-=item
-
 =item B<show> I<variable> will print the formatted contents of I<variable> to either stdout or the prompt area of the ncurses window.
-
-=item
 
 =item B<sort> I<optarg> applies a sort defined by string I<optarg> or prompts user for sort mode with no arg.  The sort string defines the priority of each sort component.  Tasks will first be compared by the first character's order, if they are equal, the next characters sort order will be evaluated.  The default sort order is due, priority, project, uuid (notated drpu).  Capitalized characters indicate invert the sort for that field.  The following characters are valid sorts:
 
@@ -305,39 +253,21 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =back
 
-=item
-
 =item B<source> I<file> read configuration file and run commands that are contained in it.
-
-=item
 
 =item B<source_cmd> I<command> run a command and read commands from its output.
 
-=item
-
 =item B<stats> will display the output of 'task stat'.
-
-=item
 
 =item B<sync> runs 'task merge && task push'.
 
-=item
-
 =item B<toggle_start> toggles the task's status as started or stopped.
-
-=item
 
 =item B<unbind> I<mode> I<key> will remove all keybindings from a specific I<key> in I<mode>.
 
-=item
-
 =item B<undo> runs 'task undo'.
 
-=item
-
 =item B<version> will print the version info about tasknc to the prompt area of the ncurses window.
-
-=item
 
 =item B<view> will open the view window for the selected task.
 
@@ -349,23 +279,13 @@ Commands are either supplied at the command prompt or listed in the configuratio
 
 =item B<curs_timeout> is an integer variable which is the number of milliseconds after which ncurses options should time out.  This variable must be set in the config file.  (default: 500)
 
-=item
-
 =item B<filter_string> is the string which is currently filtering the displayed task list.  (default: status:pending)
-
-=item
 
 =item B<follow_task> is a boolean which dictates whether the selected line will stay selected after the task is chenaged.  (default: 1)
 
-=item
-
 =item B<history_max> is an integer variable which defines the maximum number of history entries for a given prompt.  This variable must be set in the config file.  (default: 50)
 
-=item
-
 =item B<log_level> is an integer variable which defines which log messages should be printed.  All messages at or below the log level are printed and written to file.  (default: 1)
-
-=item
 
 Log levels:
 
@@ -383,29 +303,17 @@ Log levels:
 
 =item I<5> Verbose debug messages
 
-=item
-
 =back
 
 =item B<program_name> is the string which defines the name of the program.  This variable is read-only.
 
-=item
-
 =item B<program_author> is the string which defines the author of tasknc.  This variable is read-only.
-
-=item
 
 =item B<program_version> is the string which defines the version of tasknc.  This variable is read-only.
 
-=item
-
 =item B<search_string> is the string that is currently being searched for.  (default: NULL)
 
-=item
-
 =item B<selected_line> is the integer number of the task which is currently selected.
-
-=item
 
 =item B<sort_mode> is a character which defines the sort mode.  (default: drpu)
 
@@ -421,33 +329,19 @@ Sort modes:
 
 =item I<r> priority
 
-=item
-
 =back
 
 =item B<statusbar_timeout> is an integer variable which is the number of seconds after which the message in the statusbar times out.  (default: 3)
 
-=item
-
 =item B<task_count> is the integer number of tasks which are displayed.  This variable is read-only.
-
-=item
 
 =item B<task_format> is the string which defines the format of a displayed task.  See FORMATS for more information.  This variable must be set in the config file.  (default: " $project $description $> ?$due?$due?$-6priority?")
 
-=item
-
 =item B<task_version> is a string variable which contains the version of Taskwarrior which is being wrapped.
-
-=item
 
 =item B<title_format> is the string which defines the format of the title bar.  See FORMATS for more information.  This variable must be set in the config file.  (default: " $program_name ($selected_line/$task_count) $> $date")
 
-=item
-
 =item B<view_format> is the string which defines the format of the title bar of the pager when viewing a task.  See FORMATS for more information.  This variable must be set in the config file.  (default: " task info")
-
-=item
 
 =back
 
@@ -459,8 +353,6 @@ Formats describe how a line is printed.  Variables are denoted by a preceding $.
 
 =item B<date> displays the current date.
 
-=item
-
 =item B<E<gt>> marks the beginning of the right-aligned portion of the formatted section.
 
 =back
@@ -471,15 +363,9 @@ For task formats, the following variables are available:
 
 =item B<description>
 
-=item
-
 =item B<due>
 
-=item
-
 =item B<project>
-
-=item
 
 =back
 
@@ -489,11 +375,7 @@ For task formats, the following variables are available:
 
 =item B<tasklist>
 
-=item
-
 =item B<pager>
-
-=item
 
 =back
 
