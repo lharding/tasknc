@@ -105,7 +105,7 @@ resort list (prompted for sort order)
 
 =item B<y>
 
-synchronize (run task merge and task push)
+synchronize (run task sync)
 
 =item B<q>
 
@@ -331,7 +331,7 @@ The following characters are valid sorts:
 
 =item
 
-=item B<sync> runs 'task merge && task push'.
+=item B<sync> runs 'task sync'.
 
 =item
 
