@@ -70,7 +70,7 @@ typedef enum { MODE_TASKLIST, MODE_PAGER, MODE_ANY } prog_mode;
 /* format fields */
 typedef enum { FIELD_DATE, FIELD_PROJECT, FIELD_DESCRIPTION, FIELD_DUE,
 	FIELD_PRIORITY, FIELD_UUID, FIELD_INDEX, FIELD_STRING, FIELD_VAR,
-	FIELD_CONDITIONAL } fmt_field_type;
+	FIELD_CONDITIONAL, FIELD_TIME } fmt_field_type;
 
 /**
  * format field struct - for describing portions of format strings
@@ -180,6 +180,7 @@ typedef struct _config {
 /* functions */
 bool match_string(const char *, const char *);
 char *utc_date(const time_t);
+char *utc_time(const time_t);
 char *var_value_message(var *, bool);
 
 #endif

@@ -151,6 +151,17 @@ fmt_field *compile_format_string(char *fmt) /* {{{ */
 				fmt += 4;
 				continue;
 			}
+			/* check for time */
+			if (str_starts_with(fmt, "time"))
+			{
+				this = calloc(1, sizeof(fmt_field));
+				this->type = FIELD_TIME;
+				this->width = width;
+				this->right_align = right_align;
+				append_field(&head, &last, this);
+				fmt += 4;
+				continue;
+			}
 			/* check for task field */
 			for (i = FIELD_PROJECT; i <= FIELD_INDEX; i++)
 			{
@@ -331,6 +342,9 @@ static char *field_to_str(fmt_field *this, bool *free_field, task *tsk) /* {{{ *
 			break;
 		case FIELD_DATE:
 			ret = utc_date(0);
+			break;
+		case FIELD_TIME:
+			ret = utc_time(0);
 			break;
 		case FIELD_VAR:
 			ret = var_value_message(this->variable, false);
