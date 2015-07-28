@@ -342,6 +342,10 @@ task *parse_task(char *line) /* {{{ */
 				line++;
 			line++;
 		}
+		else { /* unknown field */			
+			while (*line != ',' && *line != '}') line++;
+		}
+
 		free(field);
 	}
 
