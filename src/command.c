@@ -444,10 +444,19 @@ void run_command_source_cmd(const char *cmdstr) /* {{{ */
 		return;
 	}
 
+
+	/* exit window */
+	def_prog_mode();
+	endwin();
+
 	/* read command file */
 	source_fp(cmd);
 
-	/* close config file */
+	/* force redraw */
+	reset_prog_mode();
+	redraw = true;
+	
+/* close config file */
 	pclose(cmd);
 	tnc_fprintf(logfp, LOG_DEBUG, "source complete: \"%s\"", cmdstr);
 	statusbar_message(cfg.statusbar_timeout, "source complete: \"%s\"", cmdstr);
