@@ -4,7 +4,7 @@ SET(OUT_MANPAGE tasknc.1)
 ADD_CUSTOM_COMMAND(
   TARGET ManPages 
   SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/${IN_POD}
-  COMMAND pod2man ARGS -s 1 --section=1 --center="tasknc Manual" --name="tasknc" --release="tasknc ${VERSION}" ${CMAKE_CURRENT_SOURCE_DIR}/${IN_POD} 
+  COMMAND pod2man ARGS --errors=stderr -s 1 --section=1 --center="tasknc Manual" --name="tasknc" --release="tasknc ${VERSION}" ${CMAKE_CURRENT_SOURCE_DIR}/${IN_POD} 
 ${CMAKE_CURRENT_BINARY_DIR}/${OUT_MANPAGE} 
   OUTPUTS ${CMAKE_CURRENT_BINARY_DIR}/${OUT_MANPAGE}
 )
