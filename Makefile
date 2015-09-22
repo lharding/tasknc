@@ -26,7 +26,7 @@ all: $(OUT) doc
 
 doc: tasknc.1
 tasknc.1: doc/manual.pod
-		pod2man --section=1 --center="tasknc Manual" --name="tasknc" --release="tasknc ${VERSION}" $< > $@
+		pod2man --errors=stderr --section=1 --center="tasknc Manual" --name="tasknc" --release="tasknc ${VERSION}" $< > $@
 
 install: tasknc tasknc.1
 		install -D -m755 tasknc ${DESTDIR}${PREFIX}/bin/tasknc
