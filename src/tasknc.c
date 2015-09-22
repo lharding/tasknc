@@ -815,6 +815,13 @@ void wipe_window(WINDOW *win) /* {{{ */
 	touchwin(win);
 } /* }}} */
 
+void sig_handler(int signo)
+{
+    if (signo == SIGUSR1) {
+        reload = 1;
+    }
+}
+
 int main(int argc, char **argv) /* {{{ */
 {
 	/* declare variables */
@@ -822,6 +829,9 @@ int main(int argc, char **argv) /* {{{ */
 	bool debug = false;
 	char *debugopts = NULL;
 	char *logpath;
+
+    if (signal(SIGUSR1, sig_handler) == SIG_ERR)
+        printf("\ncan't catch SIGUSR1, task list reload signal will be non-functional.\n");
 
 	/* open log */
 	asprintf(&logpath, LOGFILE, getenv("USER"));
@@ -893,6 +903,7 @@ int main(int argc, char **argv) /* {{{ */
 		tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "%d tasks loaded", taskcount);
 		mvwhline(stdscr, 0, 0, ' ', COLS);
 		mvwhline(stdscr, 1, 0, ' ', COLS);
+		wtimeout(stdscr, 1000);
 		tasklist_window();
 		ncurses_end(0);
 	}
