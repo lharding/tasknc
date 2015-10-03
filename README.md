@@ -4,6 +4,10 @@ task ncurses
 by mjheagle
 -----------
 
+# `tasknc` is changing maintainers!
+
+After confirmation from `mjheagle`, I (lharding) am now the maintainer of tasknc and this will now be the canonical repository for development, PRs, Issues, etc. Look for me to begin responding to issues from the old repo soon!
+
 About
 -----
 
