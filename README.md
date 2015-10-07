@@ -22,9 +22,6 @@ Installation can be performed by pasting the commands below:
 
     git clone https://github.com/mjheagle8/tasknc.git
     cd tasknc.git
-    mkdir build
-    cd build
-    cmake ..
     make
     sudo make install
 
@@ -41,13 +38,11 @@ Requirements
 
 `ncursesw` headers are required to compile with unicode support.  In Arch Linux, this is provided by the `ncurses` package.
 
-`cmake` is the build system.
-
 Bugs
 ----
 `tasknc` is still in active development, and there are still some bugs.
 Reporting bugs is very helpful to development!
-Please report these bugs on [github](https://github.com/mjheagle8/tasknc/issues?page=1&state=open).
+Please report these bugs on [github](https://github.com/lharding/tasknc/issues?page=1&state=open).
 If you experience a segmentation fault, it would be fantastic if you could go into the test directory and run the `valgrind_test.sh` script and attach the resulting `valgrind_errors` file.
 
 Contributing
