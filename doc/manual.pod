@@ -513,6 +513,10 @@ For task formats, the following variables are available:
 
 Keys may be specified as an integer or character. In addition, special key strings are recognized.  HWhen pressing an unbound key, tasknc will display its name in the statusbar message.
 
+=head1 SIGNALS
+
+If tasknc receives SIGUSR1, it will reload the task list after the next getch timeout (less than one second, by default).
+
 =head1 BUGS
 
 Please report bugs on I<http://github.com/lharding/tasknc>.
