@@ -308,7 +308,7 @@ void key_tasklist_sync() /* {{{ */
 
 	statusbar_message(cfg.statusbar_timeout, "synchronizing tasks...");
 
-	ret = task_interactive_command("yes n | task merge && task push");
+	ret = task_interactive_command("yes n | task sync");
 
 	if (ret==0)
 	{
@@ -475,8 +475,12 @@ void tasklist_window() /* {{{ */
 		/* check for an empty task list */
 		if (head == NULL)
 		{
-			tnc_fprintf(logfp, LOG_ERROR, "it appears that your task list is empty. %s does not yet support empty task lists.", PROGNAME);
-			ncurses_end(-1);
+			if (strcmp(active_filter,"") == 0){
+				tnc_fprintf(logfp, LOG_ERROR, "it appears that your task list is empty. %s does not yet support empty task lists.", PROGNAME);
+				ncurses_end(-1);
+			}
+			active_filter = strdup("");
+			reload = true;
 		}
 
 		/* get the screen size */
