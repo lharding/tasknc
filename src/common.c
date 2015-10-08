@@ -22,18 +22,21 @@ bool match_string(const char* haystack, const char* needle) { /* {{{ */
     bool ret;
 
     /* check for NULL haystack or needle */
-    if (haystack == NULL || needle == NULL)
+    if (haystack == NULL || needle == NULL) {
         return false;
+    }
 
     /* compile regex */
-    if (regcomp(&regex, needle, REGEX_OPTS) != 0)
+    if (regcomp(&regex, needle, REGEX_OPTS) != 0) {
         return false;
+    }
 
     /* run regex */
-    if (regexec(&regex, haystack, 0, 0, 0) != REG_NOMATCH)
+    if (regexec(&regex, haystack, 0, 0, 0) != REG_NOMATCH) {
         ret = true;
-    else
+    } else {
         ret = false;
+    }
 
     regfree(&regex);
     return ret;
@@ -55,10 +58,11 @@ char* utc_date(const time_t timeint) { /* {{{ */
     /* convert thte time to a formatted string */
     timestr = malloc(TIMELENGTH * sizeof(char));
 
-    if (now->tm_year != tmr->tm_year)
+    if (now->tm_year != tmr->tm_year) {
         strftime(timestr, TIMELENGTH, "%F", tmr);
-    else
+    } else {
         strftime(timestr, TIMELENGTH, "%b %d", tmr);
+    }
 
     return timestr;
 } /* }}} */
@@ -90,10 +94,11 @@ char* var_value_message(var* v, bool printname) { /* {{{ */
 
     switch (v->type) {
     case VAR_INT:
-        if (str_eq(v->name, "selected_line"))
+        if (str_eq(v->name, "selected_line")) {
             asprintf(&value, "%d", selline + 1);
-        else
+        } else {
             asprintf(&value, "%d", *(int*)(v->ptr));
+        }
 
         break;
 
@@ -110,8 +115,9 @@ char* var_value_message(var* v, bool printname) { /* {{{ */
         break;
     }
 
-    if (printname == false)
+    if (printname == false) {
         return value;
+    }
 
     message = malloc(strlen(v->name) + strlen(value) + 3);
     strcpy(message, v->name);
