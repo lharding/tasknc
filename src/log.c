@@ -10,7 +10,8 @@
 #include "common.h"
 #include "log.h"
 
-void tnc_fprintf(FILE* fp, const log_mode minloglvl, const char* format, ...) { /* {{{ */
+void tnc_fprintf(FILE* fp, const log_mode minloglvl, const char* format,
+                 ...) { /* {{{ */
     /**
      * log a message to a file
      * fp        - the file handle to write the log to
@@ -25,20 +26,23 @@ void tnc_fprintf(FILE* fp, const log_mode minloglvl, const char* format, ...) { 
     char timestr[timesize];
 
     /* determine if msg should be logged */
-    if (minloglvl > cfg.loglvl)
+    if (minloglvl > cfg.loglvl) {
         return;
+    }
 
     /* get time */
     lt = time(NULL);
     t = localtime(&lt);
     ret = strftime(timestr, timesize, "%F %H:%M:%S", t);
 
-    if (ret == 0)
+    if (ret == 0) {
         return;
+    }
 
     /* timestamp */
-    if (fp != stdout)
+    if (fp != stdout) {
         fprintf(fp, "[%s] ", timestr);
+    }
 
     /* log type header */
     switch (minloglvl) {
@@ -67,8 +71,9 @@ void tnc_fprintf(FILE* fp, const log_mode minloglvl, const char* format, ...) { 
     fputc('\n', fp);
 
     /* fflush if in debug mode */
-    if (minloglvl > LOG_DEBUG)
+    if (minloglvl > LOG_DEBUG) {
         fflush(fp);
+    }
 } /* }}} */
 
 // vim: noet ts=4 sw=4 sts=4
