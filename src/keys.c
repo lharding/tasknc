@@ -151,7 +151,8 @@ struct keymap keymaps[] = {
 const int nkeys = sizeof(keymaps) / sizeof(struct keymap);
 /* }}} */
 
-void add_int_keybind(const int key, void* function, const int argint, const prog_mode mode) { /* {{{ */
+void add_int_keybind(const int key, void* function, const int argint,
+                     const prog_mode mode) { /* {{{ */
     /**
      * convert argint to a string, then add keybind
      * key      - the key to be bound
@@ -166,7 +167,8 @@ void add_int_keybind(const int key, void* function, const int argint, const prog
     free(argstr);
 } /* }}} */
 
-void add_keybind(const int key, void* function, char* arg, const prog_mode mode) { /* {{{ */
+void add_keybind(const int key, void* function, char* arg,
+                 const prog_mode mode) { /* {{{ */
     /**
      * add a keybind to the linked list of keybinds
      * key      - the key to be bound
@@ -188,28 +190,32 @@ void add_keybind(const int key, void* function, char* arg, const prog_mode mode)
     new->mode = mode;
 
     /* append it to the list */
-    if (keybinds == NULL)
+    if (keybinds == NULL) {
         keybinds = new;
-    else {
+    } else {
         this_bind = keybinds;
 
-        for (n = 0; this_bind->next != NULL; n++)
+        for (n = 0; this_bind->next != NULL; n++) {
             this_bind = this_bind->next;
+        }
 
         this_bind->next = new;
         n++;
     }
 
     /* write log */
-    if (mode == MODE_PAGER)
+    if (mode == MODE_PAGER) {
         modestr = "pager - ";
-    else if (mode == MODE_TASKLIST)
+    } else if (mode == MODE_TASKLIST) {
         modestr = "tasklist - ";
-    else
+    } else {
         modestr = " ";
+    }
 
     name = name_key(key);
-    tnc_fprintf(logfp, LOG_DEBUG, "bind #%d: key %s (%d) bound to @%p %s%s(args: %d/%s)", n, name, key, function, modestr, name_function(function), new->argint, new->argstr);
+    tnc_fprintf(logfp, LOG_DEBUG,
+                "bind #%d: key %s (%d) bound to @%p %s%s(args: %d/%s)", n, name, key, function,
+                modestr, name_function(function), new->argint, new->argstr);
     free(name);
 } /* }}} */
 
@@ -225,23 +231,28 @@ void handle_keypress(const int c, const prog_mode mode) { /* {{{ */
     bool match = false;
 
     /* exit if timeout occurred */
-    if (c == ERR)
+    if (c == ERR) {
         return;
+    }
 
     /* iterate through keybinds */
     this_bind = keybinds;
 
     while (this_bind != NULL) {
-        if ((this_bind->mode == mode || this_bind->mode == MODE_ANY) && c == this_bind->key) {
+        if ((this_bind->mode == mode || this_bind->mode == MODE_ANY) &&
+            c == this_bind->key) {
             if (this_bind->function != NULL) {
-                if (this_bind->mode == MODE_PAGER)
+                if (this_bind->mode == MODE_PAGER) {
                     modestr = "pager - ";
-                else if (this_bind->mode == MODE_TASKLIST)
+                } else if (this_bind->mode == MODE_TASKLIST) {
                     modestr = "tasklist - ";
-                else
+                } else {
                     modestr = "any - ";
+                }
 
-                tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p %s%s(%s)", this_bind->function, modestr, name_function(this_bind->function), this_bind->argstr);
+                tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "calling function @%p %s%s(%s)",
+                            this_bind->function, modestr, name_function(this_bind->function),
+                            this_bind->argstr);
                 (*(this_bind->function))(this_bind->argstr);
             }
 
@@ -300,13 +311,15 @@ int parse_key(const char* keystr) { /* {{{ */
 
     /* try for a mapped key */
     for (i = 0; i < nkeys; i++) {
-        if (str_eq(keymaps[i].name, keystr))
+        if (str_eq(keymaps[i].name, keystr)) {
             return keymaps[i].value;
+        }
     }
 
     /* try for integer key */
-    if (1 == sscanf(keystr, "%d", &key))
+    if (1 == sscanf(keystr, "%d", &key)) {
         return key;
+    }
 
     /* take the first character as the key */
     return (int)(*keystr);
@@ -327,15 +340,17 @@ int remove_keybinds(const int key, const prog_mode mode) { /* {{{ */
         next = this->next;
 
         if (this->key == (int)key && this->mode == mode) {
-            if (last != NULL)
+            if (last != NULL) {
                 last->next = next;
-            else
+            } else {
                 keybinds = next;
+            }
 
             free(this);
             counter++;
-        } else
+        } else {
             last = this;
+        }
 
         this = next;
     }
