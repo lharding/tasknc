@@ -40,7 +40,8 @@ static prompt_index* get_prompt_index(const char*);
 static wchar_t* get_history(const prompt_index*, const int);
 static void remove_first_char(wchar_t*);
 static int replace_entry(wchar_t*, const int, const wchar_t*);
-static wchar_t* search_history(const prompt_index*, const wchar_t*, const int, int, int*);
+static wchar_t* search_history(const prompt_index*, const wchar_t*, const int,
+                               int, int*);
 
 void add_to_history(prompt_index* pindex, const wchar_t* entry) { /* {{{ */
     /**
@@ -51,8 +52,9 @@ void add_to_history(prompt_index* pindex, const wchar_t* entry) { /* {{{ */
     int i;
 
     /* rotate history */
-    for (i = cfg.history_max - 1; i >= 1; i--)
+    for (i = cfg.history_max - 1; i >= 1; i--) {
         pindex->history[i] = pindex->history[i - 1];
+    }
 
     /* add new entry */
     pindex->history[0] = wcsdup(entry);
@@ -87,8 +89,9 @@ wchar_t* get_history(const prompt_index* pindex, const int count) { /* {{{ */
      */
 
     /* check for bad index */
-    if (count >= cfg.history_max || count < 0)
+    if (count >= cfg.history_max || count < 0) {
         return NULL;
+    }
 
     return pindex->history[count];
 } /* }}} */
@@ -100,8 +103,9 @@ prompt_index* get_prompt_index(const char* prompt) { /* {{{ */
 
     /* iterate through prompt indices */
     while (cur != NULL) {
-        if (str_eq(prompt, cur->prompt))
+        if (str_eq(prompt, cur->prompt)) {
             return cur;
+        }
 
         last = cur;
         cur = cur->next;
@@ -115,10 +119,11 @@ prompt_index* get_prompt_index(const char* prompt) { /* {{{ */
     cur->next = NULL;
 
     /* position new prompt_index */
-    if (last != NULL)
+    if (last != NULL) {
         last->next = cur;
-    else
+    } else {
         prompt_number = cur;
+    }
 
     return cur;
 } /* }}} */
@@ -148,21 +153,24 @@ int replace_entry(wchar_t* str, const int len, const wchar_t* tmp) { /* {{{ */
     }
 
     /* rotate in new chars */
-    for (i = 0; tmp[i] != 0; i++)
+    for (i = 0; tmp[i] != 0; i++) {
         str[i] = tmp[i];
+    }
 
     ret = i;
     goto done;
 
 done:
 
-    for (i = ret; i < len; i++)
+    for (i = ret; i < len; i++) {
         str[i] = 0;
+    }
 
     return ret;
 } /* }}} */
 
-wchar_t* search_history(const prompt_index* pindex, const wchar_t* regex_wide, const int start, int end, int* match_index) { /* {{{ */
+wchar_t* search_history(const prompt_index* pindex, const wchar_t* regex_wide,
+                        const int start, int end, int* match_index) { /* {{{ */
     /**
      * search through the history for a prompt to match a regex
      * pindex      - the prompt index whose history will be searched
@@ -184,8 +192,9 @@ wchar_t* search_history(const prompt_index* pindex, const wchar_t* regex_wide, c
 
     /* look for a match */
     for (i = start; i < cfg.history_max; i++) {
-        if (pindex->history[i] == NULL)
+        if (pindex->history[i] == NULL) {
             break;
+        }
 
         if (pindex->char_history[i] == NULL) {
             tmplen = wcstombs(NULL, pindex->history[i], 0) + 1;
@@ -200,10 +209,11 @@ wchar_t* search_history(const prompt_index* pindex, const wchar_t* regex_wide, c
     }
 
     /* wrap search or exit */
-    if (end != cfg.history_max)
+    if (end != cfg.history_max) {
         return NULL;
-    else
+    } else {
         return search_history(pindex, regex_wide, 0, start, match_index);
+    }
 } /* }}} */
 
 int statusbar_getstr(char** str, const char* msg) { /* {{{ */
@@ -233,8 +243,9 @@ int statusbar_getstr(char** str, const char* msg) { /* {{{ */
 
         ret = wget_wch(statusbar, &c);
 
-        if (ret == ERR)
+        if (ret == ERR) {
             continue;
+        }
 
         switch (c) {
         case ERR:
@@ -279,8 +290,9 @@ int statusbar_getstr(char** str, const char* msg) { /* {{{ */
 
         case KEY_BACKSPACE:
         case 127:
-            if (position <= 0)
+            if (position <= 0) {
                 break;
+            }
 
             position--;
             remove_first_char(wstr + position);
@@ -305,8 +317,9 @@ int statusbar_getstr(char** str, const char* msg) { /* {{{ */
             position = 0;
             tmp = get_history(pindex, histindex);
 
-            if (tmp == NULL)
+            if (tmp == NULL) {
                 histindex = -1;
+            }
 
             str_len = replace_entry(wstr, str_len, tmp);
             break;
@@ -364,8 +377,9 @@ void statusbar_message(const int dtmout, const char* format, ...) { /* {{{ */
 
     /* check for active screen */
     if (stdscr == NULL || statusbar == NULL) {
-        if (cfg.loglvl >= LOG_DEBUG)
+        if (cfg.loglvl >= LOG_DEBUG) {
             tnc_fprintf(stdout, LOG_INFO, message);
+        }
 
         tnc_fprintf(logfp, LOG_DEBUG, "(NULL window) %s", message);
         free(message);
@@ -379,14 +393,16 @@ void statusbar_message(const int dtmout, const char* format, ...) { /* {{{ */
     free(message);
 
     /* set timeout */
-    if (dtmout >= 0)
+    if (dtmout >= 0) {
         sb_timeout = time(NULL) + dtmout;
+    }
 
     /* refresh now or at next doupdate depending on time */
-    if (dtmout < 0)
+    if (dtmout < 0) {
         wrefresh(statusbar);
-    else
+    } else {
         wnoutrefresh(statusbar);
+    }
 } /* }}} */
 
 void statusbar_timeout() { /* {{{ */
