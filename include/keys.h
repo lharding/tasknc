@@ -34,4 +34,4 @@ int remove_keybinds(const int, const prog_mode);
 extern FILE* logfp;
 extern keybind* keybinds;
 
-// vim: noet ts=4 sw=4 sts=4
+// vim: et ts=4 sw=4 sts=4

@@ -183,4 +183,4 @@ char* var_value_message(var*, bool);
 
 #endif
 
-// vim: noet ts=4 sw=4 sts=4
+// vim: et ts=4 sw=4 sts=4
