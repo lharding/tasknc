@@ -65,32 +65,38 @@ short add_color_pair(short askpair, short fg, short bg) { /* {{{ */
 
     /* pick a color number if none is specified */
     if (askpair <= 0) {
-        while (pair < COLOR_PAIRS && pairs_used[pair])
+        while (pair < COLOR_PAIRS && pairs_used[pair]) {
             pair++;
+        }
 
-        if (pair == COLOR_PAIRS)
+        if (pair == COLOR_PAIRS) {
             return -1;
+        }
     }
 
     /* check if pair requested is being used */
     else {
-        if (pairs_used[askpair])
+        if (pairs_used[askpair]) {
             return -1;
+        }
 
         pair = askpair;
     }
 
     /* initialize pair */
-    if (init_pair(pair, fg, bg) == ERR)
+    if (init_pair(pair, fg, bg) == ERR) {
         return -1;
+    }
 
     /* mark pair as used and exit */
     pairs_used[pair] = true;
-    tnc_fprintf(logfp, LOG_DEBUG, "assigned color pair %hd to (%hd, %hd)", pair, fg, bg);
+    tnc_fprintf(logfp, LOG_DEBUG, "assigned color pair %hd to (%hd, %hd)", pair, fg,
+                bg);
     return pair;
 } /* }}} */
 
-short add_color_rule(const color_object object, const char* rule, const short fg, const short bg) { /* {{{ */
+short add_color_rule(const color_object object, const char* rule,
+                     const short fg, const short bg) { /* {{{ */
     /**
      * add or overwrite a color rule for the provided conditions
      * if the rule is unique, create a new rule
@@ -121,11 +127,13 @@ short add_color_rule(const color_object object, const char* rule, const short fg
     last = color_rules;
 
     while (this != NULL) {
-        if (this->object == object && (this->rule == rule || (this->rule != NULL && rule != NULL && strcmp(this->rule, rule) == 0))) {
+        if (this->object == object && (this->rule == rule || (this->rule != NULL &&
+                                       rule != NULL && strcmp(this->rule, rule) == 0))) {
             ret = find_add_pair(fg, bg);
 
-            if (ret < 0)
+            if (ret < 0) {
                 return ret;
+            }
 
             this->pair = ret;
             return 0;
@@ -138,24 +146,27 @@ short add_color_rule(const color_object object, const char* rule, const short fg
     /* or create a new rule */
     ret = find_add_pair(fg, bg);
 
-    if (ret < 0)
+    if (ret < 0) {
         return ret;
+    }
 
     this = calloc(1, sizeof(color_rule));
     this->pair = ret;
 
-    if (rule != NULL)
+    if (rule != NULL) {
         this->rule = strdup(rule);
-    else
+    } else {
         this->rule = NULL;
+    }
 
     this->object = object;
     this->next = NULL;
 
-    if (last != NULL)
+    if (last != NULL) {
         last->next = this;
-    else
+    } else {
         color_rules = this;
+    }
 
     return 0;
 } /* }}} */
@@ -165,10 +176,11 @@ int check_color(int color) { /* {{{ */
      * make sure a color is valid before using it
      * return -1 (default) if color is not valid
      */
-    if (color >= COLORS || color < -2)
+    if (color >= COLORS || color < -2) {
         return -1;
-    else
+    } else {
         return color;
+    }
 } /* }}} */
 
 bool eval_rules(char* rule, const task* tsk, const bool selected) { /* {{{ */
@@ -183,12 +195,14 @@ bool eval_rules(char* rule, const task* tsk, const bool selected) { /* {{{ */
     bool go = false, invert = false;
 
     /* success if rules are done */
-    if (rule == NULL || *rule == 0)
+    if (rule == NULL || *rule == 0) {
         return true;
+    }
 
     /* skip non-patterns */
-    if (*rule != '~')
+    if (*rule != '~') {
         return eval_rules(rule + 1, tsk, selected);
+    }
 
     /* regex match */
     ret = sscanf(rule, "~%c '%m[^\']'", &pattern, &regex);
@@ -201,18 +215,20 @@ bool eval_rules(char* rule, const task* tsk, const bool selected) { /* {{{ */
     if (ret == 1) {
         switch (pattern) {
         case 's':
-            if (!XOR(invert, selected))
+            if (!XOR(invert, selected)) {
                 return false;
-            else
+            } else {
                 return eval_rules(rule + 2, tsk, selected);
+            }
 
             break;
 
         case 't':
-            if (!XOR(invert, tsk->start > 0))
+            if (!XOR(invert, tsk->start > 0)) {
                 return false;
-            else
+            } else {
                 return eval_rules(rule + 2, tsk, selected);
+            }
 
             break;
 
@@ -227,26 +243,32 @@ bool eval_rules(char* rule, const task* tsk, const bool selected) { /* {{{ */
 
         switch (pattern) {
         case 'p':
-            if (!XOR(invert, match_string(tsk->project, regex)))
+            if (!XOR(invert, match_string(tsk->project, regex))) {
                 return false;
-            else
-                tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: project match - '%s' '%s'", tsk->project, regex);
+            } else {
+                tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: project match - '%s' '%s'",
+                            tsk->project, regex);
+            }
 
             break;
 
         case 'd':
-            if (!XOR(invert, match_string(tsk->description, regex)))
+            if (!XOR(invert, match_string(tsk->description, regex))) {
                 return false;
-            else
-                tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: description match - '%s' '%s'", tsk->description, regex);
+            } else {
+                tnc_fprintf(logfp, LOG_DEBUG_VERBOSE,
+                            "eval_rules: description match - '%s' '%s'", tsk->description, regex);
+            }
 
             break;
 
         case 't':
-            if (!XOR(invert, match_string(tsk->tags, regex)))
+            if (!XOR(invert, match_string(tsk->tags, regex))) {
                 return false;
-            else
-                tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: tag match - '%s' '%s'", tsk->tags, regex);
+            } else {
+                tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: tag match - '%s' '%s'",
+                            tsk->tags, regex);
+            }
 
             break;
 
@@ -254,10 +276,12 @@ bool eval_rules(char* rule, const task* tsk, const bool selected) { /* {{{ */
             tmp = calloc(2, sizeof(char));
             *tmp = tsk->priority;
 
-            if (!XOR(invert, match_string(tmp, regex)))
+            if (!XOR(invert, match_string(tmp, regex))) {
                 return false;
-            else
-                tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: priority match - '%s' '%s'", tmp, regex);
+            } else {
+                tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "eval_rules: priority match - '%s' '%s'",
+                            tmp, regex);
+            }
 
             free(tmp);
             break;
@@ -269,8 +293,9 @@ bool eval_rules(char* rule, const task* tsk, const bool selected) { /* {{{ */
 
         free(regex);
 
-        if (go)
+        if (go) {
             return eval_rules(rule + move, tsk, selected);
+        }
     }
 
     /* should never get here */
@@ -292,13 +317,16 @@ short find_add_pair(const short fg, const short bg) { /* {{{ */
         if (pairs_used[pair]) {
             ret = pair_content(pair, &tmpfg, &tmpbg);
 
-            if (ret == ERR)
+            if (ret == ERR) {
                 continue;
+            }
 
-            if (tmpfg == fg && tmpbg == bg)
+            if (tmpfg == fg && tmpbg == bg) {
                 return pair;
-        } else if (free_pair == -1)
+            }
+        } else if (free_pair == -1) {
             free_pair = pair;
+        }
     }
 
     /* return a new pair */
@@ -321,7 +349,8 @@ void free_colors() { /* {{{ */
     }
 } /* }}} */
 
-int get_colors(const color_object object, task* tsk, const bool selected) { /* {{{ */
+int get_colors(const color_object object, task* tsk,
+               const bool selected) { /* {{{ */
     /**
      * evaluate color rules and return an argument to attrset
      * object   - the object to be colored
@@ -335,13 +364,15 @@ int get_colors(const color_object object, task* tsk, const bool selected) { /* {
 
     /* check for cache if task */
     if (object == OBJECT_TASK) {
-        if (selected)
+        if (selected) {
             tskpair = &(tsk->selpair);
-        else
+        } else {
             tskpair = &(tsk->pair);
+        }
 
-        if (*tskpair >= 0)
+        if (*tskpair >= 0) {
             return COLOR_PAIR(*tskpair);
+        }
     }
 
     /* iterate through rules */
@@ -357,8 +388,9 @@ int get_colors(const color_object object, task* tsk, const bool selected) { /* {
                 break;
 
             case OBJECT_TASK:
-                if (eval_rules(rule->rule, tsk, selected))
+                if (eval_rules(rule->rule, tsk, selected)) {
                     pair = rule->pair;
+                }
 
                 break;
 
@@ -376,8 +408,9 @@ int get_colors(const color_object object, task* tsk, const bool selected) { /* {
     }
 
     /* assign cached color if task object */
-    if (object == OBJECT_TASK)
+    if (object == OBJECT_TASK) {
         *tskpair = (int)pair;
+    }
 
     return COLOR_PAIR(pair);
 } /* }}} */
@@ -390,14 +423,16 @@ int init_colors() { /* {{{ */
     /* attempt to start colors */
     ret = start_color();
 
-    if (ret == ERR)
+    if (ret == ERR) {
         return 1;
+    }
 
     /* apply default colors */
     ret = use_default_colors();
 
-    if (ret == ERR)
+    if (ret == ERR) {
         return 2;
+    }
 
     /* check if terminal has color capabilities */
     use_colors = has_colors();
@@ -409,8 +444,9 @@ int init_colors() { /* {{{ */
         pairs_used[0] = true;
 
         return set_default_colors();
-    } else
+    } else {
         return 3;
+    }
 } /* }}} */
 
 int parse_color(const char* name) { /* {{{ */
@@ -437,19 +473,22 @@ int parse_color(const char* name) { /* {{{ */
     /* try for int */
     ret = sscanf(name, "%d", &i);
 
-    if (ret == 1)
+    if (ret == 1) {
         return check_color(i);
+    }
 
     /* try for colorNNN */
     ret = sscanf(name, "color%3d", &i);
 
-    if (ret == 1)
+    if (ret == 1) {
         return check_color(i);
+    }
 
     /* look for mapped color */
     for (i = 0; i < sizeof(colors_map) / sizeof(struct color_map); i++) {
-        if (str_eq(colors_map[i].name, name))
+        if (str_eq(colors_map[i].name, name)) {
             return check_color(colors_map[i].color);
+        }
     }
 
     return -2;
@@ -471,9 +510,11 @@ color_object parse_object(const char* name) { /* {{{ */
     };
 
     /* evaluate map */
-    for (i = 0; i < sizeof(color_objects_map) / sizeof(struct color_object_map); i++) {
-        if (str_eq(color_objects_map[i].name, name))
+    for (i = 0; i < sizeof(color_objects_map) / sizeof(struct color_object_map);
+         i++) {
+        if (str_eq(color_objects_map[i].name, name)) {
             return color_objects_map[i].object;
+        }
     }
 
     return OBJECT_NONE;
