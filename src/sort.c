@@ -14,7 +14,8 @@ static int priority_to_int(const char);
 static void sort_tasks(task*, task*);
 static void swap_tasks(task*, task*);
 
-bool compare_tasks(const task* a, const task* b, const char* mode_queue) { /* {{{ */
+bool compare_tasks(const task* a, const task* b,
+                   const char* mode_queue) { /* {{{ */
     /**
      * compare two tasks to determine order
      * a return of 1 means that the tasks should be swapped (b comes before a)
@@ -36,43 +37,50 @@ bool compare_tasks(const task* a, const task* b, const char* mode_queue) { /* {{
     /* determine sort algorithm and apply it */
     switch (sort_mode) {
     case 'n':       // sort by index
-        if (XOR(invert, a->index < b->index))
+        if (XOR(invert, a->index < b->index)) {
             ret = true;
+        }
 
         break;
 
     case 'p':       // sort by project name
         if (a->project == NULL) {
-            if (b->project != NULL)
+            if (b->project != NULL) {
                 ret = true;
+            }
 
             break;
         }
 
-        if (b->project == NULL)
+        if (b->project == NULL) {
             break;
+        }
 
         tmp = strcmp(a->project, b->project);
 
-        if (XOR(invert, tmp < 0))
+        if (XOR(invert, tmp < 0)) {
             ret = true;
+        }
 
-        if (tmp == 0)
+        if (tmp == 0) {
             ret = compare_tasks(a, b, mode_queue + 1);
+        }
 
         break;
 
     case 'd':       // sort by due date
         if (a->due == 0) {
-            if (b->due == 0)
+            if (b->due == 0) {
                 ret = compare_tasks(a, b, mode_queue + 1);
+            }
 
             break;
         } else if (b->due == 0) {
             ret = true;
             break;
-        } else if (XOR(invert, a->due < b->due))
+        } else if (XOR(invert, a->due < b->due)) {
             ret = true;
+        }
 
         break;
 
@@ -80,16 +88,18 @@ bool compare_tasks(const task* a, const task* b, const char* mode_queue) { /* {{
         pri0 = priority_to_int(a->priority);
         pri1 = priority_to_int(b->priority);
 
-        if (pri0 == pri1)
+        if (pri0 == pri1) {
             ret = compare_tasks(a, b, mode_queue + 1);
-        else
+        } else {
             ret = XOR(invert, pri0 > pri1);
+        }
 
         break;
 
     case 'u':       // sort by uuid
-        if (XOR(invert, strcmp(a->uuid, b->uuid) < 0))
+        if (XOR(invert, strcmp(a->uuid, b->uuid) < 0)) {
             ret = true;
+        }
 
         break;
 
@@ -134,8 +144,9 @@ void sort_wrapper(task* first) { /* {{{ */
     /* loop through looking for last item */
     last = first;
 
-    while (last->next != NULL)
+    while (last->next != NULL) {
         last = last->next;
+    }
 
     /* run sort with last value */
     sort_tasks(first, last);
@@ -146,8 +157,9 @@ void sort_tasks(task* first, task* last) { /* {{{ */
     task* start, *cur, *oldcur;
 
     /* check if we are done */
-    if (first == last)
+    if (first == last) {
         return;
+    }
 
     /* set start and current */
     start = first;
@@ -155,11 +167,13 @@ void sort_tasks(task* first, task* last) { /* {{{ */
 
     /* iterate through to right end, sorting as we go */
     while (1) {
-        if (compare_tasks(start, cur, cfg.sortmode))
+        if (compare_tasks(start, cur, cfg.sortmode)) {
             swap_tasks(start, cur);
+        }
 
-        if (cur == last)
+        if (cur == last) {
             break;
+        }
 
         cur = cur->next;
     }
@@ -174,16 +188,18 @@ void sort_tasks(task* first, task* last) { /* {{{ */
     cur = cur->prev;
 
     if (cur != NULL) {
-        if ((first->prev != cur) && (cur->next != first))
+        if ((first->prev != cur) && (cur->next != first)) {
             sort_tasks(first, cur);
+        }
     }
 
     /* sort right side */
     cur = oldcur->next;
 
     if (cur != NULL) {
-        if ((cur->prev != last) && (last->next != cur))
+        if ((cur->prev != last) && (last->next != cur)) {
             sort_tasks(cur, last);
+        }
     }
 } /* }}} */
 
