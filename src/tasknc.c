@@ -40,7 +40,8 @@ char* searchstring = NULL;              /* currently active search string */
 int selline = 0;                        /* selected line number */
 int rows, cols;                         /* size of the ncurses window */
 int taskcount;                          /* number of tasks */
-char* active_filter = NULL;             /* a string containing the active filter string */
+char* active_filter =
+    NULL;             /* a string containing the active filter string */
 task* head = NULL;                      /* the current top of the list */
 FILE* logfp;                            /* handle for log file */
 keybind* keybinds = NULL;
@@ -121,8 +122,9 @@ funcmap funcmaps[] = {
 
 void check_resize() { /* {{{ */
     /* check for a screen resize and handle it */
-    if (is_term_resized(rows, cols))
+    if (is_term_resized(rows, cols)) {
         handle_resize();
+    }
 } /* }}} */
 
 void check_screen_size() { /* {{{ */
@@ -186,71 +188,112 @@ void configure(void) { /* {{{ */
     int ret = 0;
 
     /* set default settings */
-    cfg.nc_timeout = NCURSES_WAIT;                          /* time getch will wait */
-    cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;      /* default time before resetting statusbar */
-    cfg.sortmode = strdup("drpu");                          /* determine sort order */
-    cfg.follow_task = true;                                 /* follow task after it is moved */
+    cfg.nc_timeout =
+        NCURSES_WAIT;                          /* time getch will wait */
+    cfg.statusbar_timeout =
+        STATUSBAR_TIMEOUT_DEFAULT;      /* default time before resetting statusbar */
+    cfg.sortmode =
+        strdup("drpu");                          /* determine sort order */
+    cfg.follow_task =
+        true;                                 /* follow task after it is moved */
     cfg.history_max = 50;
 
     /* set default formats */
-    cfg.formats.title = strdup(" $program_name ($selected_line/$task_count) $> $date");
+    cfg.formats.title =
+        strdup(" $program_name ($selected_line/$task_count) $> $date");
     cfg.formats.task = strdup(" $project $description $> ?$due?$due?$-6priority?");
     cfg.formats.view = strdup(" task info");
 
     /* set initial filter */
-    if (!active_filter)
+    if (!active_filter) {
         active_filter = strdup("status:pending");
+    }
 
     /* get task version */
     cmd = popen("task --version", "r");
 
-    while (ret != 1)
+    while (ret != 1) {
         ret = fscanf(cmd, "%m[0-9.-] ", &(cfg.version));
+    }
 
     tnc_fprintf(logfp, LOG_DEBUG, "task version: %s", cfg.version);
     pclose(cmd);
 
     /* default keybinds */
-    add_keybind(ERR,           NULL,                     NULL,            MODE_TASKLIST);
-    add_keybind(ERR,           NULL,                     NULL,            MODE_PAGER);
+    add_keybind(ERR,           NULL,                     NULL,
+                MODE_TASKLIST);
+    add_keybind(ERR,           NULL,                     NULL,
+                MODE_PAGER);
     add_keybind(KEY_RESIZE,    handle_resize,            NULL,            MODE_ANY);
-    add_keybind('k',           key_tasklist_scroll_up,   NULL,            MODE_TASKLIST);
-    add_keybind('k',           key_pager_scroll_up,      NULL,            MODE_PAGER);
-    add_keybind(KEY_UP,        key_tasklist_scroll_up,   NULL,            MODE_TASKLIST);
-    add_keybind(KEY_UP,        key_pager_scroll_up,      NULL,            MODE_PAGER);
-    add_keybind('j',           key_tasklist_scroll_down, NULL,            MODE_TASKLIST);
-    add_keybind('j',           key_pager_scroll_down,    NULL,            MODE_PAGER);
-    add_keybind(KEY_DOWN,      key_tasklist_scroll_down, NULL,            MODE_TASKLIST);
-    add_keybind(KEY_DOWN,      key_pager_scroll_down,    NULL,            MODE_PAGER);
-    add_keybind('g',           key_tasklist_scroll_home, NULL,            MODE_TASKLIST);
-    add_keybind(KEY_HOME,      key_tasklist_scroll_home, NULL,            MODE_TASKLIST);
-    add_keybind('g',           key_pager_scroll_home,    NULL,            MODE_PAGER);
-    add_keybind(KEY_HOME,      key_pager_scroll_home,    NULL,            MODE_PAGER);
-    add_keybind('G',           key_pager_scroll_end,     NULL,            MODE_PAGER);
-    add_keybind(KEY_END,       key_pager_scroll_end,     NULL,            MODE_PAGER);
-    add_keybind('G',           key_tasklist_scroll_end,  NULL,            MODE_TASKLIST);
-    add_keybind(KEY_END,       key_tasklist_scroll_end,  NULL,            MODE_TASKLIST);
+    add_keybind('k',           key_tasklist_scroll_up,   NULL,
+                MODE_TASKLIST);
+    add_keybind('k',           key_pager_scroll_up,      NULL,
+                MODE_PAGER);
+    add_keybind(KEY_UP,        key_tasklist_scroll_up,   NULL,
+                MODE_TASKLIST);
+    add_keybind(KEY_UP,        key_pager_scroll_up,      NULL,
+                MODE_PAGER);
+    add_keybind('j',           key_tasklist_scroll_down, NULL,
+                MODE_TASKLIST);
+    add_keybind('j',           key_pager_scroll_down,    NULL,
+                MODE_PAGER);
+    add_keybind(KEY_DOWN,      key_tasklist_scroll_down, NULL,
+                MODE_TASKLIST);
+    add_keybind(KEY_DOWN,      key_pager_scroll_down,    NULL,
+                MODE_PAGER);
+    add_keybind('g',           key_tasklist_scroll_home, NULL,
+                MODE_TASKLIST);
+    add_keybind(KEY_HOME,      key_tasklist_scroll_home, NULL,
+                MODE_TASKLIST);
+    add_keybind('g',           key_pager_scroll_home,    NULL,
+                MODE_PAGER);
+    add_keybind(KEY_HOME,      key_pager_scroll_home,    NULL,
+                MODE_PAGER);
+    add_keybind('G',           key_pager_scroll_end,     NULL,
+                MODE_PAGER);
+    add_keybind(KEY_END,       key_pager_scroll_end,     NULL,
+                MODE_PAGER);
+    add_keybind('G',           key_tasklist_scroll_end,  NULL,
+                MODE_TASKLIST);
+    add_keybind(KEY_END,       key_tasklist_scroll_end,  NULL,
+                MODE_TASKLIST);
     add_keybind('e',           key_tasklist_edit,        NULL,            MODE_ANY);
-    add_keybind('r',           key_tasklist_reload,      NULL,            MODE_TASKLIST);
-    add_keybind('u',           key_tasklist_undo,        NULL,            MODE_TASKLIST);
+    add_keybind('r',           key_tasklist_reload,      NULL,
+                MODE_TASKLIST);
+    add_keybind('u',           key_tasklist_undo,        NULL,
+                MODE_TASKLIST);
     add_keybind('d',           key_tasklist_delete,      NULL,            MODE_ANY);
     add_keybind('c',           key_tasklist_complete,    NULL,            MODE_ANY);
-    add_keybind('a',           key_tasklist_add,         NULL,            MODE_TASKLIST);
-    add_keybind('v',           key_tasklist_view,        NULL,            MODE_TASKLIST);
-    add_keybind(13,            key_tasklist_view,        NULL,            MODE_TASKLIST);
-    add_keybind(KEY_ENTER,     key_tasklist_view,        NULL,            MODE_TASKLIST);
-    add_keybind('s',           key_tasklist_sort,        NULL,            MODE_TASKLIST);
-    add_keybind('/',           key_tasklist_search,      NULL,            MODE_TASKLIST);
-    add_keybind('n',           key_tasklist_search_next, NULL,            MODE_TASKLIST);
-    add_keybind('f',           key_tasklist_filter,      NULL,            MODE_TASKLIST);
-    add_keybind('y',           key_tasklist_sync,        NULL,            MODE_TASKLIST);
-    add_keybind('q',           key_done,                 NULL,            MODE_TASKLIST);
-    add_keybind('q',           key_pager_close,          NULL,            MODE_PAGER);
-    add_keybind(';',           key_command,              NULL,            MODE_TASKLIST);
+    add_keybind('a',           key_tasklist_add,         NULL,
+                MODE_TASKLIST);
+    add_keybind('v',           key_tasklist_view,        NULL,
+                MODE_TASKLIST);
+    add_keybind(13,            key_tasklist_view,        NULL,
+                MODE_TASKLIST);
+    add_keybind(KEY_ENTER,     key_tasklist_view,        NULL,
+                MODE_TASKLIST);
+    add_keybind('s',           key_tasklist_sort,        NULL,
+                MODE_TASKLIST);
+    add_keybind('/',           key_tasklist_search,      NULL,
+                MODE_TASKLIST);
+    add_keybind('n',           key_tasklist_search_next, NULL,
+                MODE_TASKLIST);
+    add_keybind('f',           key_tasklist_filter,      NULL,
+                MODE_TASKLIST);
+    add_keybind('y',           key_tasklist_sync,        NULL,
+                MODE_TASKLIST);
+    add_keybind('q',           key_done,                 NULL,
+                MODE_TASKLIST);
+    add_keybind('q',           key_pager_close,          NULL,
+                MODE_PAGER);
+    add_keybind(';',           key_command,              NULL,
+                MODE_TASKLIST);
     add_keybind(':',           key_command,              NULL,            MODE_ANY);
     add_keybind('h',           help_window,              NULL,            MODE_ANY);
-    add_keybind(12,            force_redraw,             NULL,            MODE_TASKLIST);
-    add_keybind(12,            force_redraw,             NULL,            MODE_PAGER);
+    add_keybind(12,            force_redraw,             NULL,
+                MODE_TASKLIST);
+    add_keybind(12,            force_redraw,             NULL,
+                MODE_PAGER);
 
     /* determine config path */
     xdg_config_home = getenv("XDG_CONFIG_HOME");
@@ -281,8 +324,10 @@ funcmap* find_function(const char* name, const prog_mode mode) { /* {{{ */
     int i;
 
     for (i = 0; i < NFUNCS; i++) {
-        if (str_eq(name, funcmaps[i].name) && (funcmaps[i].mode == MODE_ANY || mode == funcmaps[i].mode || mode == MODE_ANY))
+        if (str_eq(name, funcmaps[i].name) && (funcmaps[i].mode == MODE_ANY ||
+                                               mode == funcmaps[i].mode || mode == MODE_ANY)) {
             return &(funcmaps[i]);
+        }
     }
 
     return NULL;
@@ -309,16 +354,19 @@ void find_next_search_result(task* head, task* pos) { /* {{{ */
             statusbar_message(cfg.statusbar_timeout, "search wrapped to top");
         }
 
-        else
+        else {
             selline++;
+        }
 
         /* check for match */
-        if (task_match(cur, searchstring))
+        if (task_match(cur, searchstring)) {
             return;
+        }
 
         /* stop if full loop was made */
-        if (cur == pos)
+        if (cur == pos) {
             break;
+        }
     }
 
     statusbar_message(cfg.statusbar_timeout, "no matches: %s", searchstring);
@@ -334,8 +382,9 @@ var* find_var(const char* name) { /* {{{ */
     int i;
 
     for (i = 0; i < NVARS; i++) {
-        if (str_eq(name, vars[i].name))
+        if (str_eq(name, vars[i].name)) {
             return &(vars[i]);
+        }
     }
 
     return NULL;
@@ -354,8 +403,9 @@ void force_redraw() { /* {{{ */
     for (i = 0; i < nwins; i++) {
         wattrset(windows[i], COLOR_PAIR(0));
 
-        if (windows[i] == NULL)
+        if (windows[i] == NULL) {
             continue;
+        }
 
         wipe_window(windows[i]);
         wnoutrefresh(windows[i]);
@@ -391,8 +441,9 @@ void handle_resize() { /* {{{ */
     if (pager != NULL) {
         pagerheight = getmaxy(pager);
 
-        if (pagerheight > rows - 2)
+        if (pagerheight > rows - 2) {
             pagerheight = rows - 2;
+        }
 
         wresize(pager, pagerheight, cols);
         mvwin(pager, rows - pagerheight - 1, 0);
@@ -404,7 +455,8 @@ void handle_resize() { /* {{{ */
 
     /* message about resize */
     tnc_fprintf(logfp, LOG_DEBUG, "window resized to y=%d x=%d", rows, cols);
-    statusbar_message(cfg.statusbar_timeout, "window resized to y=%d x=%d", rows, cols);
+    statusbar_message(cfg.statusbar_timeout, "window resized to y=%d x=%d", rows,
+                      cols);
 } /* }}} */
 
 void help(void) { /* {{{ */
@@ -436,12 +488,14 @@ void key_command(const char* arg) { /* {{{ */
 
         /* reset */
         set_curses_mode(NCURSES_MODE_STD);
-    } else
+    } else {
         cmdstr = strdup(arg);
+    }
 
     /* run input command */
-    if (cmdstr[0] != 0)
+    if (cmdstr[0] != 0) {
         handle_command(cmdstr);
+    }
 
     free(cmdstr);
 } /* }}} */
@@ -450,8 +504,9 @@ void key_task_background_command(const char* arg) { /* {{{ */
     /* run a background command
      * arg - the command to run in the background
      */
-    if (arg == NULL)
+    if (arg == NULL) {
         return;
+    }
 
     task_background_command(arg);
     reload = 1;
@@ -461,8 +516,9 @@ void key_task_interactive_command(const char* arg) { /* {{{ */
     /* run an interactive command
      * arg - the command to run interactively (task window will be closed)
      */
-    if (arg == NULL)
+    if (arg == NULL) {
         return;
+    }
 
     task_interactive_command(arg);
     reload = 1;
@@ -486,8 +542,9 @@ char max_project_length() { /* {{{ */
         if (cur->project != NULL) {
             char l = strlen(cur->project);
 
-            if (l > len)
+            if (l > len) {
                 len = l;
+            }
         }
 
         cur = cur->next;
@@ -504,8 +561,9 @@ const char* name_function(void* function) { /* {{{ */
     int i;
 
     for (i = 0; i < NFUNCS; i++) {
-        if (function == funcmaps[i].function)
+        if (function == funcmaps[i].function) {
             return funcmaps[i].name;
+        }
     }
 
     return NULL;
@@ -554,7 +612,8 @@ void ncurses_end(int sig) { /* {{{ */
     /* tell user to check logs */
     if (print_check_log) {
         asprintf(&logpath, LOGFILE, getenv("USER"));
-        tnc_fprintf(stdout, LOG_ERROR, "tasknc ended abnormally. please check '%s' for details", logpath);
+        tnc_fprintf(stdout, LOG_ERROR,
+                    "tasknc ended abnormally. please check '%s' for details", logpath);
         free(logpath);
         fflush(stdout);
     }
@@ -656,23 +715,28 @@ char* str_trim(char* str) { /* {{{ */
     char* pos;
 
     /* skip nulls */
-    if (str == NULL)
+    if (str == NULL) {
         return NULL;
+    }
 
     /* leading */
-    while (*str == ' ' || *str == '\n' || *str == '\t')
+    while (*str == ' ' || *str == '\n' || *str == '\t') {
         str++;
+    }
 
-    if (*str == 0)
+    if (*str == 0) {
         return NULL;
+    }
 
     /* trailing */
     pos = str;
 
-    while ((*pos) != 0)
+    while ((*pos) != 0) {
         pos++;
+    }
 
-    while (pos > str && (*(pos - 1) == ' ' || *(pos - 1) == '\n' || *(pos - 1) == '\t')) {
+    while (pos > str && (*(pos - 1) == ' ' || *(pos - 1) == '\n' ||
+                         *(pos - 1) == '\t')) {
         *(pos - 1) = 0;
         pos--;
     }
@@ -680,7 +744,8 @@ char* str_trim(char* str) { /* {{{ */
     return str;
 } /* }}} */
 
-int umvaddstr(WINDOW* win, const int y, const int x, const char* format, ...) { /* {{{ */
+int umvaddstr(WINDOW* win, const int y, const int x, const char* format,
+              ...) { /* {{{ */
     /* convert a string to a wchar string and mvaddwstr
      * win    - the window to print the string in
      * y      - the y coordinates to print the string at
@@ -716,8 +781,9 @@ int umvaddstr(WINDOW* win, const int y, const int x, const char* format, ...) { 
     mbstowcs(wstr, str, len);
     len = wcslen(wstr);
 
-    if (len > cols - x)
+    if (len > cols - x) {
         len = cols - x;
+    }
 
     r = mvwaddnwstr(win, y, x, wstr, len);
 
@@ -749,22 +815,26 @@ int umvaddstr_align(WINDOW* win, const int y, char* str) { /* {{{ */
     if (pos != NULL) {
         (*pos) = 0;
         right = (pos + 2);
-    } else
+    } else {
         right = NULL;
+    }
 
     /* print strings */
     tmp = umvaddstr(win, y, 0, str);
     ret = tmp;
 
-    if (right != NULL)
+    if (right != NULL) {
         ret = umvaddstr(win, y, cols - strlen(right), right);
+    }
 
-    if (tmp > ret)
+    if (tmp > ret) {
         ret = tmp;
+    }
 
     /* replace the '$' in the string */
-    if (pos != NULL)
+    if (pos != NULL) {
         (*pos) = '$';
+    }
 
     return ret;
 } /* }}} */
@@ -780,8 +850,9 @@ void wipe_screen(WINDOW* win, const short startl, const short stopl) { /* {{{ */
     wattrset(win, COLOR_PAIR(0));
 
     for (y = startl; y <= stopl; y++)
-        for (x = 0; x < cols; x++)
+        for (x = 0; x < cols; x++) {
             mvwaddch(win, y, x, ' ');
+        }
 } /* }}} */
 
 void wipe_window(WINDOW* win) { /* {{{ */
@@ -793,8 +864,9 @@ void wipe_window(WINDOW* win) { /* {{{ */
     getmaxyx(win, y, x);
 
     for (ty = 0; ty < y; ty++)
-        for (tx = 0; tx < x; tx++)
+        for (tx = 0; tx < x; tx++) {
             mvwaddch(win, ty, tx, ' ');
+        }
 
     touchwin(win);
 } /* }}} */
@@ -812,8 +884,9 @@ int main(int argc, char** argv) { /* {{{ */
     char* debugopts = NULL;
     char* logpath;
 
-    if (signal(SIGUSR1, sig_handler) == SIG_ERR)
+    if (signal(SIGUSR1, sig_handler) == SIG_ERR) {
         printf("\ncan't catch SIGUSR1, task list reload signal will be non-functional.\n");
+    }
 
     /* open log */
     asprintf(&logpath, LOGFILE, getenv("USER"));
@@ -836,7 +909,8 @@ int main(int argc, char** argv) { /* {{{ */
     };
     int option_index = 0;
 
-    while ((c = getopt_long(argc, argv, "l:hvd:f:", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "l:hvd:f:", long_options,
+                            &option_index)) != -1) {
         switch (c) {
         case 'l':
             cfg.loglvl = (char) atoi(optarg);
