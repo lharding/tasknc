@@ -33,17 +33,20 @@ void handle_command(char* cmdstr) { /* {{{ */
     /* parse args */
     pos = strchr(cmdstr, '\n');
 
-    if (pos != NULL)
+    if (pos != NULL) {
         *pos = 0;
+    }
 
     tnc_fprintf(logfp, LOG_DEBUG, "command received: %s", cmdstr);
 
-    if (cmdstr != NULL)
+    if (cmdstr != NULL) {
         ret = sscanf(cmdstr, "%ms %m[^\n]", &command, &args);
+    }
 
     if (ret < 1) {
         statusbar_message(cfg.statusbar_timeout, "failed to parse command");
-        tnc_fprintf(logfp, LOG_ERROR, "failed to parse command: [%d] (%s)", ret, cmdstr);
+        tnc_fprintf(logfp, LOG_ERROR, "failed to parse command: [%d] (%s)", ret,
+                    cmdstr);
         return;
     }
 
@@ -60,7 +63,8 @@ void handle_command(char* cmdstr) { /* {{{ */
     }
 
     /* log command */
-    tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: %s - %s (%s)", modestr, command, args);
+    tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: %s - %s (%s)", modestr, command,
+                args);
 
     /* handle command & arguments */
     /* try for exposed command */
@@ -72,19 +76,23 @@ void handle_command(char* cmdstr) { /* {{{ */
     }
 
     /* version: print version string */
-    if (str_eq(command, "version"))
-        statusbar_message(cfg.statusbar_timeout, "%s %s by %s\n", PROGNAME, PROGVERSION, PROGAUTHOR);
+    if (str_eq(command, "version")) {
+        statusbar_message(cfg.statusbar_timeout, "%s %s by %s\n", PROGNAME, PROGVERSION,
+                          PROGAUTHOR);
+    }
     /* quit/exit: exit tasknc */
-    else if (str_eq(command, "quit") || str_eq(command, "exit"))
+    else if (str_eq(command, "quit") || str_eq(command, "exit")) {
         done = true;
+    }
     /* reload: force reload of task list */
     else if (str_eq(command, "reload")) {
         reload = true;
         statusbar_message(cfg.statusbar_timeout, "task list reloaded");
     }
     /* redraw: force redraw of screen */
-    else if (str_eq(command, "redraw"))
+    else if (str_eq(command, "redraw")) {
         redraw = true;
+    }
     /* dump: write all displayed tasks to log file */
     else if (str_eq(command, "dump")) {
         task* this = head;
@@ -107,7 +115,8 @@ void handle_command(char* cmdstr) { /* {{{ */
         scr_dump(dumppath);
         tnc_fprintf(logfp, LOG_DEBUG, "ncurses dumped to '%s'", dumppath);
     } else {
-        statusbar_message(cfg.statusbar_timeout, "error: command %s not found", command);
+        statusbar_message(cfg.statusbar_timeout, "error: command %s not found",
+                          command);
         tnc_fprintf(logfp, LOG_ERROR, "error: command %s not found", command);
     }
 
@@ -125,27 +134,31 @@ void run_command_bind(char* args) { /* {{{ */
      * syntax - mode key function [funcarg]
      */
     int key, ret = 0;
-    char* function = NULL, *arg = NULL, *keystr = NULL, *modestr = NULL, *keyname = NULL;
+    char* function = NULL, *arg = NULL, *keystr = NULL, *modestr = NULL,
+          *keyname = NULL;
     void (*func)();
     funcmap* fmap;
     prog_mode mode;
 
     /* parse command */
-    if (args != NULL)
+    if (args != NULL) {
         ret = sscanf(args, "%ms %ms %ms %m[^\n]", &modestr, &keystr, &function, &arg);
+    }
 
     if (ret < 3) {
-        statusbar_message(cfg.statusbar_timeout, "syntax: bind <mode> <key> <function> <args>");
-        tnc_fprintf(logfp, LOG_ERROR, "syntax: bind <mode> <key> <function> <args> [%d](%s)", ret, args);
+        statusbar_message(cfg.statusbar_timeout,
+                          "syntax: bind <mode> <key> <function> <args>");
+        tnc_fprintf(logfp, LOG_ERROR,
+                    "syntax: bind <mode> <key> <function> <args> [%d](%s)", ret, args);
         goto cleanup;
     }
 
     /* parse mode string */
-    if (str_eq(modestr, "tasklist"))
+    if (str_eq(modestr, "tasklist")) {
         mode = MODE_TASKLIST;
-    else if (str_eq(modestr, "pager"))
+    } else if (str_eq(modestr, "pager")) {
         mode = MODE_PAGER;
-    else {
+    } else {
         tnc_fprintf(logfp, LOG_ERROR, "bind: invalid mode (%s)", modestr);
         goto cleanup;
     }
@@ -165,14 +178,16 @@ void run_command_bind(char* args) { /* {{{ */
 
     /* error out if there is no argument specified when required */
     if (fmap->argn > 0 && arg == NULL) {
-        statusbar_message(cfg.statusbar_timeout, "bind: argument required for function %s", function);
+        statusbar_message(cfg.statusbar_timeout,
+                          "bind: argument required for function %s", function);
         goto cleanup;
     }
 
     /* add keybind */
     add_keybind(key, func, arg, mode);
     keyname = name_key(key);
-    statusbar_message(cfg.statusbar_timeout, "key %s (%d) bound to %s - %s", keyname, key, modestr, name_function(func));
+    statusbar_message(cfg.statusbar_timeout, "key %s (%d) bound to %s - %s",
+                      keyname, key, modestr, name_function(func));
     goto cleanup;
 
 cleanup:
@@ -193,12 +208,16 @@ void run_command_color(char* args) { /* {{{ */
     color_object obj;
     int ret = 0, fgc, bgc;
 
-    if (args != NULL)
-        ret = sscanf(args, "%ms %m[a-z0-9-] %m[a-z0-9-] %m[^\n]", &object, &fg, &bg, &rule);
+    if (args != NULL) {
+        ret = sscanf(args, "%ms %m[a-z0-9-] %m[a-z0-9-] %m[^\n]", &object, &fg, &bg,
+                     &rule);
+    }
 
     if (ret < 3) {
-        statusbar_message(cfg.statusbar_timeout, "syntax: color <object> <foreground> <background> <rule>");
-        tnc_fprintf(logfp, LOG_ERROR, "syntax: color <object> <foreground> <background> <rule>  [%d](%s)", ret, args);
+        statusbar_message(cfg.statusbar_timeout,
+                          "syntax: color <object> <foreground> <background> <rule>");
+        tnc_fprintf(logfp, LOG_ERROR,
+                    "syntax: color <object> <foreground> <background> <rule>  [%d](%s)", ret, args);
         goto cleanup;
     }
 
@@ -206,7 +225,8 @@ void run_command_color(char* args) { /* {{{ */
     obj = parse_object(object);
 
     if (obj == OBJECT_NONE) {
-        statusbar_message(cfg.statusbar_timeout, "color: invalid object \"%s\"", object);
+        statusbar_message(cfg.statusbar_timeout, "color: invalid object \"%s\"",
+                          object);
         tnc_fprintf(logfp, LOG_ERROR, "color: invalid object \"%s\"", object);
         goto cleanup;
     }
@@ -216,16 +236,19 @@ void run_command_color(char* args) { /* {{{ */
     bgc = parse_color(bg);
 
     if (bgc < -2 || fgc < -2) {
-        statusbar_message(cfg.statusbar_timeout, "color: invalid colors \"%s\" \"%s\"", fg, bg);
-        tnc_fprintf(logfp, LOG_ERROR, "color: invalid colors %d:\"%s\" %d:\"%s\"", fgc, fg, bgc, bg);
+        statusbar_message(cfg.statusbar_timeout, "color: invalid colors \"%s\" \"%s\"",
+                          fg, bg);
+        tnc_fprintf(logfp, LOG_ERROR, "color: invalid colors %d:\"%s\" %d:\"%s\"", fgc,
+                    fg, bgc, bg);
         goto cleanup;
     }
 
     /* create color rule */
-    if (add_color_rule(obj, rule, fgc, bgc) >= 0)
+    if (add_color_rule(obj, rule, fgc, bgc) >= 0) {
         statusbar_message(cfg.statusbar_timeout, "applied color rule");
-    else
+    } else {
         statusbar_message(cfg.statusbar_timeout, "applying color rule failed");
+    }
 
     goto cleanup;
 
@@ -246,22 +269,25 @@ void run_command_unbind(char* argstr) { /* {{{ */
     int ret = 0;
 
     /* parse args */
-    if (argstr != NULL)
+    if (argstr != NULL) {
         ret = sscanf(argstr, "%ms %m[^\n]", &modestr, &keystr);
+    }
 
     if (ret != 2) {
         statusbar_message(cfg.statusbar_timeout, "syntax: unbind <mode> <key>");
-        tnc_fprintf(logfp, LOG_ERROR, "syntax: unbind <mode> <key> [%d](%s)", ret, argstr);
+        tnc_fprintf(logfp, LOG_ERROR, "syntax: unbind <mode> <key> [%d](%s)", ret,
+                    argstr);
         goto cleanup;
     }
 
     /* parse mode */
-    if (str_eq(modestr, "pager"))
+    if (str_eq(modestr, "pager")) {
         mode = MODE_PAGER;
-    else if (str_eq(modestr, "tasklist"))
+    } else if (str_eq(modestr, "tasklist")) {
         mode = MODE_TASKLIST;
-    else
+    } else {
         mode = MODE_ANY;
+    }
 
     int key = parse_key(keystr);
 
@@ -287,12 +313,14 @@ void run_command_set(char* args) { /* {{{ */
     int ret = 0;
 
     /* parse args */
-    if (args != NULL)
+    if (args != NULL) {
         ret = sscanf(args, "%ms %m[^\n]", &varname, &value);
+    }
 
     if (ret != 2) {
         statusbar_message(cfg.statusbar_timeout, "syntax: set <variable> <value>");
-        tnc_fprintf(logfp, LOG_ERROR, "syntax: set <variable> <value> [%d](%s)", ret, args);
+        tnc_fprintf(logfp, LOG_ERROR, "syntax: set <variable> <value> [%d](%s)", ret,
+                    args);
         goto cleanup;
     }
 
@@ -311,7 +339,8 @@ void run_command_set(char* args) { /* {{{ */
     }
 
     if (this_var->perms == VAR_RC && tasklist != NULL) {
-        statusbar_message(cfg.statusbar_timeout, "variable must be set in config: %s", varname);
+        statusbar_message(cfg.statusbar_timeout, "variable must be set in config: %s",
+                          varname);
         goto cleanup;
     }
 
@@ -326,14 +355,16 @@ void run_command_set(char* args) { /* {{{ */
         break;
 
     case VAR_STR:
-        if (*(char**)(this_var->ptr) != NULL)
+        if (*(char**)(this_var->ptr) != NULL) {
             free(*(char**)(this_var->ptr));
+        }
 
         *(char**)(this_var->ptr) = calloc(strlen(value) + 1, sizeof(char));
         ret = NULL != strcpy(*(char**)(this_var->ptr), value);
 
-        if (ret)
+        if (ret) {
             strip_quotes((char**)this_var->ptr, 1);
+        }
 
         break;
 
@@ -342,8 +373,10 @@ void run_command_set(char* args) { /* {{{ */
         break;
     }
 
-    if (ret <= 0)
-        tnc_fprintf(logfp, LOG_ERROR, "failed to parse value from command: set %s %s", varname, value);
+    if (ret <= 0) {
+        tnc_fprintf(logfp, LOG_ERROR, "failed to parse value from command: set %s %s",
+                    varname, value);
+    }
 
     /* acquire the value string and print it */
     message = var_value_message(this_var, 1);
@@ -366,8 +399,9 @@ void run_command_show(const char* arg) { /* {{{ */
     int ret = 0;
 
     /* parse arg */
-    if (arg != NULL)
+    if (arg != NULL) {
         ret = sscanf(arg, "%m[^\n]", &message);
+    }
 
     if (ret != 1) {
         statusbar_message(cfg.statusbar_timeout, "syntax: show <variable>");
@@ -407,8 +441,10 @@ void run_command_source(const char* filepath) { /* {{{ */
 
     /* check for a valid fd */
     if (config == NULL) {
-        tnc_fprintf(logfp, LOG_ERROR, "source: file \"%s\" could not be opened", filepath);
-        statusbar_message(cfg.statusbar_timeout, "source: file \"%s\" could not be opened", filepath);
+        tnc_fprintf(logfp, LOG_ERROR, "source: file \"%s\" could not be opened",
+                    filepath);
+        statusbar_message(cfg.statusbar_timeout,
+                          "source: file \"%s\" could not be opened", filepath);
         return;
     }
 
@@ -429,8 +465,10 @@ void run_command_source_cmd(const char* cmdstr) { /* {{{ */
 
     /* check for a valid fd */
     if (cmdstr == NULL) {
-        tnc_fprintf(logfp, LOG_ERROR, "source: file \"%s\" could not be opened", cmdstr);
-        statusbar_message(cfg.statusbar_timeout, "source: command \"%s\" could not be opened", cmdstr);
+        tnc_fprintf(logfp, LOG_ERROR, "source: file \"%s\" could not be opened",
+                    cmdstr);
+        statusbar_message(cfg.statusbar_timeout,
+                          "source: command \"%s\" could not be opened", cmdstr);
         return;
     }
 
@@ -463,16 +501,19 @@ void source_fp(const FILE* fp) { /* {{{ */
         char* val;
 
         /* discard comment lines or blank lines */
-        if (line[0] == '#' || line[0] == '\n')
+        if (line[0] == '#' || line[0] == '\n') {
             continue;
+        }
 
         /* handle comments that are mid-line */
-        if ((val = strchr(line, '#')))
+        if ((val = strchr(line, '#'))) {
             * val = '\0';
+        }
 
         /* handle commands */
-        else
+        else {
             handle_command(line);
+        }
 
         /* get memory for a new line */
         free(line);
@@ -513,12 +554,14 @@ void strip_quotes(char** strptr, bool needsfree) { /* {{{ */
     }
 
     /* copy unquoted string */
-    else
+    else {
         *strptr = strdup(str);
+    }
 
     /* free if necessary */
-    if (needsfree)
+    if (needsfree) {
         free(str);
+    }
 } /* }}} */
 
 // vim: noet ts=4 sw=4 sts=4
