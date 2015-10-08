@@ -54,12 +54,14 @@ void test(const char* args) { /* {{{ */
 
     /* determine which tests to run */
     if (str_eq(args, "all")) {
-        for (i = 0; i < ntests; i++)
+        for (i = 0; i < ntests; i++) {
             (tests[i].function)();
+        }
     } else {
         for (i = 0; i < ntests; i++) {
-            if (strstr(args, tests[i].name) != NULL)
+            if (strstr(args, tests[i].name) != NULL) {
                 (tests[i].function)();
+            }
         }
     }
 
@@ -77,19 +79,21 @@ void test_compile_fmt() { /* {{{ */
     fmts = compile_format_string(teststr);
     eval = eval_format(fmts, NULL);
 
-    if (eval != NULL)
+    if (eval != NULL) {
         printf("%s\n", eval);
-    else
+    } else {
         puts("NULL returned");
+    }
 
     teststr = "first uuid:'$uuid' pro:'$project' desc:'$description' $badvar second";
     fmts = compile_format_string(teststr);
     eval = eval_format(fmts, head);
 
-    if (eval != NULL)
+    if (eval != NULL) {
         printf("%s\n", eval);
-    else
+    } else {
         puts("NULL returned");
+    }
 } /* }}} */
 
 void test_result(const char* testname, const bool passed) { /* {{{ */
