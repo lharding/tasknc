@@ -94,8 +94,9 @@ void key_tasklist_filter(const char* arg) { /* {{{ */
     if (arg == NULL) {
         statusbar_getstr(&active_filter, "filter by: ");
         wipe_statusbar();
-    } else
+    } else {
         active_filter = strdup(arg);
+    }
 
     /* force reload of task list */
     statusbar_message(cfg.statusbar_timeout, "filter applied");
@@ -112,8 +113,9 @@ void key_tasklist_modify(const char* arg) { /* {{{ */
     if (arg == NULL) {
         statusbar_getstr(&argstr, "modify: ");
         wipe_statusbar();
-    } else
+    } else {
         argstr = strdup(arg);
+    }
 
     task_modify(argstr);
     free(argstr);
@@ -146,10 +148,12 @@ void key_tasklist_scroll(const int direction) { /* {{{ */
         if (selline > 0) {
             selline--;
 
-            if (selline < pageoffset)
+            if (selline < pageoffset) {
                 pageoffset--;
-        } else
+            }
+        } else {
             statusbar_message(cfg.statusbar_timeout, "already at top");
+        }
 
         break;
 
@@ -159,10 +163,12 @@ void key_tasklist_scroll(const int direction) { /* {{{ */
         if (selline < taskcount - 1) {
             selline++;
 
-            if (selline >= pageoffset + rows - 2)
+            if (selline >= pageoffset + rows - 2) {
                 pageoffset++;
-        } else
+            }
+        } else {
             statusbar_message(cfg.statusbar_timeout, "already at bottom");
+        }
 
         break;
 
@@ -175,8 +181,9 @@ void key_tasklist_scroll(const int direction) { /* {{{ */
     case 'e':
 
         /* go to last entry */
-        if (taskcount > rows - 2)
+        if (taskcount > rows - 2) {
             pageoffset = taskcount - rows + 2;
+        }
 
         selline = taskcount - 1;
         break;
@@ -186,21 +193,22 @@ void key_tasklist_scroll(const int direction) { /* {{{ */
         break;
     }
 
-    if (pageoffset != oldoffset)
+    if (pageoffset != oldoffset) {
         redraw = true;
-    else {
-        if (oldsel - selline == 1)
+    } else {
+        if (oldsel - selline == 1) {
             tasklist_print_task(selline, NULL, 2);
-        else if (selline - oldsel == 1)
+        } else if (selline - oldsel == 1) {
             tasklist_print_task(oldsel, NULL, 2);
-        else {
+        } else {
             tasklist_print_task(oldsel, NULL, 1);
             tasklist_print_task(selline, NULL, 1);
         }
     }
 
     print_header();
-    tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "selline:%d offset:%d tasks:%d", selline, pageoffset, taskcount);
+    tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "selline:%d offset:%d tasks:%d", selline,
+                pageoffset, taskcount);
 } /* }}} */
 
 void key_tasklist_scroll_down() { /* {{{ */
@@ -229,8 +237,9 @@ void key_tasklist_search(const char* arg) { /* {{{ */
         /* store search string  */
         statusbar_getstr(&searchstring, "/");
         wipe_statusbar();
-    } else
+    } else {
         searchstring = strdup(arg);
+    }
 
     /* go to first result */
     find_next_search_result(head, get_task_by_position(selline));
@@ -244,8 +253,9 @@ void key_tasklist_search_next() { /* {{{ */
         find_next_search_result(head, get_task_by_position(selline));
         tasklist_check_curs_pos();
         redraw = true;
-    } else
+    } else {
         statusbar_message(cfg.statusbar_timeout, "no active search string");
+    }
 } /* }}} */
 
 void key_tasklist_sort(const char* arg) { /* {{{ */
@@ -259,8 +269,9 @@ void key_tasklist_sort(const char* arg) { /* {{{ */
     /* store selected task */
     cur = get_task_by_position(selline);
 
-    if (cur != NULL)
+    if (cur != NULL) {
         uuid = strdup(cur->uuid);
+    }
 
     tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "sort: initial task uuid=%s", uuid);
 
@@ -271,8 +282,9 @@ void key_tasklist_sort(const char* arg) { /* {{{ */
         cfg.sortmode = calloc(cols, sizeof(char));
         statusbar_getstr(&(cfg.sortmode), "sort by: ");
         sb_timeout = time(NULL) + 3;
-    } else
+    } else {
         cfg.sortmode = strdup(arg);
+    }
 
     /* run sort */
     sort_wrapper(head);
@@ -300,8 +312,9 @@ void key_tasklist_sync() { /* {{{ */
     if (ret == 0) {
         statusbar_message(cfg.statusbar_timeout, "tasks synchronized");
         reload = true;
-    } else
+    } else {
         statusbar_message(cfg.statusbar_timeout, "task syncronization failed");
+    }
 } /* }}} */
 
 void key_tasklist_toggle_started() { /* {{{ */
@@ -337,8 +350,9 @@ void key_tasklist_toggle_started() { /* {{{ */
         /* reset cached colors */
         cur->pair = -1;
         cur->selpair = -1;
-    } else
+    } else {
         asprintf(&reply, "task%s failed (%d)", action, WEXITSTATUS(ret));
+    }
 
     statusbar_message(cfg.statusbar_timeout, reply);
     free(reply);
@@ -353,8 +367,9 @@ void key_tasklist_undo() { /* {{{ */
     if (ret == 0) {
         statusbar_message(cfg.statusbar_timeout, "undo executed");
         reload = true;
-    } else
+    } else {
         statusbar_message(cfg.statusbar_timeout, "undo execution failed (%d)", ret);
+    }
 
     tasklist_check_curs_pos();
 } /* }}} */
@@ -369,41 +384,53 @@ void tasklist_check_curs_pos() { /* {{{ */
     const int onscreentasks = getmaxy(tasklist);
 
     /* log starting cursor position */
-    tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "cursor_check(init) - selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, rows - 3);
+    tnc_fprintf(logfp, LOG_DEBUG_VERBOSE,
+                "cursor_check(init) - selline:%d offset:%d taskcount:%d perscreen:%d", selline,
+                pageoffset, taskcount, rows - 3);
 
     /* check 0<=selline<taskcount */
-    if (selline < 0)
+    if (selline < 0) {
         selline = 0;
-    else if (selline >= taskcount)
+    } else if (selline >= taskcount) {
         selline = taskcount - 1;
+    }
 
     /* check if page offset is necessary */
-    if (taskcount <= onscreentasks)
+    if (taskcount <= onscreentasks) {
         pageoffset = 0;
+    }
     /* offset up if necessary */
-    else if (selline < pageoffset)
+    else if (selline < pageoffset) {
         pageoffset = selline;
+    }
     /* offset down if necessary */
-    else if (taskcount > onscreentasks && pageoffset + onscreentasks - 1 < selline)
+    else if (taskcount > onscreentasks &&
+             pageoffset + onscreentasks - 1 < selline) {
         pageoffset = selline - onscreentasks + 1;
+    }
     /* dont allow blank lines if there is an offset */
-    else if (taskcount > onscreentasks && taskcount - pageoffset < onscreentasks)
+    else if (taskcount > onscreentasks && taskcount - pageoffset < onscreentasks) {
         pageoffset = taskcount - onscreentasks;
+    }
 
     /* log cursor position */
-    tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "cursor_check - selline:%d offset:%d taskcount:%d perscreen:%d", selline, pageoffset, taskcount, rows - 3);
+    tnc_fprintf(logfp, LOG_DEBUG_VERBOSE,
+                "cursor_check - selline:%d offset:%d taskcount:%d perscreen:%d", selline,
+                pageoffset, taskcount, rows - 3);
 } /* }}} */
 
-void tasklist_command_message(const int ret, const char* fail, const char* success) { /* {{{ */
+void tasklist_command_message(const int ret, const char* fail,
+                              const char* success) { /* {{{ */
     /* print a message depending on the return of a command
      * ret     - the return of the command
      * fail    - the format string to use if ret == 1
      * success - the literal string to use if ret == 0
      */
-    if (ret != 0)
+    if (ret != 0) {
         statusbar_message(cfg.statusbar_timeout, fail, ret);
-    else
+    } else {
         statusbar_message(cfg.statusbar_timeout, success);
+    }
 } /* }}} */
 
 void tasklist_window() { /* {{{ */
@@ -423,10 +450,13 @@ void tasklist_window() { /* {{{ */
     header = newwin(1, cols, 0, 0);
     tasklist = newwin(rows - 2, cols, 1, 0);
     statusbar = newwin(1, cols, rows - 1, 0);
-    tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "ncurses windows: h:%p, t:%p, s:%p (%d,%d)", header, tasklist, statusbar, rows, cols);
+    tnc_fprintf(logfp, LOG_DEBUG_VERBOSE,
+                "ncurses windows: h:%p, t:%p, s:%p (%d,%d)", header, tasklist, statusbar, rows,
+                cols);
 
     if (statusbar == NULL || tasklist == NULL || header == NULL) {
-        tnc_fprintf(logfp, LOG_ERROR, "window creation failed (rows:%d, cols:%d)", rows, cols);
+        tnc_fprintf(logfp, LOG_ERROR, "window creation failed (rows:%d, cols:%d)", rows,
+                    cols);
         ncurses_end(-1);
     }
 
@@ -435,7 +465,8 @@ void tasklist_window() { /* {{{ */
 
     /* print task list */
     check_screen_size();
-    cfg.fieldlengths.description = COLS - cfg.fieldlengths.project - 1 - cfg.fieldlengths.date;
+    cfg.fieldlengths.description = COLS - cfg.fieldlengths.project - 1 -
+                                   cfg.fieldlengths.date;
     task_count();
     print_header();
     tasklist_print_task_list();
@@ -450,7 +481,9 @@ void tasklist_window() { /* {{{ */
         /* check for an empty task list */
         if (head == NULL) {
             if (strcmp(active_filter, "") == 0) {
-                tnc_fprintf(logfp, LOG_ERROR, "it appears that your task list is empty. %s does not yet support empty task lists.", PROGNAME);
+                tnc_fprintf(logfp, LOG_ERROR,
+                            "it appears that your task list is empty. %s does not yet support empty task lists.",
+                            PROGNAME);
                 ncurses_end(-1);
             }
 
@@ -478,23 +511,26 @@ void tasklist_window() { /* {{{ */
         handle_keypress(c, MODE_TASKLIST);
 
         /* exit */
-        if (done)
+        if (done) {
             break;
+        }
 
         /* reload task list */
         if (reload) {
             cur = get_task_by_position(selline);
 
-            if (cur != NULL)
+            if (cur != NULL) {
                 uuid = strdup(cur->uuid);
+            }
 
             wipe_tasklist();
             reload_tasks();
             task_count();
             redraw = true;
 
-            if (cfg.follow_task)
+            if (cfg.follow_task) {
                 set_position_by_uuid(uuid);
+            }
 
             check_free(uuid);
             uuid = NULL;
@@ -504,7 +540,8 @@ void tasklist_window() { /* {{{ */
         /* redraw all windows */
         if (redraw) {
             cfg.fieldlengths.project = max_project_length();
-            cfg.fieldlengths.description = cols - cfg.fieldlengths.project - 1 - cfg.fieldlengths.date;
+            cfg.fieldlengths.description = cols - cfg.fieldlengths.project - 1 -
+                                           cfg.fieldlengths.date;
             print_header();
             tasklist_print_task_list();
             tasklist_check_curs_pos();
@@ -521,7 +558,8 @@ void tasklist_window() { /* {{{ */
     }
 } /* }}} */
 
-void tasklist_print_task(const int tasknum, const task* this, const int count) { /* {{{ */
+void tasklist_print_task(const int tasknum, const task* this,
+                         const int count) { /* {{{ */
     /* print a task specified by number
      * tasknum - the number of the task to be printed (used to find task object
      *           if it is not specified in `this`
@@ -536,12 +574,14 @@ void tasklist_print_task(const int tasknum, const task* this, const int count) {
     /* determine position to print */
     y = tasknum - pageoffset;
 
-    if (y < 0 || y >= rows - 1)
+    if (y < 0 || y >= rows - 1) {
         return;
+    }
 
     /* find task pointer if necessary */
-    if (this == NULL)
+    if (this == NULL) {
         this = get_task_by_position(tasknum);
+    }
 
     /* check if this is NULL */
     if (this == NULL) {
@@ -550,14 +590,16 @@ void tasklist_print_task(const int tasknum, const task* this, const int count) {
     }
 
     /* determine if line is selected */
-    if (tasknum == selline)
+    if (tasknum == selline) {
         sel = true;
+    }
 
     /* wipe line */
     wattrset(tasklist, COLOR_PAIR(0));
 
-    for (x = 0; x < cols; x++)
+    for (x = 0; x < cols; x++) {
         mvwaddch(tasklist, y, x, ' ');
+    }
 
     /* evaluate line */
     wmove(tasklist, 0, 0);
@@ -567,10 +609,11 @@ void tasklist_print_task(const int tasknum, const task* this, const int count) {
     free(tmp);
 
     /* print next task if requested */
-    if (count > 1)
+    if (count > 1) {
         tasklist_print_task(tasknum + 1, this->next, count - 1);
-    else
+    } else {
         wnoutrefresh(tasklist);
+    }
 } /* }}} */
 
 void tasklist_print_task_list() { /* {{{ */
@@ -588,19 +631,22 @@ void tasklist_print_task_list() { /* {{{ */
         cur = cur->next;
     }
 
-    if (counter < cols - 2)
+    if (counter < cols - 2) {
         wipe_screen(tasklist, counter - pageoffset, rows - 2);
+    }
 } /* }}} */
 
 void tasklist_remove_task(task* this) { /* {{{ */
     /* remove a task from the task list without reloading */
-    if (this == head)
+    if (this == head) {
         head = this->next;
-    else
+    } else {
         this->prev->next = this->next;
+    }
 
-    if (this->next != NULL)
+    if (this->next != NULL) {
         this->next->prev = this->prev;
+    }
 
     free_task(this);
     taskcount--;
@@ -623,8 +669,9 @@ void tasklist_task_add() { /* {{{ */
     cmdout = popen(cmd, "r");
 
     while (fgets(line, sizeof(line) - 1, cmdout) != NULL) {
-        if (sscanf(line, "Created task %hu.", &tasknum))
+        if (sscanf(line, "Created task %hu.", &tasknum)) {
             break;
+        }
     }
 
     pret = pclose(cmdout);
@@ -636,10 +683,11 @@ void tasklist_task_add() { /* {{{ */
     }
 
     /* edit task */
-    if (cfg.version[0] < '2')
+    if (cfg.version[0] < '2') {
         asprintf(&cmd, "task edit %d", tasknum);
-    else
+    } else {
         asprintf(&cmd, "task %d edit", tasknum);
+    }
 
     ret = task_interactive_command(cmd);
     free(cmd);
