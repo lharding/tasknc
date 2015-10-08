@@ -35,14 +35,17 @@ char free_task(task* tsk) { /* {{{ */
 
     free(tsk->uuid);
 
-    if (tsk->tags != NULL)
+    if (tsk->tags != NULL) {
         free(tsk->tags);
+    }
 
-    if (tsk->project != NULL)
+    if (tsk->project != NULL) {
         free(tsk->project);
+    }
 
-    if (tsk->description != NULL)
+    if (tsk->description != NULL) {
         free(tsk->description);
+    }
 
     free(tsk);
 
@@ -78,8 +81,9 @@ task* get_task_by_position(int n) { /* {{{ */
     while (cur != NULL) {
         i++;
 
-        if (i == n)
+        if (i == n) {
             break;
+        }
 
         cur = cur->next;
     }
@@ -103,10 +107,11 @@ int get_task_position_by_uuid(const char* uuid) { /* {{{ */
         pos++;
     }
 
-    if (cur != NULL && str_eq(cur->uuid, uuid))
+    if (cur != NULL && str_eq(cur->uuid, uuid)) {
         return pos;
-    else
+    } else {
         return -1;
+    }
 } /* }}} */
 
 task* get_tasks(char* uuid) { /* {{{ */
@@ -125,10 +130,11 @@ task* get_tasks(char* uuid) { /* {{{ */
     /* generate & run command */
     cmdstr = calloc(128, sizeof(char));
 
-    if (cfg.version[0] < '2')
+    if (cfg.version[0] < '2') {
         strcat(cmdstr, "task export.json");
-    else
+    } else {
         strcat(cmdstr, "task export");
+    }
 
     if (active_filter != NULL) {
         strcat(cmdstr, " ");
@@ -166,8 +172,9 @@ task* get_tasks(char* uuid) { /* {{{ */
             line = realloc(line, linelen * sizeof(char));
             tmp = calloc(TOTALLENGTH, sizeof(char));
 
-            if (fgets(tmp, TOTALLENGTH - 1, cmd) == NULL)
+            if (fgets(tmp, TOTALLENGTH - 1, cmd) == NULL) {
                 break;
+            }
 
             strcat(line, tmp);
             free(tmp);
@@ -184,22 +191,25 @@ task* get_tasks(char* uuid) { /* {{{ */
         /* parse line */
         this = parse_task(line);
 
-        if (this == NULL)
+        if (this == NULL) {
             return NULL;
-        else if (this == (task*) - 1)
+        } else if (this == (task*) - 1) {
             continue;
-        else if (this->uuid == NULL ||
-                 this->description == NULL)
+        } else if (this->uuid == NULL ||
+                   this->description == NULL) {
             return NULL;
+        }
 
         /* set pointers */
         this->prev = last;
 
-        if (counter == 0)
+        if (counter == 0) {
             new_head = this;
+        }
 
-        if (counter > 0)
+        if (counter > 0) {
             last->next = this;
+        }
 
         last = this;
         counter++;
@@ -217,8 +227,9 @@ task* get_tasks(char* uuid) { /* {{{ */
     pclose(cmd);
 
     /* sort tasks */
-    if (new_head != NULL)
+    if (new_head != NULL) {
         sort_wrapper(new_head);
+    }
 
     return new_head;
 } /* }}} */
@@ -238,13 +249,15 @@ unsigned short get_task_id(char* uuid) { /* {{{ */
     sprintf(format, "%s %%hu", uuid);
 
     /* run command */
-    cmd = popen("task rc.report.all.columns:uuid,id rc.report.all.labels:UUID,id rc.report.all.sort:id- all status:pending rc._forcecolor=no", "r");
+    cmd = popen("task rc.report.all.columns:uuid,id rc.report.all.labels:UUID,id rc.report.all.sort:id- all status:pending rc._forcecolor=no",
+                "r");
 
     while (fgets(line, sizeof(line) - 1, cmd) != NULL) {
         ret = sscanf(line, format, &id);
 
-        if (ret > 0)
+        if (ret > 0) {
             break;
+        }
     }
 
     pclose(cmd);
@@ -259,8 +272,9 @@ task* malloc_task(void) { /* {{{ */
      */
     task* tsk = calloc(1, sizeof(task));
 
-    if (tsk == NULL)
+    if (tsk == NULL) {
         return NULL;
+    }
 
     tsk->index = 0;
     tsk->uuid = NULL;
@@ -289,8 +303,9 @@ task* parse_task(char* line) { /* {{{ */
     task* tsk = malloc_task();
 
     /* detect lines that are not json */
-    if (*line != '{')
+    if (*line != '{') {
         return (task*) - 1;
+    }
 
     line++;
 
@@ -307,8 +322,9 @@ task* parse_task(char* line) { /* {{{ */
         }
 
         /* terminate at end of line */
-        if (*line == '}')
+        if (*line == '}') {
             break;
+        }
 
         /* get field */
         ret = sscanf(line, "\"%m[^\"]\":", &field);
@@ -322,36 +338,40 @@ task* parse_task(char* line) { /* {{{ */
         line += strlen(field) + 3;
 
         /* determine how to handle content */
-        if (str_eq(field, "id"))
+        if (str_eq(field, "id")) {
             set_int(&(tsk->index), &line);
-        else if (str_eq(field, "description"))
+        } else if (str_eq(field, "description")) {
             set_string(&(tsk->description), &line);
-        else if (str_eq(field, "project"))
+        } else if (str_eq(field, "project")) {
             set_string(&(tsk->project), &line);
-        else if (str_eq(field, "tags")) {
+        } else if (str_eq(field, "tags")) {
             char* pos = line;
 
-            while (*pos != ']')
+            while (*pos != ']') {
                 pos++;
+            }
 
             tsk->tags = strndup(line + 1, pos - line - 1);
             line = pos + 1;
             tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "string: %s", tsk->tags);
-        } else if (str_eq(field, "uuid"))
+        } else if (str_eq(field, "uuid")) {
             set_string(&(tsk->uuid), &line);
-        else if (str_eq(field, "entry"))
+        } else if (str_eq(field, "entry")) {
             set_date(&(tsk->entry), &line);
-        else if (str_eq(field, "due"))
+        } else if (str_eq(field, "due")) {
             set_date(&(tsk->due), &line);
-        else if (str_eq(field, "priority"))
+        } else if (str_eq(field, "priority")) {
             set_char(&(tsk->priority), &line);
-        else if (str_eq(field, "annotations")) {
-            while (*line != ']')
+        } else if (str_eq(field, "annotations")) {
+            while (*line != ']') {
                 line++;
+            }
 
             line++;
         } else { /* unknown field */
-            while (*line != ',' && *line != '}') line++;
+            while (*line != ',' && *line != '}') {
+                line++;
+            }
         }
 
         free(field);
@@ -373,15 +393,18 @@ void reload_task(task* this) { /* {{{ */
 
     /* check for NULL new task */
     if (new == NULL) {
-        tnc_fprintf(logfp, LOG_ERROR, "reload_task(%s): get_tasks returned NULL", this->uuid);
+        tnc_fprintf(logfp, LOG_ERROR, "reload_task(%s): get_tasks returned NULL",
+                    this->uuid);
 
-        if (this->prev != NULL)
+        if (this->prev != NULL) {
             this->prev->next = this->next;
-        else
+        } else {
             head = this->next;
+        }
 
-        if (this->next != NULL)
+        if (this->next != NULL) {
             this->next->prev = this->prev;
+        }
 
         taskcount--;
     } else {
@@ -389,20 +412,25 @@ void reload_task(task* this) { /* {{{ */
         new->prev = this->prev;
         new->next = this->next;
 
-        if (this->prev != NULL)
+        if (this->prev != NULL) {
             this->prev->next = new;
-        else
-            tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): no previous task", this->uuid);
+        } else {
+            tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): no previous task",
+                        this->uuid);
+        }
 
-        if (this->next != NULL)
+        if (this->next != NULL) {
             this->next->prev = new;
-        else
-            tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): no next task", this->uuid);
+        } else {
+            tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): no next task",
+                        this->uuid);
+        }
 
         /* move to head if necessary */
         if (this == head) {
             head = new;
-            tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): setting task as head", this->uuid);
+            tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "reload_task(%s): setting task as head",
+                        this->uuid);
         }
     }
 
@@ -427,7 +455,10 @@ void reload_tasks() { /* {{{ */
     cur = head;
 
     while (cur != NULL) {
-        tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "%d,%s,%s,%llu,%llu,%llu,%llu,%s,%c,%s", cur->index, cur->uuid, cur->tags, (unsigned long long)cur->start, (unsigned long long)cur->end, (unsigned long long)cur->entry, (unsigned long long)cur->due, cur->project, cur->priority, cur->description);
+        tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "%d,%s,%s,%llu,%llu,%llu,%llu,%s,%c,%s",
+                    cur->index, cur->uuid, cur->tags, (unsigned long long)cur->start,
+                    (unsigned long long)cur->end, (unsigned long long)cur->entry,
+                    (unsigned long long)cur->due, cur->project, cur->priority, cur->description);
         cur = cur->next;
     }
 } /* }}} */
@@ -441,22 +472,25 @@ void remove_char(char* str, char remove) { /* {{{ */
     int i, offset = 0;
 
     for (i = 0; i < len; i++) {
-        if (str[i + offset] == '\0')
+        if (str[i + offset] == '\0') {
             break;
+        }
 
         str[i] = str[i + offset];
 
         while (str[i] == remove || str[i] == '\0') {
             offset++;
 
-            if (i + offset >= len)
+            if (i + offset >= len) {
                 break;
+            }
 
             str[i] = str[i + offset];
         }
 
-        if (str[i + offset] == '\0')
+        if (str[i + offset] == '\0') {
             break;
+        }
     }
 
 } /* }}} */
@@ -468,13 +502,15 @@ void set_char(char* field, char** line) { /* {{{ */
      */
     int ret = sscanf(*line, "\"%c\"", field);
 
-    if (ret != 1)
+    if (ret != 1) {
         tnc_fprintf(logfp, LOG_ERROR, "error parsing char @ %s", *line);
-    else
+    } else {
         tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "char: %c", *field);
+    }
 
-    while (**line != ',' &&** line != '}')
+    while (**line != ',' &&** line != '}') {
         (*line)++;
+    }
 } /* }}} */
 
 void set_date(time_t* field, char** line) { /* {{{ */
@@ -485,16 +521,17 @@ void set_date(time_t* field, char** line) { /* {{{ */
     char* tmp;
     int ret = sscanf(*line, "\"%m[^\"]\"", &tmp);
 
-    if (ret != 1)
+    if (ret != 1) {
         tnc_fprintf(logfp, LOG_ERROR, "error parsing time @ %s", *line);
-    else {
+    } else {
         *field = strtotime(tmp);
         tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "time: %d", (int)*field);
         free(tmp);
     }
 
-    while (**line != ',' &&** line != '}')
+    while (**line != ',' &&** line != '}') {
         (*line)++;
+    }
 } /* }}} */
 
 void set_int(unsigned short* field, char** line) { /* {{{ */
@@ -504,13 +541,15 @@ void set_int(unsigned short* field, char** line) { /* {{{ */
      */
     int ret = sscanf(*line, "%hd", field);
 
-    if (ret != 1)
+    if (ret != 1) {
         tnc_fprintf(logfp, LOG_ERROR, "error parsing integer @ %s", *line);
-    else
+    } else {
         tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "int: %d", *field);
+    }
 
-    while (**line != ',' &&** line != '}')
+    while (**line != ',' &&** line != '}') {
         (*line)++;
+    }
 } /* }}} */
 
 void set_string(char** field, char** line) { /* {{{ */
@@ -523,21 +562,24 @@ void set_string(char** field, char** line) { /* {{{ */
     do {
         tmp = strstr(*line, "\",");
 
-        if (tmp == NULL)
+        if (tmp == NULL) {
             tmp = strstr(*line, "\"}");
+        }
     } while (tmp != NULL && *(tmp - 1) == '\\');
 
     *field = strndup((*line) + 1, tmp - (*line) - 1);
 
-    if (tmp == NULL || *field == NULL)
+    if (tmp == NULL || *field == NULL) {
         tnc_fprintf(logfp, LOG_ERROR, "error parsing string @ %s", *line);
-    else
+    } else {
         tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "string: %s", *field);
+    }
 
     *line += tmp - *line;
 
-    while (**line != ',' &&** line != '}')
+    while (**line != ',' &&** line != '}') {
         (*line)++;
+    }
 } /* }}} */
 
 void set_position_by_uuid(const char* uuid) { /* {{{ */
@@ -547,14 +589,16 @@ void set_position_by_uuid(const char* uuid) { /* {{{ */
     int pos;
 
     /* check for null uuid */
-    if (uuid == NULL)
+    if (uuid == NULL) {
         return;
+    }
 
     /* get position & set it */
     pos = get_task_position_by_uuid(uuid);
 
-    if (pos > 0)
+    if (pos > 0) {
         selline = pos;
+    }
 } /* }}} */
 
 time_t strtotime(const char* timestr) { /* {{{ */
@@ -598,17 +642,19 @@ int task_background_command(const char* cmdfmt) { /* {{{ */
         if (ret == 1) {
             tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, line);
             free(line);
-        } else
+        } else {
             break;
+        }
     }
 
     ret = pclose(cmd);
 
     /* log command return value */
-    if (WEXITSTATUS(ret) == 0 || WEXITSTATUS(ret) == 128 + SIGPIPE)
+    if (WEXITSTATUS(ret) == 0 || WEXITSTATUS(ret) == 128 + SIGPIPE) {
         ret = 0;
-    else
+    } else {
         ret = WEXITSTATUS(ret);
+    }
 
     tnc_fprintf(logfp, LOG_DEBUG, "command returned: %d", ret);
 
@@ -669,10 +715,11 @@ bool task_match(const task* cur, const char* str) { /* {{{ */
      */
     if (match_string(cur->project, str) ||
         match_string(cur->description, str) ||
-        match_string(cur->tags, str))
+        match_string(cur->tags, str)) {
         return 1;
-    else
+    } else {
         return 0;
+    }
 } /* }}} */
 
 void task_modify(const char* argstr) { /* {{{ */
@@ -684,18 +731,20 @@ void task_modify(const char* argstr) { /* {{{ */
     char* cmd, *uuid;
     int arglen;
 
-    if (argstr != NULL)
+    if (argstr != NULL) {
         arglen = strlen(argstr);
-    else
+    } else {
         arglen = 0;
+    }
 
     cur = get_task_by_position(selline);
     cmd = calloc(64 + arglen, sizeof(char));
 
     strcpy(cmd, "task %s modify ");
 
-    if (arglen > 0)
+    if (arglen > 0) {
         strcat(cmd, argstr);
+    }
 
     task_background_command(cmd);
 
