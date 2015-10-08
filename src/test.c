@@ -21,12 +21,12 @@
 
 #ifdef TASKNC_INCLUDE_TESTS
 /* local functions {{{ */
-void test_compile_fmt();
-void test_result(const char*, const bool);
-void test_search();
-void test_set_var();
-void test_task_count();
-void test_trim();
+void test_compile_fmt(void);
+void test_result(const char* testname, const bool passed);
+void test_search(void);
+void test_set_var(void);
+void test_task_count(void);
+void test_trim(void);
 /* }}} */
 
 FILE* devnull;

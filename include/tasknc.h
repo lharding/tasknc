@@ -24,33 +24,42 @@
 #define LOGLVL_DEFAULT                  3
 
 /* function prototypes */
-void check_resize();
-void check_screen_size();
-void cleanup();
+void check_resize(void);
+void check_screen_size(void);
+void cleanup(void);
 void configure(void);
-funcmap* find_function(const char*, const prog_mode);
-void find_next_search_result(task*, task*);
-var* find_var(const char*);
-void force_redraw();
-void handle_resize();
+funcmap* find_function(const char* name, const prog_mode mode);
+void find_next_search_result(task* head, task* pos);
+var* find_var(const char* name);
+void force_redraw(void);
+void handle_resize(void);
 void help(void);
-void key_command(const char*);
-void key_task_background_command(const char*);
-void key_task_interactive_command(const char*);
-void key_done();
-char max_project_length();
+void key_command(const char* arg);
+void key_task_background_command(const char* arg);
+void key_task_interactive_command(const char* arg);
+void key_done(void);
+char max_project_length(void);
 const char* name_function(void*);
 void ncurses_end(int);
-void ncurses_init();
-void print_header();
+void ncurses_init(void);
+void print_header(void);
 void print_version(void);
-void set_curses_mode(const ncurses_mode);
-char* str_trim(char*);
-int umvaddstr(WINDOW*, const int, const int, const char*,
+void set_curses_mode(const ncurses_mode mode);
+char* str_trim(char* str);
+
+int umvaddstr(WINDOW* win,
+              const int y,
+              const int x,
+              const char* format,
               ...) __attribute__((format(printf, 4, 5)));
-int umvaddstr_align(WINDOW*, const int, char*);
-void wipe_screen(WINDOW*, const short, const short);
-void wipe_window(WINDOW*);
+
+int umvaddstr_align(WINDOW* win, const int y, char* str);
+
+void wipe_screen(WINDOW* win,
+                 const short startl,
+                 const short stopl);
+
+void wipe_window(WINDOW* win);
 
 #endif
 

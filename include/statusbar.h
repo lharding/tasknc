@@ -10,11 +10,16 @@
 #include <stdio.h>
 #include "common.h"
 
-void free_prompts();
-int statusbar_getstr(char**, const char*);
-void statusbar_message(const int, const char*,
+void free_prompts(void);
+
+int statusbar_getstr(char** str,
+                     const char* msg);
+
+void statusbar_message(const int dtmout,
+                       const char* format,
                        ...) __attribute__((format(printf, 2, 3)));
-void statusbar_timeout();
+
+void statusbar_timeout(void);
 
 extern config cfg;
 extern FILE* logfp;

@@ -20,11 +20,11 @@
 #include "tasks.h"
 
 /* local function declarations */
-static time_t strtotime(const char*);
-static void set_char(char*, char**);
-static void set_date(time_t*, char**);
-static void set_int(unsigned short*, char**);
-static void set_string(char**, char**);
+static time_t strtotime(const char* timestr);
+static void set_char(char* field, char** line);
+static void set_date(time_t* field, char** line);
+static void set_int(unsigned short* field, char** line);
+static void set_string(char** field, char** line);
 
 char free_task(task* tsk) { /* {{{ */
     /* free the memory allocated to a task

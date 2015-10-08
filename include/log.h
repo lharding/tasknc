@@ -11,7 +11,9 @@
 #include "common.h"
 
 extern config cfg;
-void tnc_fprintf(FILE*, const log_mode, const char*,
+void tnc_fprintf(FILE* fp,
+                 const log_mode monloglvl,
+                 const char* format,
                  ...) __attribute__((format(printf, 3, 4)));
 
 #endif

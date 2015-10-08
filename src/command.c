@@ -21,7 +21,7 @@
 #include "tasknc.h"
 
 /* local functions */
-static void source_fp(const FILE*);
+static void source_fp(const FILE* fp);
 
 void handle_command(char* cmdstr) { /* {{{ */
     /* accept a command string, determine what action to take, and execute */

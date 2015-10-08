@@ -9,10 +9,13 @@
 #include "sort.h"
 
 /* local functions */
-static bool compare_tasks(const task*, const task*, const char*);
-static int priority_to_int(const char);
-static void sort_tasks(task*, task*);
-static void swap_tasks(task*, task*);
+static bool compare_tasks(const task* a,
+                          const task* b,
+                          const char* mode_queue);
+
+static int priority_to_int(const char pri);
+static void sort_tasks(task* first, task* last);
+static void swap_tasks(task* a, task* b);
 
 bool compare_tasks(const task* a, const task* b,
                    const char* mode_queue) { /* {{{ */

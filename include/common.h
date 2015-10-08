@@ -176,10 +176,10 @@ typedef struct _config {
 #define MIN(x, y)                       (x < y ? x : y)
 
 /* functions */
-bool match_string(const char*, const char*);
-char* utc_date(const time_t);
-char* utc_time(const time_t);
-char* var_value_message(var*, bool);
+bool match_string(const char* haystack, const char* needle);
+char* utc_date(const time_t timeint);
+char* utc_time(const time_t timeint);
+char* var_value_message(var* v, bool printname);
 
 #endif
 

@@ -9,7 +9,7 @@
 
 #include "common.h"
 
-void test(const char*);
+void test(const char* args);
 
 extern char* searchstring;
 extern config cfg;

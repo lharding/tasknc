@@ -9,10 +9,10 @@
 
 #include "common.h"
 
-fmt_field* compile_format_string(char*);
-char* eval_format(fmt_field*, task*);
-void compile_formats();
-void free_formats();
+fmt_field* compile_format_string(char* fmt);
+char* eval_format(fmt_field* fmts, task* tsks);
+void compile_formats(void);
+void free_formats(void);
 
 #endif
 

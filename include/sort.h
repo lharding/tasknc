@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include "common.h"
 
-void sort_wrapper(task*);
+void sort_wrapper(task* first);
 
 extern config cfg;
 extern FILE* logfp;

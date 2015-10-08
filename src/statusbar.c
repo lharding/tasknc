@@ -35,13 +35,25 @@ time_t sb_timeout = 0;                  /* when statusbar should be cleared */
 prompt_index* prompt_number = NULL;     /* prompt index mapping head */
 
 /* local functions */
-static void add_to_history(prompt_index*, const wchar_t*);
-static prompt_index* get_prompt_index(const char*);
-static wchar_t* get_history(const prompt_index*, const int);
-static void remove_first_char(wchar_t*);
-static int replace_entry(wchar_t*, const int, const wchar_t*);
-static wchar_t* search_history(const prompt_index*, const wchar_t*, const int,
-                               int, int*);
+static void add_to_history(prompt_index* pindex,
+                           const wchar_t* entry);
+
+static prompt_index* get_prompt_index(const char* prompt);
+
+static wchar_t* get_history(const prompt_index* pindex,
+                            const int count);
+
+static void remove_first_char(wchar_t* str);
+
+static int replace_entry(wchar_t* str,
+                         const int len,
+                         const wchar_t* tmp);
+
+static wchar_t* search_history(const prompt_index* pindex,
+                               const wchar_t* regex_wide,
+                               const int start,
+                               int end,
+                               int* match_index);
 
 void add_to_history(prompt_index* pindex, const wchar_t* entry) { /* {{{ */
     /**

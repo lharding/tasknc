@@ -28,7 +28,9 @@
 #include "pager.h"
 
 /* local functions */
-void tasklist_command_message(const int, const char*, const char*);
+void tasklist_command_message(const int ret,
+                              const char* fail,
+                              const char* success);
 
 void key_tasklist_add() { /* {{{ */
     /* handle a keyboard direction to add new task */

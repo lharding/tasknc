@@ -23,7 +23,10 @@
 #include "tasknc.h"
 
 /* local functions */
-static void pager_window(line*, const bool, int, char*);
+static void pager_window(line* head,
+                         const bool fullscreen,
+                         int nlines,
+                         char* title);
 
 /* global variables */
 int offset, height, linecount;

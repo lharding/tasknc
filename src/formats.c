@@ -16,13 +16,13 @@ extern var vars[];
 extern config cfg;
 
 /* local functions */
-static char* append_buffer(char*, const char, int*);
-static void append_field(fmt_field**, fmt_field**, fmt_field*);
-static fmt_field* buffer_field(char*, int);
-static char* eval_conditional(conditional_fmt_field*, task*);
-static char* field_to_str(fmt_field*, bool*, task*);
-static void free_format(fmt_field*);
-static conditional_fmt_field* parse_conditional(char**);
+static char* append_buffer(char* buffer, const char append, int* bufferlen);
+static void append_field(fmt_field** head, fmt_field** last, fmt_field* this);
+static fmt_field* buffer_field(char* buffer, int bufferlen);
+static char* eval_conditional(conditional_fmt_field* this, task* tsk);
+static char* field_to_str(fmt_field* this, bool* free_field, task* tsk);
+static void free_format(fmt_field* this);
+static conditional_fmt_field* parse_conditional(char** str);
 
 char* append_buffer(char* buffer, const char append, int* bufferlen) { /* {{{ */
     /**

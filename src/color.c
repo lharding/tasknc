@@ -48,11 +48,20 @@ bool* pairs_used = NULL;
 color_rule* color_rules = NULL;
 
 /* local functions */
-static short add_color_pair(const short, const short, const short);
-int check_color(int);
-static bool eval_rules(char*, const task*, const bool);
-static short find_add_pair(const short, const short);
-static int set_default_colors();
+static short add_color_pair(const short askpair,
+                            const short fg,
+                            const short bg);
+
+int check_color(int color);
+
+static bool eval_rules(char* rule,
+                       const task*,
+                       const bool selected);
+
+static short find_add_pair(const short fg,
+                           const short bg);
+
+static int set_default_colors(void);
 
 short add_color_pair(short askpair, short fg, short bg) { /* {{{ */
     /**
