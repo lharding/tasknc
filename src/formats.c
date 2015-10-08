@@ -39,17 +39,19 @@ char* append_buffer(char* buffer, const char append, int* bufferlen) { /* {{{ */
     return buffer;
 } /* }}} */
 
-void append_field(fmt_field** head, fmt_field** last, fmt_field* this) { /* {{{ */
+void append_field(fmt_field** head, fmt_field** last,
+                  fmt_field* this) { /* {{{ */
     /**
      * append a format field to a linked list of format fields
      * head      - the first format field
      * last      - the last format field
      * this      - the format field to append
      */
-    if (*head == NULL)
+    if (*head == NULL) {
         *head = this;
-    else
+    } else {
         (*last)->next = this;
+    }
 
     *last = this;
 } /* }}} */
@@ -90,16 +92,18 @@ fmt_field* compile_format_string(char* fmt) { /* {{{ */
     };
 
     /* check for an empty format string */
-    if (fmt == NULL)
+    if (fmt == NULL) {
         return NULL;
+    }
 
     /* iterate through format string */
     while (*fmt != 0) {
         next = false;
 
         /* handle a character */
-        if (strchr("$?", *fmt) == NULL)
+        if (strchr("$?", *fmt) == NULL) {
             buffer = append_buffer(buffer, *fmt, &buffersize);
+        }
         /* handle a variable */
         else {
             /* make existing buffer a field */
@@ -129,14 +133,16 @@ fmt_field* compile_format_string(char* fmt) { /* {{{ */
             /* check for right align */
             right_align = *fmt == '-';
 
-            if (right_align)
+            if (right_align) {
                 fmt++;
+            }
 
             /* check for width specification */
             width = 0;
 
-            while (*fmt >= '0' && *fmt <= '9')
+            while (*fmt >= '0' && *fmt <= '9') {
                 width = (10 * width) + (*(fmt++) - 48);
+            }
 
             /* check for date */
             if (str_starts_with(fmt, "date")) {
@@ -174,8 +180,9 @@ fmt_field* compile_format_string(char* fmt) { /* {{{ */
                 }
             }
 
-            if (next)
+            if (next) {
                 continue;
+            }
 
             /* check for a var */
             for (i = 0; vars[i].name != NULL; i++) {
@@ -192,8 +199,9 @@ fmt_field* compile_format_string(char* fmt) { /* {{{ */
                 }
             }
 
-            if (next)
+            if (next) {
                 continue;
+            }
 
             /* handle bad variable */
             buffer = append_buffer(buffer, '$', &buffersize);
@@ -214,7 +222,8 @@ fmt_field* compile_format_string(char* fmt) { /* {{{ */
     return head;
 } /* }}} */
 
-static char* eval_conditional(conditional_fmt_field* this, task* tsk) { /* {{{ */
+static char* eval_conditional(conditional_fmt_field* this,
+                              task* tsk) { /* {{{ */
     /**
      * evaluate a conditional struct to a string
      * this - the conditional struct
@@ -233,8 +242,9 @@ static char* eval_conditional(conditional_fmt_field* this, task* tsk) { /* {{{ *
     tmp = eval_format(this->condition, tsk);
 
     /* check if conditional was "(null)" */
-    if (str_eq(tmp, "(null)"))
+    if (str_eq(tmp, "(null)")) {
         *tmp = 0;
+    }
 
     /* check first char of evaluated format at determine
      * whether the positive or negative condition should
@@ -277,16 +287,18 @@ char* eval_format(fmt_field* fmts, task* tsk) { /* {{{ */
         tmp = field_to_str(this, &free_tmp, tsk);
 
         /* handle field string */
-        if (tmp == NULL)
+        if (tmp == NULL) {
             continue;
+        }
 
         /* get string data */
         fieldlen = strlen(tmp);
 
-        if (this->type == FIELD_PROJECT && this->width == 0)
+        if (this->type == FIELD_PROJECT && this->width == 0) {
             fieldwidth = cfg.fieldlengths.project;
-        else
+        } else {
             fieldwidth = this->width > 0 ? this->width : fieldlen;
+        }
 
         /* realloc string */
         totallen += fieldwidth;
@@ -295,8 +307,9 @@ char* eval_format(fmt_field* fmts, task* tsk) { /* {{{ */
 
         /* buffer right-aligned string */
         if (this->right_align) {
-            for (p = 0; p < fieldwidth - fieldlen; p++)
+            for (p = 0; p < fieldwidth - fieldlen; p++) {
                 *(str + pos + p) = ' ';
+            }
 
             pos += fieldwidth - fieldlen;
         }
@@ -304,13 +317,15 @@ char* eval_format(fmt_field* fmts, task* tsk) { /* {{{ */
         /* copy string */
         strncpy(str + pos, tmp, MIN(fieldwidth, fieldlen));
 
-        if (free_tmp)
+        if (free_tmp) {
             free(tmp);
+        }
 
         /* buffer left-aligned string */
         if (!(this->right_align)) {
-            for (p = fieldlen; p < fieldwidth; p++)
+            for (p = fieldlen; p < fieldwidth; p++) {
                 *(str + pos + p) = ' ';
+            }
         }
 
         /* move current position */
@@ -320,7 +335,8 @@ char* eval_format(fmt_field* fmts, task* tsk) { /* {{{ */
     return str;
 } /* }}} */
 
-static char* field_to_str(fmt_field* this, bool* free_field, task* tsk) { /* {{{ */
+static char* field_to_str(fmt_field* this, bool* free_field,
+                          task* tsk) { /* {{{ */
     /**
      * evaluate a field and convert it to a string
      * this       - the field to be evaluated
@@ -359,10 +375,11 @@ static char* field_to_str(fmt_field* this, bool* free_field, task* tsk) { /* {{{
         break;
 
     case FIELD_DUE:
-        if (tsk->due)
+        if (tsk->due) {
             ret = utc_date(tsk->due);
-        else
+        } else {
             ret = strdup(" ");
+        }
 
         break;
 
@@ -402,8 +419,9 @@ void free_format(fmt_field* this) { /* {{{ */
         last = this;
         this = this->next;
 
-        if (last->type == FIELD_STRING)
+        if (last->type == FIELD_STRING) {
             free(last->field);
+        }
 
         if (last->type == FIELD_CONDITIONAL && last->conditional != NULL) {
             free_format(last->conditional->condition);
@@ -432,20 +450,23 @@ conditional_fmt_field* parse_conditional(char** str) { /* {{{ */
     /* look for positive and negative */
     ret = sscanf(*str, "?%m[^?]?%m[^?]?%m[^?]?", &condition, &positive, &negative);
 
-    if (ret == 3)
+    if (ret == 3) {
         goto parse;
+    }
 
     /* look for positive */
     ret = sscanf(*str, "?%m[^?]?%m[^?]??", &condition, &positive);
 
-    if (ret == 2)
+    if (ret == 2) {
         goto parse;
+    }
 
     /* look for negative */
     ret = sscanf(*str, "?%m[^?]??%m[^?]?", &condition, &negative);
 
-    if (ret == 2)
+    if (ret == 2) {
         goto parse;
+    }
 
     check_free(this);
     this = NULL;
@@ -458,14 +479,17 @@ parse:
     this->negative = compile_format_string(negative);
 
     /* move position of string */
-    if (condition != NULL)
+    if (condition != NULL) {
         addlen += strlen(condition);
+    }
 
-    if (positive != NULL)
+    if (positive != NULL) {
         addlen += strlen(positive);
+    }
 
-    if (negative != NULL)
+    if (negative != NULL) {
         addlen += strlen(negative);
+    }
 
     *str = ((*str) + 4 + addlen);
 
