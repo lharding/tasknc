@@ -7,9 +7,9 @@
 #include <stdio.h>
 #include "common.h"
 
-void sort_wrapper(task *);
+void sort_wrapper(task*);
 
 extern config cfg;
-extern FILE *logfp;
+extern FILE* logfp;
 
 // vim: noet ts=4 sw=4 sts=4

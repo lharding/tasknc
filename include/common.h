@@ -12,7 +12,8 @@
 
 /* ncurses settings */
 typedef enum { NCURSES_MODE_STD, NCURSES_MODE_STD_BLOCKING,
-	NCURSES_MODE_STRING} ncurses_mode;
+               NCURSES_MODE_STRING
+             } ncurses_mode;
 
 /* var type */
 typedef enum { VAR_UNDEF, VAR_CHAR, VAR_STR, VAR_INT } var_type;
@@ -27,12 +28,11 @@ typedef enum { VAR_RW, VAR_RC, VAR_RO } var_perms;
  * perms - the permissions of the variable
  * ptr   - a pointer to the variable
  */
-typedef struct _var
-{
-	char *name;
-	var_type type;
-	var_perms perms;
-	void *ptr;
+typedef struct _var {
+    char* name;
+    var_type type;
+    var_perms perms;
+    void* ptr;
 } var;
 
 /**
@@ -43,25 +43,24 @@ typedef struct _var
  * prev    - the previous task struct
  * next    - the next task struct
  */
-typedef struct _task
-{
-	/* taskwarrior data */
-	unsigned short index;
-	char *uuid;
-	char *tags;
-	time_t start;
-	time_t end;
-	time_t entry;
-	time_t due;
-	char *project;
-	char priority;
-	char *description;
-	/* color caching */
-	int selpair;
-	int pair;
-	/* linked list pointers */
-	struct _task *prev;
-	struct _task *next;
+typedef struct _task {
+    /* taskwarrior data */
+    unsigned short index;
+    char* uuid;
+    char* tags;
+    time_t start;
+    time_t end;
+    time_t entry;
+    time_t due;
+    char* project;
+    char priority;
+    char* description;
+    /* color caching */
+    int selpair;
+    int pair;
+    /* linked list pointers */
+    struct _task* prev;
+    struct _task* next;
 } task;
 
 /* program modes */
@@ -69,8 +68,9 @@ typedef enum { MODE_TASKLIST, MODE_PAGER, MODE_ANY } prog_mode;
 
 /* format fields */
 typedef enum { FIELD_DATE, FIELD_PROJECT, FIELD_DESCRIPTION, FIELD_DUE,
-	FIELD_PRIORITY, FIELD_UUID, FIELD_INDEX, FIELD_STRING, FIELD_VAR,
-	FIELD_CONDITIONAL, FIELD_TIME } fmt_field_type;
+               FIELD_PRIORITY, FIELD_UUID, FIELD_INDEX, FIELD_STRING, FIELD_VAR,
+               FIELD_CONDITIONAL, FIELD_TIME
+             } fmt_field_type;
 
 /**
  * format field struct - for describing portions of format strings
@@ -83,16 +83,15 @@ typedef enum { FIELD_DATE, FIELD_PROJECT, FIELD_DESCRIPTION, FIELD_DUE,
  * right_align - whether the field should be right aligned
  * next        - the next format field struct
  */
-typedef struct _fmt_field
-{
-	fmt_field_type type;
-	var *variable;
-	char *field;
-	struct _conditional_fmt_field *conditional;
-	unsigned int length;
-	unsigned int width;
-	bool right_align;
-	struct _fmt_field *next;
+typedef struct _fmt_field {
+    fmt_field_type type;
+    var* variable;
+    char* field;
+    struct _conditional_fmt_field* conditional;
+    unsigned int length;
+    unsigned int width;
+    bool right_align;
+    struct _fmt_field* next;
 } fmt_field;
 
 /**
@@ -101,11 +100,10 @@ typedef struct _fmt_field
  * positive  - the string to be printed if condition was true
  * negative  - the string to be printed if condition was false
  */
-typedef struct _conditional_fmt_field
-{
-	fmt_field *condition;
-	fmt_field *positive;
-	fmt_field *negative;
+typedef struct _conditional_fmt_field {
+    fmt_field* condition;
+    fmt_field* positive;
+    fmt_field* negative;
 } conditional_fmt_field;
 
 
@@ -116,17 +114,17 @@ typedef struct _conditional_fmt_field
  * argn     - the number of arguments the function takes
  * mode     - the mode that this function should be run in
  */
-typedef struct _funcmap
-{
-	char *name;
-	void (*function)();
-	int argn;
-	prog_mode mode;
+typedef struct _funcmap {
+    char* name;
+    void (*function)();
+    int argn;
+    prog_mode mode;
 } funcmap;
 
 /* log levels */
 typedef enum { LOG_DEFAULT, LOG_ERROR, LOG_WARN, LOG_INFO, LOG_DEBUG,
-	LOG_DEBUG_VERBOSE } log_mode;
+               LOG_DEBUG_VERBOSE
+             } log_mode;
 
 /**
  * runtime configuration struct
@@ -141,30 +139,30 @@ typedef enum { LOG_DEFAULT, LOG_ERROR, LOG_WARN, LOG_INFO, LOG_DEBUG,
  * fieldlengths      - width of some task data fields
  */
 typedef struct _config {
-	int history_max;
-	int nc_timeout;
-	int statusbar_timeout;
-	log_mode loglvl;
-	char *version;
-	char *sortmode;
-	bool follow_task;
-	struct {
-		char *task;
-		fmt_field *task_compiled;
-		char *title;
-		fmt_field *title_compiled;
-		char *view;
-		fmt_field *view_compiled;
-	} formats;
-	struct {
-		int description;
-		int date;
-		int project;
-	} fieldlengths;
+    int history_max;
+    int nc_timeout;
+    int statusbar_timeout;
+    log_mode loglvl;
+    char* version;
+    char* sortmode;
+    bool follow_task;
+    struct {
+        char* task;
+        fmt_field* task_compiled;
+        char* title;
+        fmt_field* title_compiled;
+        char* view;
+        fmt_field* view_compiled;
+    } formats;
+    struct {
+        int description;
+        int date;
+        int project;
+    } fieldlengths;
 } config;
 
 /* string comparison */
-#define str_starts_with(x, y)           (strncmp((x),(y),strlen(y)) == 0) 
+#define str_starts_with(x, y)           (strncmp((x),(y),strlen(y)) == 0)
 #define str_eq(x, y)                    (strcmp((x), (y))==0)
 #define check_free(x)                   if (x!=NULL) free(x);
 
@@ -178,10 +176,10 @@ typedef struct _config {
 #define MIN(x, y)                       (x < y ? x : y)
 
 /* functions */
-bool match_string(const char *, const char *);
-char *utc_date(const time_t);
-char *utc_time(const time_t);
-char *var_value_message(var *, bool);
+bool match_string(const char*, const char*);
+char* utc_date(const time_t);
+char* utc_time(const time_t);
+char* var_value_message(var*, bool);
 
 #endif
 

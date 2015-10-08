@@ -12,16 +12,16 @@
 
 typedef enum { OBJECT_TASK, OBJECT_HEADER, OBJECT_ERROR, OBJECT_NONE } color_object;
 
-short add_color_rule(const color_object, const char *, const short, const short);
+short add_color_rule(const color_object, const char*, const short, const short);
 void free_colors();
-int get_colors(const color_object, task *, const bool);
+int get_colors(const color_object, task*, const bool);
 int init_colors();
-color_object parse_object(const char *);
-int parse_color(const char *);
+color_object parse_object(const char*);
+int parse_color(const char*);
 
-extern FILE *logfp;
-extern task *head;
-extern WINDOW *tasklist;
+extern FILE* logfp;
+extern task* head;
+extern WINDOW* tasklist;
 
 #endif
 

@@ -9,12 +9,12 @@
 
 #include "common.h"
 
-void test(const char *);
+void test(const char*);
 
-extern char *searchstring;
+extern char* searchstring;
 extern config cfg;
 extern int selline;
-extern task *head;
+extern task* head;
 
 #endif
 
