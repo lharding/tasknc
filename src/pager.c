@@ -75,19 +75,23 @@ void help_window() { /* {{{ */
         cur = calloc(1, sizeof(line));
         last->next = cur;
 
-        if (this->mode == MODE_TASKLIST)
+        if (this->mode == MODE_TASKLIST) {
             modestr = "tasklist";
-        else if (this->mode == MODE_PAGER)
+        } else if (this->mode == MODE_PAGER) {
             modestr = "pager   ";
-        else
+        } else {
             modestr = "unknown ";
+        }
 
         keyname = name_key(this->key);
 
-        if (this->argstr == NULL)
-            asprintf(&(cur->str), "%8s    %-8s    %s", keyname, modestr, name_function(this->function));
-        else
-            asprintf(&(cur->str), "%8s    %-8s    %s %s", keyname, modestr, name_function(this->function), this->argstr);
+        if (this->argstr == NULL) {
+            asprintf(&(cur->str), "%8s    %-8s    %s", keyname, modestr,
+                     name_function(this->function));
+        } else {
+            asprintf(&(cur->str), "%8s    %-8s    %s %s", keyname, modestr,
+                     name_function(this->function), this->argstr);
+        }
 
         free(keyname);
         this = this->next;
@@ -106,10 +110,11 @@ void key_pager_close() { /* {{{ */
 
 void key_pager_scroll_down() { /* {{{ */
     /* scroll down a line in pager */
-    if (offset < linecount + 1 - height)
+    if (offset < linecount + 1 - height) {
         offset++;
-    else
+    } else {
         statusbar_message(cfg.statusbar_timeout, "already at bottom");
+    }
 } /* }}} */
 
 void key_pager_scroll_end() { /* {{{ */
@@ -124,13 +129,15 @@ void key_pager_scroll_home() { /* {{{ */
 
 void key_pager_scroll_up() { /* {{{ */
     /* scroll up a line in pager */
-    if (offset > 0)
+    if (offset > 0) {
         offset--;
-    else
+    } else {
         statusbar_message(cfg.statusbar_timeout, "already at top");
+    }
 } /* }}} */
 
-void pager_command(const char* cmdstr, const char* title, const bool fullscreen, const int head_skip, const int tail_skip) { /* {{{ */
+void pager_command(const char* cmdstr, const char* title, const bool fullscreen,
+                   const int head_skip, const int tail_skip) { /* {{{ */
     /**
      * run a command and page through its results
      * cmdstr     - the command to be run
@@ -152,21 +159,23 @@ void pager_command(const char* cmdstr, const char* title, const bool fullscreen,
         /* determine max width */
         len = strlen(str);
 
-        if (len > maxlen)
+        if (len > maxlen) {
             maxlen = len;
+        }
 
         /* create line */
         cur = calloc(1, sizeof(line));
         cur->str = str;
 
         /* place line in list */
-        if (count == head_skip)
+        if (count == head_skip) {
             head = cur;
-        else if (count < head_skip) {
+        } else if (count < head_skip) {
             free(cur->str);
             free(cur);
-        } else if (last != NULL)
+        } else if (last != NULL) {
             last->next = cur;
+        }
 
         /* move to next line */
         str = calloc(256, sizeof(char));
@@ -185,7 +194,8 @@ void pager_command(const char* cmdstr, const char* title, const bool fullscreen,
     free_lines(head);
 } /* }}} */
 
-void pager_window(line* head, const bool fullscreen, int nlines, char* title) { /* {{{ */
+void pager_window(line* head, const bool fullscreen, int nlines,
+                  char* title) { /* {{{ */
     /**
      * page through a linked list of lines
      * head       - the first line to print
@@ -202,8 +212,9 @@ void pager_window(line* head, const bool fullscreen, int nlines, char* title) { 
     const int orig_linecount = linecount;
 
     /* store previous pager window if necessary */
-    if (pager != NULL)
+    if (pager != NULL) {
         last_pager = pager;
+    }
 
     /* count lines if necessary */
     if (nlines <= 0) {
@@ -219,8 +230,9 @@ void pager_window(line* head, const bool fullscreen, int nlines, char* title) { 
     /* exit if there are no lines */
     tnc_fprintf(logfp, LOG_DEBUG, "pager: linecount=%d", linecount);
 
-    if (nlines == 0)
+    if (nlines == 0) {
         return;
+    }
 
     linecount = nlines;
 
@@ -237,7 +249,8 @@ void pager_window(line* head, const bool fullscreen, int nlines, char* title) { 
         startx = 0;
     }
 
-    tnc_fprintf(logfp, LOG_DEBUG, "pager: h=%d w=%d y=%d x=%d", height, cols, starty, startx);
+    tnc_fprintf(logfp, LOG_DEBUG, "pager: h=%d w=%d y=%d x=%d", height, cols,
+                starty, startx);
     pager = newwin(height, cols, starty, startx);
 
     /* check if pager was created */
@@ -250,7 +263,8 @@ void pager_window(line* head, const bool fullscreen, int nlines, char* title) { 
     pager_done = false;
 
     while (1) {
-        tnc_fprintf(logfp, LOG_DEBUG, "offset:%d height:%d lines:%d", offset, height, linecount);
+        tnc_fprintf(logfp, LOG_DEBUG, "offset:%d height:%d lines:%d", offset, height,
+                    linecount);
 
         /* print title */
         wattrset(pager, get_colors(OBJECT_HEADER, NULL, NULL));
@@ -307,7 +321,8 @@ void pager_window(line* head, const bool fullscreen, int nlines, char* title) { 
 void view_stats() { /* {{{ */
     /* run `task stat` and page the output */
     char* cmdstr;
-    asprintf(&cmdstr, "task stat rc._forcecolor=no rc.defaultwidth=%d 2>&1", cols - 4);
+    asprintf(&cmdstr, "task stat rc._forcecolor=no rc.defaultwidth=%d 2>&1",
+             cols - 4);
     const char* title = "task statistics";
     static bool stats_running = false;
 
@@ -333,7 +348,8 @@ void view_task(task* this) { /* {{{ */
     char* cmdstr, *title;
 
     /* build command and title */
-    asprintf(&cmdstr, "task %s info rc._forcecolor=no rc.defaultwidth=%d 2>&1", this->uuid, cols - 4);
+    asprintf(&cmdstr, "task %s info rc._forcecolor=no rc.defaultwidth=%d 2>&1",
+             this->uuid, cols - 4);
     title = (char*)eval_format(cfg.formats.view_compiled, this);
 
     /* run pager */
