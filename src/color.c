@@ -21,11 +21,11 @@
  * fg   - the number of the foreground color
  * bg   - the number of the background color
  */
-typedef struct _color {
+struct color {
     short pair;
     short fg;
     short bg;
-} color;
+};
 
 /**
  * color rule structure
