@@ -49,7 +49,7 @@ void free_lines(struct line* head) { /* {{{ */
 void help_window() { /* {{{ */
     /* display a help window */
     struct line* head, *cur, *last;
-    keybind* this;
+    struct keybind* this;
     char* modestr, *keyname;
     static bool help_running = false;
 

@@ -176,12 +176,12 @@ void add_keybind(const int key, void* function, char* arg,
      * arg      - the argument to the function
      * mode     - the mode the bind applies in
      */
-    keybind* this_bind, *new;
+    struct keybind* this_bind, *new;
     int n = 0;
     char* modestr, *name;
 
     /* create new bind */
-    new = calloc(1, sizeof(keybind));
+    new = calloc(1, sizeof(struct keybind));
     new->key = key;
     new->function = function;
     new->argint = 0;
@@ -226,7 +226,7 @@ void handle_keypress(const int c, const enum prog_mode mode) { /* {{{ */
      * c    - the key pressed
      * mode - the mode the key was pressed during
      */
-    keybind* this_bind;
+    struct keybind* this_bind;
     char* modestr, *keyname;
     bool match = false;
 
@@ -332,7 +332,7 @@ int remove_keybinds(const int key, const enum prog_mode mode) { /* {{{ */
      * mode - what mode to unbind a key in
      */
     int counter = 0;
-    keybind* this, *last = NULL, *next;
+    struct keybind* this, *last = NULL, *next;
 
     this = keybinds;
 

@@ -44,7 +44,7 @@ char* active_filter =
     NULL;             /* a string containing the active filter string */
 struct task* head = NULL;               /* the current top of the list */
 FILE* logfp;                            /* handle for log file */
-keybind* keybinds = NULL;
+struct keybind* keybinds = NULL;
 
 /* runtime status */
 bool redraw;
@@ -153,7 +153,7 @@ void check_screen_size() { /* {{{ */
 
 void cleanup() { /* {{{ */
     /* function to run on termination */
-    keybind* lastbind;
+    struct keybind* lastbind;
 
     /* free memory allocated normally */
     check_free(searchstring);

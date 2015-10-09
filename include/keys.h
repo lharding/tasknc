@@ -15,14 +15,14 @@
  * mode     - which mode this keybind should run in
  * next     - a pointer to the next keybind
  */
-typedef struct _bind {
+struct keybind {
     int key;
     void (*function)();
     int argint;
     char* argstr;
     enum prog_mode mode;
-    struct _bind* next;
-} keybind;
+    struct keybind* next;
+};
 
 void add_int_keybind(const int key,
                      void* function,
@@ -43,6 +43,6 @@ int parse_key(const char* keystr);
 int remove_keybinds(const int key, const enum prog_mode mode);
 
 extern FILE* logfp;
-extern keybind* keybinds;
+extern struct keybind* keybinds;
 
 // vim: et ts=4 sw=4 sts=4
