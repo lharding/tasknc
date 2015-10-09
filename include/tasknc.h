@@ -15,7 +15,7 @@
 #define wipe_tasklist()                 wipe_screen(tasklist, 0, rows-2)
 #define wipe_statusbar()                wipe_screen(statusbar, 0, 0)
 
-#define NVARS                           (int)(sizeof(vars)/sizeof(var))
+#define NVARS                           (int)(sizeof(vars)/sizeof(struct var))
 #define NFUNCS                          (int)(sizeof(funcmaps)/sizeof(funcmap))
 
 /* default settings */
@@ -30,7 +30,7 @@ void cleanup(void);
 void configure(void);
 funcmap* find_function(const char* name, const prog_mode mode);
 void find_next_search_result(task* head, task* pos);
-var* find_var(const char* name);
+struct var* find_var(const char* name);
 void force_redraw(void);
 void handle_resize(void);
 void help(void);

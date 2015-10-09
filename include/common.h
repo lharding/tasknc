@@ -39,12 +39,12 @@ enum var_perms {
  * perms - the permissions of the variable
  * ptr   - a pointer to the variable
  */
-typedef struct _var {
+struct var {
     char* name;
     enum var_type type;
     enum var_perms perms;
     void* ptr;
-} var;
+};
 
 /**
  * task struct - the main structure in this program!
@@ -96,7 +96,7 @@ typedef enum { FIELD_DATE, FIELD_PROJECT, FIELD_DESCRIPTION, FIELD_DUE,
  */
 typedef struct _fmt_field {
     fmt_field_type type;
-    var* variable;
+    struct var* variable;
     char* field;
     struct _conditional_fmt_field* conditional;
     unsigned int length;
@@ -190,7 +190,7 @@ typedef struct _config {
 bool match_string(const char* haystack, const char* needle);
 char* utc_date(const time_t timeint);
 char* utc_time(const time_t timeint);
-char* var_value_message(var* v, bool printname);
+char* var_value_message(struct var* v, bool printname);
 
 #endif
 

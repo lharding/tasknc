@@ -308,7 +308,7 @@ void run_command_set(char* args) { /* {{{ */
      * set a variable in the statusbar
      * syntax: variable value
      */
-    var* this_var;
+    struct var* this_var;
     char* message = NULL, *varname = NULL, *value = NULL;
     int ret = 0;
 
@@ -325,7 +325,7 @@ void run_command_set(char* args) { /* {{{ */
     }
 
     /* find the variable */
-    this_var = (var*)find_var(varname);
+    this_var = (struct var*)find_var(varname);
 
     if (this_var == NULL) {
         statusbar_message(cfg.statusbar_timeout, "variable not found: %s", varname);
@@ -394,7 +394,7 @@ void run_command_show(const char* arg) { /* {{{ */
      * display a variable in the statusbar
      * syntax: variable
      */
-    var* this_var;
+    struct var* this_var;
     char* message = NULL;
     int ret = 0;
 
@@ -416,7 +416,7 @@ void run_command_show(const char* arg) { /* {{{ */
     }
 
     /* find the variable */
-    this_var = (var*)find_var(arg);
+    this_var = (struct var*) find_var(arg);
 
     if (this_var == NULL) {
         statusbar_message(cfg.statusbar_timeout, "variable not found: %s", arg);

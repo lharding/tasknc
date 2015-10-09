@@ -12,7 +12,7 @@
 #include "formats.h"
 
 /* externs */
-extern var vars[];
+extern struct var vars[];
 extern config cfg;
 
 /* local functions */

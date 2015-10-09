@@ -59,7 +59,7 @@ WINDOW* pager = NULL;
 /* }}} */
 
 /* user-exposed variables & functions {{{ */
-var vars[] = {
+struct var vars[] = {
     {"curs_timeout",      VAR_INT,  VAR_RC, &(cfg.nc_timeout)},
     {"filter_string",     VAR_STR,  VAR_RW, &active_filter},
     {"follow_task",       VAR_INT,  VAR_RW, &(cfg.follow_task)},
@@ -374,7 +374,7 @@ void find_next_search_result(task* head, task* pos) { /* {{{ */
     return;
 } /* }}} */
 
-var* find_var(const char* name) { /* {{{ */
+struct var* find_var(const char* name) { /* {{{ */
     /* attempt to find an exposed variable matching <name>
      * name - the name of the variable
      * return is a pointer to the variable found, or NULL on failure

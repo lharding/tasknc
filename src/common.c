@@ -87,7 +87,7 @@ char* utc_time(const time_t timeint) { /* {{{ */
     return timestr;
 } /* }}} */
 
-char* var_value_message(var* v, bool printname) { /* {{{ */
+char* var_value_message(struct var* v, bool printname) { /* {{{ */
     /* format a message containing the name and value of a variable */
     char* message;
     char* value;
