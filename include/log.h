@@ -12,7 +12,7 @@
 
 extern config cfg;
 void tnc_fprintf(FILE* fp,
-                 const log_mode monloglvl,
+                 const enum log_mode monloglvl,
                  const char* format,
                  ...) __attribute__((format(printf, 3, 4)));
 

@@ -10,7 +10,7 @@
 #include "common.h"
 #include "log.h"
 
-void tnc_fprintf(FILE* fp, const log_mode minloglvl, const char* format,
+void tnc_fprintf(FILE* fp, const enum log_mode minloglvl, const char* format,
                  ...) { /* {{{ */
     /**
      * log a message to a file

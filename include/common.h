@@ -148,9 +148,14 @@ struct funcmap {
 };
 
 /* log levels */
-typedef enum { LOG_DEFAULT, LOG_ERROR, LOG_WARN, LOG_INFO, LOG_DEBUG,
-               LOG_DEBUG_VERBOSE
-             } log_mode;
+enum log_mode {
+    LOG_DEFAULT,
+    LOG_ERROR,
+    LOG_WARN,
+    LOG_INFO,
+    LOG_DEBUG,
+    LOG_DEBUG_VERBOSE
+};
 
 /**
  * runtime configuration struct
@@ -168,7 +173,7 @@ typedef struct _config {
     int history_max;
     int nc_timeout;
     int statusbar_timeout;
-    log_mode loglvl;
+    enum log_mode loglvl;
     char* version;
     char* sortmode;
     bool follow_task;
