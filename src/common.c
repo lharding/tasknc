@@ -19,7 +19,7 @@ extern int selline;
 bool match_string(const char* haystack, const char* needle) { /* {{{ */
     /* find the regex needle in a haystack */
     regex_t regex;
-    bool ret;
+    bool    ret;
 
     /* check for NULL haystack or needle */
     if (haystack == NULL || needle == NULL) {
@@ -44,9 +44,10 @@ bool match_string(const char* haystack, const char* needle) { /* {{{ */
 
 char* utc_date(const time_t timeint) { /* {{{ */
     /* convert a utc time uint to a string */
-    struct tm* tmr, *now;
-    time_t cur;
-    char* timestr;
+    struct tm*  tmr;
+    struct tm*  now;
+    time_t      cur;
+    char*       timestr;
 
     /* get current time */
     time(&cur);
@@ -69,9 +70,10 @@ char* utc_date(const time_t timeint) { /* {{{ */
 
 char* utc_time(const time_t timeint) { /* {{{ */
     /* convert a utc time uint to a string */
-    struct tm* tmr, *now;
-    time_t cur;
-    char* timestr;
+    struct tm*  tmr;
+    struct tm*  now;
+    time_t      cur;
+    char*       timestr;
 
     /* get current time */
     time(&cur);

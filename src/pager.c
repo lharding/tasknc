@@ -29,12 +29,15 @@ static void pager_window(struct line* head,
                          char* title);
 
 /* global variables */
-int offset, height, linecount;
-bool pager_done;
+int     offset;
+int     height;
+int     linecount;
+bool    pager_done;
 
 void free_lines(struct line* head) { /* {{{ */
     /* iterate through linked list of lines and free all elements */
-    struct line* cur, *last;
+    struct line* cur;
+    struct line* last;
 
     cur = head;
 
@@ -46,12 +49,15 @@ void free_lines(struct line* head) { /* {{{ */
     }
 } /* }}} */
 
-void help_window() { /* {{{ */
+void help_window(void) { /* {{{ */
     /* display a help window */
-    struct line* head, *cur, *last;
+    struct line*    head;
+    struct line*    cur;
+    struct line*    last;
     struct keybind* this;
-    char* modestr, *keyname;
-    static bool help_running = false;
+    char*           modestr;
+    char*           keyname;
+    static bool     help_running = false;
 
     /* check for existing help window */
     if (help_running) {
@@ -106,12 +112,12 @@ void help_window() { /* {{{ */
     help_running = false;
 } /* }}} */
 
-void key_pager_close() { /* {{{ */
+void key_pager_close(void) { /* {{{ */
     /* close the pager on keypress */
     pager_done = true;
 } /* }}} */
 
-void key_pager_scroll_down() { /* {{{ */
+void key_pager_scroll_down(void) { /* {{{ */
     /* scroll down a line in pager */
     if (offset < linecount + 1 - height) {
         offset++;
@@ -120,17 +126,17 @@ void key_pager_scroll_down() { /* {{{ */
     }
 } /* }}} */
 
-void key_pager_scroll_end() { /* {{{ */
+void key_pager_scroll_end(void) { /* {{{ */
     /* scroll to end of pager */
     offset = linecount > height ? linecount - height + 1 : 0;
 } /* }}} */
 
-void key_pager_scroll_home() { /* {{{ */
+void key_pager_scroll_home(void) { /* {{{ */
     /* scroll to beginning of pager */
     offset = 0;
 } /* }}} */
 
-void key_pager_scroll_up() { /* {{{ */
+void key_pager_scroll_up(void) { /* {{{ */
     /* scroll up a line in pager */
     if (offset > 0) {
         offset--;
@@ -139,8 +145,11 @@ void key_pager_scroll_up() { /* {{{ */
     }
 } /* }}} */
 
-void pager_command(const char* cmdstr, const char* title, const bool fullscreen,
-                   const int head_skip, const int tail_skip) { /* {{{ */
+void pager_command(const char* cmdstr,
+                   const char* title,
+                   const bool fullscreen,
+                   const int head_skip,
+                   const int tail_skip) { /* {{{ */
     /**
      * run a command and page through its results
      * cmdstr     - the command to be run
@@ -149,10 +158,14 @@ void pager_command(const char* cmdstr, const char* title, const bool fullscreen,
      * head_skip  - how many lines to skip at the beginning of output
      * tail_skip  - how many lines to skip at the end of output
      */
-    FILE* cmd;
-    char* str;
-    int count = 0, maxlen = 0, len;
-    struct line* head = NULL, *last = NULL, *cur;
+    FILE*           cmd;
+    char*           str;
+    int             count = 0;
+    int             maxlen = 0;
+    int             len;
+    struct line*    head = NULL;
+    struct line*    last = NULL;
+    struct line*    cur;
 
     /* run command, gathering strs into a buffer */
     cmd = popen(cmdstr, "r");
@@ -197,7 +210,9 @@ void pager_command(const char* cmdstr, const char* title, const bool fullscreen,
     free_lines(head);
 } /* }}} */
 
-void pager_window(struct line* head, const bool fullscreen, int nlines,
+void pager_window(struct line* head,
+                  const bool fullscreen,
+                  int nlines,
                   char* title) { /* {{{ */
     /**
      * page through a linked list of lines
@@ -206,13 +221,17 @@ void pager_window(struct line* head, const bool fullscreen, int nlines,
      * nlines     - the number of lines that will be printed
      * title      - the title of the pager
      */
-    int startx, starty, lineno, c, taskheight;
+    int             startx;
+    int             starty;
+    int             lineno;
+    int             c;
+    int             taskheight;
     struct line* tmp;
     offset = 0;
-    WINDOW* last_pager = NULL;
-    const int orig_offset = offset;
-    const int orig_height = height;
-    const int orig_linecount = linecount;
+    WINDOW*         last_pager      = NULL;
+    const int       orig_offset     = offset;
+    const int       orig_height     = height;
+    const int       orig_linecount  = linecount;
 
     /* store previous pager window if necessary */
     if (pager != NULL) {
@@ -321,13 +340,13 @@ void pager_window(struct line* head, const bool fullscreen, int nlines,
     linecount = orig_linecount;
 } /* }}} */
 
-void view_stats() { /* {{{ */
+void view_stats(void) { /* {{{ */
     /* run `task stat` and page the output */
     char* cmdstr;
     asprintf(&cmdstr, "task stat rc._forcecolor=no rc.defaultwidth=%d 2>&1",
              cols - 4);
-    const char* title = "task statistics";
-    static bool stats_running = false;
+    const char* title           = "task statistics";
+    static bool stats_running   = false;
 
     /* check for an existing stats window */
     if (stats_running) {
@@ -348,7 +367,8 @@ void view_stats() { /* {{{ */
 
 void view_task(struct task* this) { /* {{{ */
     /* run `task info` and print it to a window */
-    char* cmdstr, *title;
+    char* cmdstr;
+    char* title;
 
     /* build command and title */
     asprintf(&cmdstr, "task %s info rc._forcecolor=no rc.defaultwidth=%d 2>&1",

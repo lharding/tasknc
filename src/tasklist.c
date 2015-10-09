@@ -32,16 +32,16 @@ void tasklist_command_message(const int ret,
                               const char* fail,
                               const char* success);
 
-void key_tasklist_add() { /* {{{ */
+void key_tasklist_add(void) { /* {{{ */
     /* handle a keyboard direction to add new task */
     tasklist_task_add();
     reload = 1;
 } /* }}} */
 
-void key_tasklist_complete() { /* {{{ */
+void key_tasklist_complete(void) { /* {{{ */
     /* complete selected task */
     struct task* cur = get_task_by_position(selline);
-    int ret;
+    int          ret;
 
     statusbar_message(cfg.statusbar_timeout, "completing task");
 
@@ -51,10 +51,10 @@ void key_tasklist_complete() { /* {{{ */
     tasklist_command_message(ret, "complete failed (%d)", "complete successful");
 } /* }}} */
 
-void key_tasklist_delete() { /* {{{ */
+void key_tasklist_delete(void) { /* {{{ */
     /* complete selected task */
     struct task* cur = get_task_by_position(selline);
-    int ret;
+    int          ret;
 
     statusbar_message(cfg.statusbar_timeout, "deleting task");
 
@@ -64,11 +64,11 @@ void key_tasklist_delete() { /* {{{ */
     tasklist_command_message(ret, "delete failed (%d)", "delete successful");
 } /* }}} */
 
-void key_tasklist_edit() { /* {{{ */
+void key_tasklist_edit(void) { /* {{{ */
     /* edit selected task */
     struct task* cur = get_task_by_position(selline);
-    int ret;
-    char* uuid;
+    int          ret;
+    char*        uuid;
 
     statusbar_message(cfg.statusbar_timeout, "editing task");
 
@@ -126,7 +126,7 @@ void key_tasklist_modify(const char* arg) { /* {{{ */
     redraw = true;
 } /* }}} */
 
-void key_tasklist_reload() { /* {{{ */
+void key_tasklist_reload(void) { /* {{{ */
     /* wrapper function to handle keyboard instruction to reload task list */
     reload = true;
     statusbar_message(cfg.statusbar_timeout, "task list reloaded");
@@ -140,7 +140,7 @@ void key_tasklist_scroll(const int direction) { /* {{{ */
      *             h = to first element in list
      *             e = to last element in list
      */
-    const char oldsel = selline;
+    const char oldsel    = selline;
     const char oldoffset = pageoffset;
 
     switch (direction) {
@@ -213,19 +213,19 @@ void key_tasklist_scroll(const int direction) { /* {{{ */
                 pageoffset, taskcount);
 } /* }}} */
 
-void key_tasklist_scroll_down() { /* {{{ */
+void key_tasklist_scroll_down(void) { /* {{{ */
     key_tasklist_scroll('d');
 } /* }}} */
 
-void key_tasklist_scroll_end() { /* {{{ */
+void key_tasklist_scroll_end(void) { /* {{{ */
     key_tasklist_scroll('e');
 } /* }}} */
 
-void key_tasklist_scroll_home() { /* {{{ */
+void key_tasklist_scroll_home(void) { /* {{{ */
     key_tasklist_scroll('h');
 } /* }}} */
 
-void key_tasklist_scroll_up() { /* {{{ */
+void key_tasklist_scroll_up(void) { /* {{{ */
     key_tasklist_scroll('u');
 } /* }}} */
 
@@ -249,7 +249,7 @@ void key_tasklist_search(const char* arg) { /* {{{ */
     redraw = true;
 } /* }}} */
 
-void key_tasklist_search_next() { /* {{{ */
+void key_tasklist_search_next(void) { /* {{{ */
     /* handle a keyboard direction to move to next search result */
     if (searchstring != NULL) {
         find_next_search_result(head, get_task_by_position(selline));
@@ -266,7 +266,7 @@ void key_tasklist_sort(const char* arg) { /* {{{ */
      *       see the manual page for how sort strings are parsed
      */
     struct task* cur;
-    char* uuid = NULL;
+    char*        uuid = NULL;
 
     /* store selected task */
     cur = get_task_by_position(selline);
@@ -303,7 +303,7 @@ void key_tasklist_sort(const char* arg) { /* {{{ */
     redraw = true;
 } /* }}} */
 
-void key_tasklist_sync() { /* {{{ */
+void key_tasklist_sync(void) { /* {{{ */
     /* handle a keyboard direction to sync */
     int ret;
 
@@ -319,14 +319,17 @@ void key_tasklist_sync() { /* {{{ */
     }
 } /* }}} */
 
-void key_tasklist_toggle_started() { /* {{{ */
+void key_tasklist_toggle_started(void) { /* {{{ */
     /* toggle whether a task is started */
-    bool started;
-    time_t now;
-    struct task* cur = get_task_by_position(selline);
-    char* cmdstr, *action, *actionpast, *reply;
-    FILE* cmdout;
-    int ret;
+    bool            started;
+    time_t          now;
+    struct task*    cur = get_task_by_position(selline);
+    char*           cmdstr;
+    char*           action;
+    char*           actionpast;
+    char*           reply;
+    FILE*           cmdout;
+    int             ret;
 
     /* check whether task is started */
     started = cur->start > 0;
@@ -360,7 +363,7 @@ void key_tasklist_toggle_started() { /* {{{ */
     free(reply);
 } /* }}} */
 
-void key_tasklist_undo() { /* {{{ */
+void key_tasklist_undo(void) { /* {{{ */
     /* handle a keyboard direction to run an undo */
     int ret;
 
@@ -376,12 +379,12 @@ void key_tasklist_undo() { /* {{{ */
     tasklist_check_curs_pos();
 } /* }}} */
 
-void key_tasklist_view() { /* {{{ */
+void key_tasklist_view(void) { /* {{{ */
     /* run task info on a task and display in pager */
     view_task(get_task_by_position(selline));
 } /* }}} */
 
-void tasklist_check_curs_pos() { /* {{{ */
+void tasklist_check_curs_pos(void) { /* {{{ */
     /* check if the cursor is in a valid position */
     const int onscreentasks = getmaxy(tasklist);
 
@@ -421,7 +424,8 @@ void tasklist_check_curs_pos() { /* {{{ */
                 pageoffset, taskcount, rows - 3);
 } /* }}} */
 
-void tasklist_command_message(const int ret, const char* fail,
+void tasklist_command_message(const int ret,
+                              const char* fail,
                               const char* success) { /* {{{ */
     /* print a message depending on the return of a command
      * ret     - the return of the command
@@ -435,30 +439,30 @@ void tasklist_command_message(const int ret, const char* fail,
     }
 } /* }}} */
 
-void tasklist_window() { /* {{{ */
+void tasklist_window(void) { /* {{{ */
     /* ncurses main function */
-    int c;
-    struct task* cur;
-    char* uuid = NULL;
+    int             c;
+    struct task*    cur;
+    char*           uuid = NULL;
 
     /* get field lengths */
     cfg.fieldlengths.project = max_project_length();
-    cfg.fieldlengths.date = DATELENGTH;
+    cfg.fieldlengths.date    = DATELENGTH;
 
     /* create windows */
     rows = LINES;
     cols = COLS;
     tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "rows: %d, columns: %d", rows, cols);
-    header = newwin(1, cols, 0, 0);
-    tasklist = newwin(rows - 2, cols, 1, 0);
-    statusbar = newwin(1, cols, rows - 1, 0);
+    header      = newwin(1, cols, 0, 0);
+    tasklist    = newwin(rows - 2, cols, 1, 0);
+    statusbar   = newwin(1, cols, rows - 1, 0);
     tnc_fprintf(logfp, LOG_DEBUG_VERBOSE,
                 "ncurses windows: h:%p, t:%p, s:%p (%d,%d)", header, tasklist, statusbar, rows,
                 cols);
 
     if (statusbar == NULL || tasklist == NULL || header == NULL) {
-        tnc_fprintf(logfp, LOG_ERROR, "window creation failed (rows:%d, cols:%d)", rows,
-                    cols);
+        tnc_fprintf(logfp, LOG_ERROR,
+                    "window creation failed (rows:%d, cols:%d)", rows, cols);
         ncurses_end(-1);
     }
 
@@ -476,9 +480,9 @@ void tasklist_window() { /* {{{ */
     /* main loop */
     while (1) {
         /* set variables for determining actions */
-        done = false;
-        redraw = false;
-        reload = false;
+        done    = false;
+        redraw  = false;
+        reload  = false;
 
         /* check for an empty task list */
         if (head == NULL) {
@@ -560,7 +564,8 @@ void tasklist_window() { /* {{{ */
     }
 } /* }}} */
 
-void tasklist_print_task(const int tasknum, const struct task* this,
+void tasklist_print_task(const int tasknum,
+                         const struct task* this,
                          const int count) { /* {{{ */
     /* print a task specified by number
      * tasknum - the number of the task to be printed (used to find task object
@@ -569,9 +574,10 @@ void tasklist_print_task(const int tasknum, const struct task* this,
      *           only one of either `tasknum` or `this` should be specified
      * count   - number of consecutive tasks to print
      */
-    bool sel = false;
+    bool  sel = false;
     char* tmp;
-    int x, y;
+    int   x;
+    int   y;
 
     /* determine position to print */
     y = tasknum - pageoffset;
@@ -618,10 +624,10 @@ void tasklist_print_task(const int tasknum, const struct task* this,
     }
 } /* }}} */
 
-void tasklist_print_task_list() { /* {{{ */
+void tasklist_print_task_list(void) { /* {{{ */
     /* print every task in the task list */
     struct task* cur;
-    short counter = 0;
+    short        counter = 0;
 
     cur = head;
 
@@ -656,14 +662,17 @@ void tasklist_remove_task(struct task* this) { /* {{{ */
     redraw = true;
 } /* }}} */
 
-void tasklist_task_add() { /* {{{ */
+void tasklist_task_add(void) { /* {{{ */
     /* create a new task by adding a generic task
      * then letting the user edit it
      */
-    FILE* cmdout;
-    char* cmd, line[TOTALLENGTH], *failmsg;
-    unsigned short tasknum;
-    int ret = 0, pret;
+    FILE*           cmdout;
+    char*           cmd;
+    char            line[TOTALLENGTH];
+    char*           failmsg;
+    unsigned short  tasknum;
+    int             ret = 0;
+    int             pret;
 
     /* add new task */
     cmd = strdup("task add new task");

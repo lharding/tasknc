@@ -17,7 +17,8 @@ static int priority_to_int(const char pri);
 static void sort_tasks(struct task* first, struct task* last);
 static void swap_tasks(struct task* a, struct task* b);
 
-bool compare_tasks(const struct task* a, const struct task* b,
+bool compare_tasks(const struct task* a,
+                   const struct task* b,
                    const char* mode_queue) { /* {{{ */
     /**
      * compare two tasks to determine order
@@ -26,10 +27,12 @@ bool compare_tasks(const struct task* a, const struct task* b,
      * b          - the second task to be compared
      * mode_queue - the remaining tests to be evaluated
      */
-    bool ret = false;
-    int tmp, pri0, pri1;
-    char sort_mode = *mode_queue;
-    bool invert = false;
+    bool    ret = false;
+    int     tmp;
+    int     pri0;
+    int     pri1;
+    char    sort_mode = *mode_queue;
+    bool    invert = false;
 
     /* check for inverted order */
     if (sort_mode >= 'A' && sort_mode <= 'Z') {
@@ -155,9 +158,12 @@ void sort_wrapper(struct task* first) { /* {{{ */
     sort_tasks(first, last);
 } /* }}} */
 
-void sort_tasks(struct task* first, struct task* last) { /* {{{ */
+void sort_tasks(struct task* first,
+                struct task* last) { /* {{{ */
     /* sort a list of tasks from first to last */
-    struct task* start, *cur, *oldcur;
+    struct task* start;
+    struct task* cur;
+    struct task* oldcur;
 
     /* check if we are done */
     if (first == last) {
@@ -206,50 +212,51 @@ void sort_tasks(struct task* first, struct task* last) { /* {{{ */
     }
 } /* }}} */
 
-void swap_tasks(struct task* a, struct task* b) { /* {{{ */
+void swap_tasks(struct task* a,
+                struct task* b) { /* {{{ */
     /* swap the contents of two tasks */
-    unsigned short ustmp;
-    unsigned int uitmp;
-    char* strtmp;
-    char ctmp;
+    unsigned short  ustmp;
+    unsigned int    uitmp;
+    char*           strtmp;
+    char            ctmp;
 
-    ustmp = a->index;
+    ustmp    = a->index;
     a->index = b->index;
     b->index = ustmp;
 
-    strtmp = a->uuid;
+    strtmp  = a->uuid;
     a->uuid = b->uuid;
     b->uuid = strtmp;
 
-    strtmp = a->tags;
+    strtmp  = a->tags;
     a->tags = b->tags;
     b->tags = strtmp;
 
-    uitmp = a->start;
+    uitmp    = a->start;
     a->start = b->start;
     b->start = uitmp;
 
-    uitmp = a->end;
+    uitmp  = a->end;
     a->end = b->end;
     b->end = uitmp;
 
-    uitmp = a->entry;
+    uitmp    = a->entry;
     a->entry = b->entry;
     b->entry = uitmp;
 
-    uitmp = a->due;
+    uitmp  = a->due;
     a->due = b->due;
     b->due = uitmp;
 
-    strtmp = a->project;
+    strtmp     = a->project;
     a->project = b->project;
     b->project = strtmp;
 
-    ctmp = a->priority;
+    ctmp        = a->priority;
     a->priority = b->priority;
     b->priority = ctmp;
 
-    strtmp = a->description;
+    strtmp         = a->description;
     a->description = b->description;
     b->description = strtmp;
 } /* }}} */

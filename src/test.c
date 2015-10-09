@@ -72,8 +72,9 @@ void test(const char* args) { /* {{{ */
 
 void test_compile_fmt() { /* {{{ */
     /* test compiling a format to a series of fields */
-    struct fmt_field* fmts;
-    char* eval, *teststr;
+    struct fmt_field*   fmts;
+    char*               eval;
+    char*               teststr;
 
     teststr = "first $date $-8program_version $4program_name $10program_author ++?$search_string?SEARCH??++ ++?$active_filter??NO?++ second";
     fmts = compile_format_string(teststr);
@@ -98,14 +99,15 @@ void test_compile_fmt() { /* {{{ */
 
 void test_result(const char* testname, const bool passed) { /* {{{ */
     /* print a colored result for a test */
-    char* color, *msg;
+    char* color;
+    char* msg;
 
     /* determine color and message */
     if (passed) {
-        msg = "passed";
+        msg   = "passed";
         color = "\033[0;32m";
     } else {
-        msg = "failed";
+        msg   = "failed";
         color = "\033[0;31m";
     }
 
@@ -115,13 +117,15 @@ void test_result(const char* testname, const bool passed) { /* {{{ */
 
 void test_search() { /* {{{ */
     /* test search functionality */
-    char* addcmdstr, *testcmdstr, *tmp;
-    const char* proj = "test123";
-    const char pri = 'H';
-    const char* unique = "simple";
-    FILE* cmdout;
-    struct task* this;
-    bool pass;
+    char*           addcmdstr;
+    char*           testcmdstr;
+    char*           tmp;
+    const char*     proj    = "test123";
+    const char      pri     = 'H';
+    const char*     unique  = "simple";
+    FILE*           cmdout;
+    struct task*    this;
+    bool            pass;
 
     asprintf(&addcmdstr, "task add pro:%s pri:%c %s", proj, pri, unique);
     cmdout = popen(addcmdstr, "r");
@@ -158,7 +162,7 @@ void test_search() { /* {{{ */
     free(addcmdstr);
 } /* }}} */
 
-void test_set_var() { /* {{{ */
+void test_set_var(void) { /* {{{ */
     /* test the ability to set a variable */
     char* teststr = strdup("  set \t task_version   0.6.9  ");
     char* testint = strdup("  set \t curs_timeout \t 6969\t\t \n ");
@@ -171,11 +175,12 @@ void test_set_var() { /* {{{ */
     test_result("set int var", cfg.nc_timeout == 6969);
 } /* }}} */
 
-void test_task_count() { /* {{{ */
+void test_task_count(void) { /* {{{ */
     /* check that the tasks are counted correctly */
-    int tcnt;
-    FILE* cmdout;
-    char* line, *cmdstr;
+    int     tcnt;
+    FILE*   cmdout;
+    char*   line;
+    char*   cmdstr;
 
     task_count();
 
@@ -191,15 +196,15 @@ void test_task_count() { /* {{{ */
     free(line);
 } /* }}} */
 
-void test_trim() { /* {{{ */
+void test_trim(void) { /* {{{ */
     /* test the functionality of str_trim */
-    bool pass;
+    bool        pass;
     const char* ref = "test string";
-    char* check;
+    char*       check;
 
     char* teststr = strdup("\n\t test string \t  \n");
-    check = str_trim(teststr);
-    pass = strcmp(check, ref) == 0;
+    check         = str_trim(teststr);
+    pass          = strcmp(check, ref) == 0;
     test_result("str_trim", pass);
 
     if (!pass) {

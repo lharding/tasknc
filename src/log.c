@@ -10,7 +10,9 @@
 #include "common.h"
 #include "log.h"
 
-void tnc_fprintf(FILE* fp, const enum log_mode minloglvl, const char* format,
+void tnc_fprintf(FILE* fp,
+                 const enum log_mode minloglvl,
+                 const char* format,
                  ...) { /* {{{ */
     /**
      * log a message to a file
@@ -18,12 +20,12 @@ void tnc_fprintf(FILE* fp, const enum log_mode minloglvl, const char* format,
      * minloglvl - what cfg.loglvl must be above for this log to be written
      * format    - printf format string for log
      */
-    time_t lt;
-    struct tm* t;
-    va_list args;
-    int ret;
-    const int timesize = 32;
-    char timestr[timesize];
+    time_t      lt;
+    struct tm*  t;
+    va_list     args;
+    int         ret;
+    const int   timesize = 32;
+    char        timestr[timesize];
 
     /* determine if msg should be logged */
     if (minloglvl > cfg.loglvl) {

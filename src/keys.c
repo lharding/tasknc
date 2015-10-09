@@ -23,8 +23,8 @@
  * name  - the string representing the key
  */
 struct keymap {
-    int value;
-    char* name;
+    int     value;
+    char*   name;
 };
 
 /* keymaps {{{ */
@@ -151,7 +151,9 @@ struct keymap keymaps[] = {
 const int nkeys = sizeof(keymaps) / sizeof(struct keymap);
 /* }}} */
 
-void add_int_keybind(const int key, void* function, const int argint,
+void add_int_keybind(const int key,
+                     void* function,
+                     const int argint,
                      const enum prog_mode mode) { /* {{{ */
     /**
      * convert argint to a string, then add keybind
@@ -167,7 +169,9 @@ void add_int_keybind(const int key, void* function, const int argint,
     free(argstr);
 } /* }}} */
 
-void add_keybind(const int key, void* function, char* arg,
+void add_keybind(const int key,
+                 void* function,
+                 char* arg,
                  const enum prog_mode mode) { /* {{{ */
     /**
      * add a keybind to the linked list of keybinds
@@ -176,18 +180,20 @@ void add_keybind(const int key, void* function, char* arg,
      * arg      - the argument to the function
      * mode     - the mode the bind applies in
      */
-    struct keybind* this_bind, *new;
-    int n = 0;
-    char* modestr, *name;
+    struct keybind* this_bind;
+    struct keybind* new;
+    int             n = 0;
+    char*           modestr;
+    char*           name;
 
     /* create new bind */
     new = calloc(1, sizeof(struct keybind));
-    new->key = key;
-    new->function = function;
-    new->argint = 0;
-    new->argstr = arg != NULL ? strdup(arg) : NULL;
-    new->next = NULL;
-    new->mode = mode;
+    new->key        = key;
+    new->function   = function;
+    new->argint     = 0;
+    new->argstr     = arg != NULL ? strdup(arg) : NULL;
+    new->next       = NULL;
+    new->mode       = mode;
 
     /* append it to the list */
     if (keybinds == NULL) {
@@ -214,12 +220,14 @@ void add_keybind(const int key, void* function, char* arg,
 
     name = name_key(key);
     tnc_fprintf(logfp, LOG_DEBUG,
-                "bind #%d: key %s (%d) bound to @%p %s%s(args: %d/%s)", n, name, key, function,
-                modestr, name_function(function), new->argint, new->argstr);
+                "bind #%d: key %s (%d) bound to @%p %s%s(args: %d/%s)", n, name,
+                key, function, modestr, name_function(function), new->argint,
+                new->argstr);
     free(name);
 } /* }}} */
 
-void handle_keypress(const int c, const enum prog_mode mode) { /* {{{ */
+void handle_keypress(const int c,
+                     const enum prog_mode mode) { /* {{{ */
     /* handle a key press on the main screen */
     /**
      * handle a key pressed
@@ -227,8 +235,9 @@ void handle_keypress(const int c, const enum prog_mode mode) { /* {{{ */
      * mode - the mode the key was pressed during
      */
     struct keybind* this_bind;
-    char* modestr, *keyname;
-    bool match = false;
+    char*           modestr;
+    char*           keyname;
+    bool            match = false;
 
     /* exit if timeout occurred */
     if (c == ERR) {
@@ -275,8 +284,9 @@ void handle_keypress(const int c, const enum prog_mode mode) { /* {{{ */
 
 char* name_key(const int val) { /* {{{ */
     /* return a string naming the key */
-    char* name = NULL;
-    int i, len;
+    char*   name = NULL;
+    int     i;
+    int     len;
 
     /* single char */
     if (val > 31 && val < 127) {
@@ -307,7 +317,8 @@ char* name_key(const int val) { /* {{{ */
 
 int parse_key(const char* keystr) { /* {{{ */
     /* parse a key value from a string specifier */
-    int key, i;
+    int key;
+    int i;
 
     /* try for a mapped key */
     for (i = 0; i < nkeys; i++) {
@@ -331,8 +342,10 @@ int remove_keybinds(const int key, const enum prog_mode mode) { /* {{{ */
      * key  - which key to unbind
      * mode - what mode to unbind a key in
      */
-    int counter = 0;
-    struct keybind* this, *last = NULL, *next;
+    int             counter = 0;
+    struct keybind* this;
+    struct keybind* last = NULL;
+    struct keybind* next;
 
     this = keybinds;
 

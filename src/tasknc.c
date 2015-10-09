@@ -34,16 +34,16 @@ const char* progname = PROGNAME;
 const char* progauthor = PROGAUTHOR;
 const char* progversion = PROGVERSION;
 
-struct config cfg;                      /* runtime config struct */
-short pageoffset = 0;                   /* number of tasks page is offset */
-char* searchstring = NULL;              /* currently active search string */
-int selline = 0;                        /* selected line number */
-int rows, cols;                         /* size of the ncurses window */
-int taskcount;                          /* number of tasks */
-char* active_filter =
-    NULL;             /* a string containing the active filter string */
-struct task* head = NULL;               /* the current top of the list */
-FILE* logfp;                            /* handle for log file */
+struct config   cfg;                    /* runtime config struct */
+short           pageoffset = 0;         /* number of tasks page is offset */
+char*           searchstring = NULL;    /* currently active search string */
+int             selline = 0;            /* selected line number */
+int             rows;
+int             cols;                   /* size of the ncurses window */
+int             taskcount;              /* number of tasks */
+char*           active_filter = NULL;   /* a string containing the active filter string */
+struct task*    head = NULL;            /* the current top of the list */
+FILE*           logfp;                  /* handle for log file */
 struct keybind* keybinds = NULL;
 
 /* runtime status */
@@ -52,10 +52,10 @@ bool reload;
 bool done;
 
 /* windows */
-WINDOW* header = NULL;
-WINDOW* tasklist = NULL;
-WINDOW* statusbar = NULL;
-WINDOW* pager = NULL;
+WINDOW* header      = NULL;
+WINDOW* tasklist    = NULL;
+WINDOW* statusbar   = NULL;
+WINDOW* pager       = NULL;
 /* }}} */
 
 /* user-exposed variables & functions {{{ */
@@ -80,54 +80,54 @@ struct var vars[] = {
 };
 
 struct funcmap funcmaps[] = {
-    {"add", (void*)key_tasklist_add,             0, MODE_TASKLIST},
-    {"bind", (void*)run_command_bind,             1, MODE_ANY},
-    {"color", (void*)run_command_color,            1, MODE_ANY},
-    {"command", (void*)key_command,                  0, MODE_ANY},
-    {"complete", (void*)key_tasklist_complete,        0, MODE_ANY},
-    {"delete", (void*)key_tasklist_delete,          0, MODE_ANY},
-    {"edit", (void*)key_tasklist_edit,            0, MODE_ANY},
-    {"filter", (void*)key_tasklist_filter,          0, MODE_TASKLIST},
-    {"f_redraw", (void*)force_redraw,                 0, MODE_ANY},
-    {"help", (void*)help_window,                  0, MODE_ANY},
-    {"modify", (void*)key_tasklist_modify,          0, MODE_TASKLIST},
-    {"quit", (void*)key_done,                     0, MODE_TASKLIST},
-    {"quit", (void*)key_pager_close,              0, MODE_PAGER},
-    {"reload", (void*)key_tasklist_reload,          0, MODE_TASKLIST},
-    {"scroll_down", (void*)key_tasklist_scroll_down,     0, MODE_TASKLIST},
-    {"scroll_down", (void*)key_pager_scroll_down,        0, MODE_PAGER},
-    {"scroll_end", (void*)key_tasklist_scroll_end,      0, MODE_TASKLIST},
-    {"scroll_end", (void*)key_pager_scroll_end,         0, MODE_PAGER},
-    {"scroll_home", (void*)key_tasklist_scroll_home,     0, MODE_TASKLIST},
-    {"scroll_home", (void*)key_pager_scroll_home,        0, MODE_PAGER},
-    {"scroll_up", (void*)key_tasklist_scroll_up,       0, MODE_TASKLIST},
-    {"scroll_up", (void*)key_pager_scroll_up,          0, MODE_PAGER},
-    {"search", (void*)key_tasklist_search,          0, MODE_TASKLIST},
-    {"search_next", (void*)key_tasklist_search_next,     0, MODE_TASKLIST},
-    {"set", (void*)run_command_set,              1, MODE_ANY},
-    {"shell", (void*)key_task_interactive_command, 1, MODE_ANY},
-    {"shell_bg", (void*)key_task_background_command,  1, MODE_ANY},
-    {"show", (void*)run_command_show,             1, MODE_ANY},
-    {"sort", (void*)key_tasklist_sort,            0, MODE_TASKLIST},
-    {"source", (void*)run_command_source,           1, MODE_ANY},
-    {"source_cmd", (void*)run_command_source_cmd,       1, MODE_ANY},
-    {"stats", (void*)view_stats,                   0, MODE_ANY},
-    {"sync", (void*)key_tasklist_sync,            0, MODE_TASKLIST},
-    {"toggle_start", (void*)key_tasklist_toggle_started,  0, MODE_ANY},
-    {"unbind", (void*)run_command_unbind,           1, MODE_ANY},
-    {"undo", (void*)key_tasklist_undo,            0, MODE_TASKLIST},
-    {"view", (void*)key_tasklist_view,            0, MODE_TASKLIST},
+    {"add",         (void*) key_tasklist_add,             0, MODE_TASKLIST},
+    {"bind",        (void*) run_command_bind,             1, MODE_ANY},
+    {"color",       (void*) run_command_color,            1, MODE_ANY},
+    {"command",     (void*) key_command,                  0, MODE_ANY},
+    {"complete",    (void*) key_tasklist_complete,        0, MODE_ANY},
+    {"delete",      (void*) key_tasklist_delete,          0, MODE_ANY},
+    {"edit",        (void*) key_tasklist_edit,            0, MODE_ANY},
+    {"filter",      (void*) key_tasklist_filter,          0, MODE_TASKLIST},
+    {"f_redraw",    (void*) force_redraw,                 0, MODE_ANY},
+    {"help",        (void*) help_window,                  0, MODE_ANY},
+    {"modify",      (void*) key_tasklist_modify,          0, MODE_TASKLIST},
+    {"quit",        (void*) key_done,                     0, MODE_TASKLIST},
+    {"quit",        (void*) key_pager_close,              0, MODE_PAGER},
+    {"reload",      (void*) key_tasklist_reload,          0, MODE_TASKLIST},
+    {"scroll_down", (void*) key_tasklist_scroll_down,     0, MODE_TASKLIST},
+    {"scroll_down", (void*) key_pager_scroll_down,        0, MODE_PAGER},
+    {"scroll_end",  (void*) key_tasklist_scroll_end,      0, MODE_TASKLIST},
+    {"scroll_end",  (void*) key_pager_scroll_end,         0, MODE_PAGER},
+    {"scroll_home", (void*) key_tasklist_scroll_home,     0, MODE_TASKLIST},
+    {"scroll_home", (void*) key_pager_scroll_home,        0, MODE_PAGER},
+    {"scroll_up",   (void*) key_tasklist_scroll_up,       0, MODE_TASKLIST},
+    {"scroll_up",   (void*) key_pager_scroll_up,          0, MODE_PAGER},
+    {"search",      (void*) key_tasklist_search,          0, MODE_TASKLIST},
+    {"search_next", (void*) key_tasklist_search_next,     0, MODE_TASKLIST},
+    {"set",         (void*) run_command_set,              1, MODE_ANY},
+    {"shell",       (void*) key_task_interactive_command, 1, MODE_ANY},
+    {"shell_bg",    (void*) key_task_background_command,  1, MODE_ANY},
+    {"show",        (void*) run_command_show,             1, MODE_ANY},
+    {"sort",        (void*) key_tasklist_sort,            0, MODE_TASKLIST},
+    {"source",      (void*) run_command_source,           1, MODE_ANY},
+    {"source_cmd",  (void*) run_command_source_cmd,       1, MODE_ANY},
+    {"stats",       (void*) view_stats,                   0, MODE_ANY},
+    {"sync",        (void*) key_tasklist_sync,            0, MODE_TASKLIST},
+    {"toggle_start",(void*) key_tasklist_toggle_started,  0, MODE_ANY},
+    {"unbind",      (void*) run_command_unbind,           1, MODE_ANY},
+    {"undo",        (void*) key_tasklist_undo,            0, MODE_TASKLIST},
+    {"view",        (void*) key_tasklist_view,            0, MODE_TASKLIST},
 };
 /* }}} */
 
-void check_resize() { /* {{{ */
+void check_resize(void) { /* {{{ */
     /* check for a screen resize and handle it */
     if (is_term_resized(rows, cols)) {
         handle_resize();
     }
 } /* }}} */
 
-void check_screen_size() { /* {{{ */
+void check_screen_size(void) { /* {{{ */
     /* check for a screen thats too small */
     int count = 0;
 
@@ -151,7 +151,7 @@ void check_screen_size() { /* {{{ */
     } while (cols < DATELENGTH + 20 + cfg.fieldlengths.project || rows < 5);
 } /* }}} */
 
-void cleanup() { /* {{{ */
+void cleanup(void) { /* {{{ */
     /* function to run on termination */
     struct keybind* lastbind;
 
@@ -183,26 +183,23 @@ void cleanup() { /* {{{ */
 
 void configure(void) { /* {{{ */
     /* parse config file to get runtime options */
-    FILE* cmd;
-    char* filepath, *xdg_config_home, *home;
-    int ret = 0;
+    FILE*   cmd;
+    char*   filepath;
+    char*   xdg_config_home;
+    char*   home;
+    int     ret = 0;
 
     /* set default settings */
-    cfg.nc_timeout =
-        NCURSES_WAIT;                          /* time getch will wait */
-    cfg.statusbar_timeout =
-        STATUSBAR_TIMEOUT_DEFAULT;      /* default time before resetting statusbar */
-    cfg.sortmode =
-        strdup("drpu");                          /* determine sort order */
-    cfg.follow_task =
-        true;                                 /* follow task after it is moved */
+    cfg.nc_timeout  = NCURSES_WAIT;                     /* time getch will wait */
+    cfg.statusbar_timeout = STATUSBAR_TIMEOUT_DEFAULT;  /* default time before resetting statusbar */
+    cfg.sortmode    = strdup("drpu");                   /* determine sort order */
+    cfg.follow_task = true;                             /* follow task after it is moved */
     cfg.history_max = 50;
 
     /* set default formats */
-    cfg.formats.title =
-        strdup(" $program_name ($selected_line/$task_count) $> $date");
-    cfg.formats.task = strdup(" $project $description $> ?$due?$due?$-6priority?");
-    cfg.formats.view = strdup(" task info");
+    cfg.formats.title = strdup(" $program_name ($selected_line/$task_count) $> $date");
+    cfg.formats.task  = strdup(" $project $description $> ?$due?$due?$-6priority?");
+    cfg.formats.view  = strdup(" task info");
 
     /* set initial filter */
     if (!active_filter) {
@@ -220,80 +217,46 @@ void configure(void) { /* {{{ */
     pclose(cmd);
 
     /* default keybinds */
-    add_keybind(ERR,           NULL,                     NULL,
-                MODE_TASKLIST);
-    add_keybind(ERR,           NULL,                     NULL,
-                MODE_PAGER);
-    add_keybind(KEY_RESIZE,    handle_resize,            NULL,            MODE_ANY);
-    add_keybind('k',           key_tasklist_scroll_up,   NULL,
-                MODE_TASKLIST);
-    add_keybind('k',           key_pager_scroll_up,      NULL,
-                MODE_PAGER);
-    add_keybind(KEY_UP,        key_tasklist_scroll_up,   NULL,
-                MODE_TASKLIST);
-    add_keybind(KEY_UP,        key_pager_scroll_up,      NULL,
-                MODE_PAGER);
-    add_keybind('j',           key_tasklist_scroll_down, NULL,
-                MODE_TASKLIST);
-    add_keybind('j',           key_pager_scroll_down,    NULL,
-                MODE_PAGER);
-    add_keybind(KEY_DOWN,      key_tasklist_scroll_down, NULL,
-                MODE_TASKLIST);
-    add_keybind(KEY_DOWN,      key_pager_scroll_down,    NULL,
-                MODE_PAGER);
-    add_keybind('g',           key_tasklist_scroll_home, NULL,
-                MODE_TASKLIST);
-    add_keybind(KEY_HOME,      key_tasklist_scroll_home, NULL,
-                MODE_TASKLIST);
-    add_keybind('g',           key_pager_scroll_home,    NULL,
-                MODE_PAGER);
-    add_keybind(KEY_HOME,      key_pager_scroll_home,    NULL,
-                MODE_PAGER);
-    add_keybind('G',           key_pager_scroll_end,     NULL,
-                MODE_PAGER);
-    add_keybind(KEY_END,       key_pager_scroll_end,     NULL,
-                MODE_PAGER);
-    add_keybind('G',           key_tasklist_scroll_end,  NULL,
-                MODE_TASKLIST);
-    add_keybind(KEY_END,       key_tasklist_scroll_end,  NULL,
-                MODE_TASKLIST);
-    add_keybind('e',           key_tasklist_edit,        NULL,            MODE_ANY);
-    add_keybind('r',           key_tasklist_reload,      NULL,
-                MODE_TASKLIST);
-    add_keybind('u',           key_tasklist_undo,        NULL,
-                MODE_TASKLIST);
-    add_keybind('d',           key_tasklist_delete,      NULL,            MODE_ANY);
-    add_keybind('c',           key_tasklist_complete,    NULL,            MODE_ANY);
-    add_keybind('a',           key_tasklist_add,         NULL,
-                MODE_TASKLIST);
-    add_keybind('v',           key_tasklist_view,        NULL,
-                MODE_TASKLIST);
-    add_keybind(13,            key_tasklist_view,        NULL,
-                MODE_TASKLIST);
-    add_keybind(KEY_ENTER,     key_tasklist_view,        NULL,
-                MODE_TASKLIST);
-    add_keybind('s',           key_tasklist_sort,        NULL,
-                MODE_TASKLIST);
-    add_keybind('/',           key_tasklist_search,      NULL,
-                MODE_TASKLIST);
-    add_keybind('n',           key_tasklist_search_next, NULL,
-                MODE_TASKLIST);
-    add_keybind('f',           key_tasklist_filter,      NULL,
-                MODE_TASKLIST);
-    add_keybind('y',           key_tasklist_sync,        NULL,
-                MODE_TASKLIST);
-    add_keybind('q',           key_done,                 NULL,
-                MODE_TASKLIST);
-    add_keybind('q',           key_pager_close,          NULL,
-                MODE_PAGER);
-    add_keybind(';',           key_command,              NULL,
-                MODE_TASKLIST);
-    add_keybind(':',           key_command,              NULL,            MODE_ANY);
-    add_keybind('h',           help_window,              NULL,            MODE_ANY);
-    add_keybind(12,            force_redraw,             NULL,
-                MODE_TASKLIST);
-    add_keybind(12,            force_redraw,             NULL,
-                MODE_PAGER);
+    add_keybind(ERR,           NULL,                     NULL, MODE_TASKLIST);
+    add_keybind(ERR,           NULL,                     NULL, MODE_PAGER);
+    add_keybind(KEY_RESIZE,    handle_resize,            NULL, MODE_ANY);
+    add_keybind('k',           key_tasklist_scroll_up,   NULL, MODE_TASKLIST);
+    add_keybind('k',           key_pager_scroll_up,      NULL, MODE_PAGER);
+    add_keybind(KEY_UP,        key_tasklist_scroll_up,   NULL, MODE_TASKLIST);
+    add_keybind(KEY_UP,        key_pager_scroll_up,      NULL, MODE_PAGER);
+    add_keybind('j',           key_tasklist_scroll_down, NULL, MODE_TASKLIST);
+    add_keybind('j',           key_pager_scroll_down,    NULL, MODE_PAGER);
+    add_keybind(KEY_DOWN,      key_tasklist_scroll_down, NULL, MODE_TASKLIST);
+    add_keybind(KEY_DOWN,      key_pager_scroll_down,    NULL, MODE_PAGER);
+    add_keybind('g',           key_tasklist_scroll_home, NULL, MODE_TASKLIST);
+    add_keybind(KEY_HOME,      key_tasklist_scroll_home, NULL, MODE_TASKLIST);
+    add_keybind('g',           key_pager_scroll_home,    NULL, MODE_PAGER);
+    add_keybind(KEY_HOME,      key_pager_scroll_home,    NULL, MODE_PAGER);
+    add_keybind('G',           key_pager_scroll_end,     NULL, MODE_PAGER);
+    add_keybind(KEY_END,       key_pager_scroll_end,     NULL, MODE_PAGER);
+    add_keybind('G',           key_tasklist_scroll_end,  NULL, MODE_TASKLIST);
+    add_keybind(KEY_END,       key_tasklist_scroll_end,  NULL, MODE_TASKLIST);
+    add_keybind('e',           key_tasklist_edit,        NULL, MODE_ANY);
+    add_keybind('r',           key_tasklist_reload,      NULL, MODE_TASKLIST);
+    add_keybind('u',           key_tasklist_undo,        NULL, MODE_TASKLIST);
+    add_keybind('d',           key_tasklist_delete,      NULL, MODE_ANY);
+    add_keybind('c',           key_tasklist_complete,    NULL, MODE_ANY);
+    add_keybind('a',           key_tasklist_add,         NULL, MODE_TASKLIST);
+    add_keybind('v',           key_tasklist_view,        NULL, MODE_TASKLIST);
+    add_keybind(13,            key_tasklist_view,        NULL, MODE_TASKLIST);
+    add_keybind(KEY_ENTER,     key_tasklist_view,        NULL, MODE_TASKLIST);
+    add_keybind('s',           key_tasklist_sort,        NULL, MODE_TASKLIST);
+    add_keybind('/',           key_tasklist_search,      NULL, MODE_TASKLIST);
+    add_keybind('n',           key_tasklist_search_next, NULL, MODE_TASKLIST);
+    add_keybind('f',           key_tasklist_filter,      NULL, MODE_TASKLIST);
+    add_keybind('y',           key_tasklist_sync,        NULL, MODE_TASKLIST);
+    add_keybind('q',           key_done,                 NULL, MODE_TASKLIST);
+    add_keybind('q',           key_pager_close,          NULL, MODE_PAGER);
+    add_keybind(';',           key_command,              NULL, MODE_TASKLIST);
+    add_keybind(':',           key_command,              NULL, MODE_ANY);
+    add_keybind('h',           help_window,              NULL, MODE_ANY);
+    add_keybind(12,            force_redraw,             NULL, MODE_TASKLIST);
+    add_keybind(12,            force_redraw,             NULL, MODE_PAGER);
 
     /* determine config path */
     xdg_config_home = getenv("XDG_CONFIG_HOME");
@@ -390,11 +353,11 @@ struct var* find_var(const char* name) { /* {{{ */
     return NULL;
 } /* }}} */
 
-void force_redraw() { /* {{{ */
+void force_redraw(void) { /* {{{ */
     /* force a redraw of active windows */
-    WINDOW* windows[] = {statusbar, tasklist, pager, header};
-    const int nwins = sizeof(windows) / sizeof(WINDOW*);
-    int i;
+    WINDOW*     windows[]   = {statusbar, tasklist, pager, header};
+    const int   nwins       = sizeof(windows) / sizeof(WINDOW*);
+    int         i;
 
     /* force a resize check */
     handle_resize();
@@ -419,7 +382,7 @@ void force_redraw() { /* {{{ */
     statusbar_message(cfg.statusbar_timeout, "redrawn");
 } /* }}} */
 
-void handle_resize() { /* {{{ */
+void handle_resize(void) { /* {{{ */
     /* handle a change in screen size */
     int pagerheight;
 
@@ -524,17 +487,17 @@ void key_task_interactive_command(const char* arg) { /* {{{ */
     reload = 1;
 } /* }}} */
 
-void key_done() { /* {{{ */
+void key_done(void) { /* {{{ */
     /* exit tasknc */
     done = true;
 } /* }}} */
 
-char max_project_length() { /* {{{ */
+char max_project_length(void) { /* {{{ */
     /* compute max project length
      * return is the maximum project length
      */
-    char len = 0;
-    struct task* cur;
+    char            len = 0;
+    struct task*    cur;
 
     cur = head;
 
@@ -624,7 +587,7 @@ void ncurses_end(int sig) { /* {{{ */
     exit(0);
 } /* }}} */
 
-void ncurses_init() { /* {{{ */
+void ncurses_init(void) { /* {{{ */
     /* initialize ncurses */
     int ret;
 
@@ -651,7 +614,7 @@ void ncurses_init() { /* {{{ */
     }
 } /* }}} */
 
-void print_header() { /* {{{ */
+void print_header(void) { /* {{{ */
     /* print the window title bar */
     char* tmp0;
 
@@ -744,7 +707,10 @@ char* str_trim(char* str) { /* {{{ */
     return str;
 } /* }}} */
 
-int umvaddstr(WINDOW* win, const int y, const int x, const char* format,
+int umvaddstr(WINDOW* win,
+              const int y,
+              const int x,
+              const char* format,
               ...) { /* {{{ */
     /* convert a string to a wchar string and mvaddwstr
      * win    - the window to print the string in
@@ -755,10 +721,11 @@ int umvaddstr(WINDOW* win, const int y, const int x, const char* format,
      * (similar to printf)
      * return is the return of mvwaddnwstr
      */
-    int len, r;
-    wchar_t* wstr;
-    char* str;
-    va_list args;
+    int         len;
+    int         r;
+    wchar_t*    wstr;
+    char*       str;
+    va_list     args;
 
     /* build str */
     va_start(args, format);
@@ -802,8 +769,10 @@ int umvaddstr_align(WINDOW* win, const int y, char* str) { /* {{{ */
      * the return is the return of the first umvaddstr, if it failed
      * or the return of the second umvaddstr otherwise
      */
-    char* right, *pos;
-    int ret, tmp;
+    char* right;
+    char* pos;
+    int   ret;
+    int   tmp;
 
     /* print background line */
     mvwhline(win, y, 0, ' ', cols);
@@ -845,7 +814,8 @@ void wipe_screen(WINDOW* win, const short startl, const short stopl) { /* {{{ */
      * startl - the number of the line to start wiping at
      * stopl  - the number of the line to stop wiping at
      */
-    int y, x;
+    int y;
+    int x;
 
     wattrset(win, COLOR_PAIR(0));
 
@@ -859,7 +829,10 @@ void wipe_window(WINDOW* win) { /* {{{ */
     /* wipe everything on the screen
      * win - the window to print the string in
      */
-    int x, y, tx, ty;
+    int x;
+    int y;
+    int tx;
+    int ty;
 
     getmaxyx(win, y, x);
 
@@ -879,10 +852,10 @@ void sig_handler(int signo) {
 
 int main(int argc, char** argv) { /* {{{ */
     /* declare variables */
-    int c;
-    bool debug = false;
-    char* debugopts = NULL;
-    char* logpath;
+    int     c;
+    bool    debug       = false;
+    char*   debugopts   = NULL;
+    char*   logpath;
 
     if (signal(SIGUSR1, sig_handler) == SIG_ERR) {
         printf("\ncan't catch SIGUSR1, task list reload signal will be non-functional.\n");

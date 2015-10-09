@@ -99,13 +99,15 @@ short add_color_pair(short askpair, short fg, short bg) { /* {{{ */
 
     /* mark pair as used and exit */
     pairs_used[pair] = true;
-    tnc_fprintf(logfp, LOG_DEBUG, "assigned color pair %hd to (%hd, %hd)", pair, fg,
-                bg);
+    tnc_fprintf(logfp, LOG_DEBUG, "assigned color pair %hd to (%hd, %hd)",
+                pair, fg, bg);
     return pair;
 } /* }}} */
 
-short add_color_rule(const enum color_object object, const char* rule,
-                     const short fg, const short bg) { /* {{{ */
+short add_color_rule(const enum color_object object,
+                     const char* rule,
+                     const short fg,
+                     const short bg) { /* {{{ */
     /**
      * add or overwrite a color rule for the provided conditions
      * if the rule is unique, create a new rule
@@ -116,9 +118,10 @@ short add_color_rule(const enum color_object object, const char* rule,
      * fg     - the foreground color to be set when rule is true
      * bg     - the background color to be set when rule is true
      */
-    struct color_rule* last, *this;
-    short ret;
-    struct task* tsk;
+    struct color_rule*  last;
+    struct color_rule*  this;
+    short               ret;
+    struct task*        tsk;
 
     /* reset color caches if past configuration */
     if (tasklist != NULL) {
@@ -199,9 +202,13 @@ bool eval_rules(char* rule, const struct task* tsk, const bool selected) { /* {{
      * tsk      - the task the rule will be evaluated on
      * selected - whether the task is selected
      */
-    char* regex = NULL, pattern, *tmp;
-    int ret, move;
-    bool go = false, invert = false;
+    char*   regex = NULL;
+    char    pattern;
+    char*   tmp;
+    int     ret;
+    int     move;
+    bool    go = false;
+    bool    invert = false;
 
     /* success if rules are done */
     if (rule == NULL || *rule == 0) {
@@ -318,8 +325,11 @@ short find_add_pair(const short fg, const short bg) { /* {{{ */
      * fg - the foreground color
      * bg - the background color
      */
-    short tmpfg, tmpbg, pair, free_pair = -1;
-    int ret;
+    short tmpfg;
+    short tmpbg;
+    short pair;
+    short free_pair = -1;
+    int   ret;
 
     /* look for an existing pair */
     for (pair = 1; pair < COLOR_PAIRS; pair++) {
@@ -342,9 +352,10 @@ short find_add_pair(const short fg, const short bg) { /* {{{ */
     return add_color_pair(free_pair, fg, bg);
 } /* }}} */
 
-void free_colors() { /* {{{ */
+void free_colors(void) { /* {{{ */
     /* clean up memory allocated for colors */
-    struct color_rule* this, *last;
+    struct color_rule* this;
+    struct color_rule* last;
 
     check_free(pairs_used);
 
@@ -358,7 +369,8 @@ void free_colors() { /* {{{ */
     }
 } /* }}} */
 
-int get_colors(const enum color_object object, struct task* tsk,
+int get_colors(const enum color_object object,
+               struct task* tsk,
                const bool selected) { /* {{{ */
     /**
      * evaluate color rules and return an argument to attrset
@@ -366,10 +378,10 @@ int get_colors(const enum color_object object, struct task* tsk,
      * tsk      - the task to be colored
      * selected - whether the task is selected
      */
-    short pair = 0;
-    int* tskpair;
-    struct color_rule* rule;
-    bool done = false;
+    short               pair = 0;
+    int*                tskpair;
+    struct color_rule*  rule;
+    bool                done = false;
 
     /* check for cache if task */
     if (object == OBJECT_TASK) {
@@ -424,7 +436,7 @@ int get_colors(const enum color_object object, struct task* tsk,
     return COLOR_PAIR(pair);
 } /* }}} */
 
-int init_colors() { /* {{{ */
+int init_colors(void) { /* {{{ */
     /* initialize curses colors */
     int ret;
     use_colors = false;
@@ -460,10 +472,10 @@ int init_colors() { /* {{{ */
 
 int parse_color(const char* name) { /* {{{ */
     /* parse a color from a string */
-    unsigned int i;
-    int ret;
+    unsigned int    i;
+    int             ret;
     struct color_map {
-        const int color;
+        const int   color;
         const char* name;
     };
 
@@ -508,7 +520,7 @@ enum color_object parse_object(const char* name) { /* {{{ */
     unsigned int i;
     struct color_object_map {
         const enum color_object object;
-        const char* name;
+        const char*             name;
     };
 
     /* object map */
@@ -529,7 +541,7 @@ enum color_object parse_object(const char* name) { /* {{{ */
     return OBJECT_NONE;
 } /* }}} */
 
-int set_default_colors() { /* {{{ */
+int set_default_colors(void) { /* {{{ */
     /* create initial color rules */
     add_color_rule(OBJECT_HEADER, NULL, COLOR_BLUE, COLOR_BLACK);
     add_color_rule(OBJECT_TASK, NULL, -1, -1);

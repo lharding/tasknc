@@ -56,7 +56,8 @@ void free_tasks(struct task* head) { /* {{{ */
     /* free the task stack
      * head - the first task on the stack to free
      */
-    struct task* cur, *next;
+    struct task* cur;
+    struct task* next;
 
     cur = head;
 
@@ -74,7 +75,7 @@ struct task* get_task_by_position(int n) { /* {{{ */
      * or null if n > # of tasks on the stack
      */
     struct task* cur;
-    short i = -1;
+    short        i = -1;
 
     cur = head;
 
@@ -98,7 +99,7 @@ int get_task_position_by_uuid(const char* uuid) { /* {{{ */
      * or -1 if no task on the stack matches this uuid
      */
     struct task* cur;
-    int pos = 0;
+    int          pos = 0;
 
     cur = head;
 
@@ -121,11 +122,14 @@ struct task* get_tasks(char* uuid) { /* {{{ */
      * return is the task data for a single task, if a uuid was passed
      * or all tasks, if uuid == NULL
      */
-    FILE* cmd;
-    char* line, *tmp, *cmdstr;
-    int linelen = TOTALLENGTH;
-    unsigned short counter = 0;
-    struct task* last, *new_head;
+    FILE*           cmd;
+    char*           line;
+    char*           tmp;
+    char*           cmdstr;
+    int             linelen = TOTALLENGTH;
+    unsigned short  counter = 0;
+    struct task*    last;
+    struct task*    new_head;
 
     /* generate & run command */
     cmdstr = calloc(128, sizeof(char));
@@ -159,9 +163,9 @@ struct task* get_tasks(char* uuid) { /* {{{ */
     free(cmdstr);
 
     /* parse output */
-    last = NULL;
-    new_head = NULL;
-    line = calloc(linelen, sizeof(char));
+    last        = NULL;
+    new_head    = NULL;
+    line        = calloc(linelen, sizeof(char));
 
     while (fgets(line, linelen - 1, cmd) != NULL || !feof(cmd)) {
         struct task* this;
@@ -240,10 +244,11 @@ unsigned short get_task_id(char* uuid) { /* {{{ */
      * uuid - the task to find the id of
      * return is the id of the task specified
      */
-    FILE* cmd;
-    char line[128], format[128];
-    int ret;
-    unsigned short id = 0;
+    FILE*           cmd;
+    char            line[128];
+    char            format[128];
+    int             ret;
+    unsigned short  id = 0;
 
     /* generate format to scan for */
     sprintf(format, "%s %%hu", uuid);
@@ -276,20 +281,20 @@ struct task* malloc_task(void) { /* {{{ */
         return NULL;
     }
 
-    tsk->index = 0;
-    tsk->uuid = NULL;
-    tsk->tags = NULL;
-    tsk->start = 0;
-    tsk->end = 0;
-    tsk->entry = 0;
-    tsk->due = 0;
-    tsk->project = NULL;
-    tsk->priority = 0;
-    tsk->description = NULL;
-    tsk->next = NULL;
-    tsk->prev = NULL;
-    tsk->pair = -1;
-    tsk->selpair = -1;
+    tsk->index          = 0;
+    tsk->uuid           = NULL;
+    tsk->tags           = NULL;
+    tsk->start          = 0;
+    tsk->end            = 0;
+    tsk->entry          = 0;
+    tsk->due            = 0;
+    tsk->project        = NULL;
+    tsk->priority       = 0;
+    tsk->description    = NULL;
+    tsk->next           = NULL;
+    tsk->prev           = NULL;
+    tsk->pair           = -1;
+    tsk->selpair        = -1;
 
     return tsk;
 } /* }}} */
@@ -468,8 +473,9 @@ void remove_char(char* str, char remove) { /* {{{ */
      * str    - the string to remove escapes from
      * remove - the escape to remove
      */
-    const int len = strlen(str);
-    int i, offset = 0;
+    const int   len = strlen(str);
+    int         i;
+    int         offset = 0;
 
     for (i = 0; i < len; i++) {
         if (str[i + offset] == '\0') {
@@ -518,8 +524,8 @@ void set_date(time_t* field, char** line) { /* {{{ */
      * field - the field set the time in
      * line  - the line to parse the time from
      */
-    char* tmp;
-    int ret = sscanf(*line, "\"%m[^\"]\"", &tmp);
+    char*   tmp;
+    int     ret = sscanf(*line, "\"%m[^\"]\"", &tmp);
 
     if (ret != 1) {
         tnc_fprintf(logfp, LOG_ERROR, "error parsing time @ %s", *line);
@@ -620,10 +626,11 @@ int task_background_command(const char* cmdfmt) { /* {{{ */
      *          the selected task's uuid
      * return is the return of the command run
      */
-    struct task* cur;
-    char* cmdstr, *line;
-    FILE* cmd;
-    int ret;
+    struct task*    cur;
+    char*           cmdstr;
+    char*           line;
+    FILE*           cmd;
+    int             ret;
 
     /* build command */
     cur = get_task_by_position(selline);
@@ -681,8 +688,8 @@ int task_interactive_command(const char* cmdfmt) { /* {{{ */
      * return is the return of the command run
      */
     struct task* cur;
-    char* cmdstr;
-    int ret;
+    char*        cmdstr;
+    int          ret;
 
     /* build command */
     cur = get_task_by_position(selline);
@@ -727,9 +734,10 @@ void task_modify(const char* argstr) { /* {{{ */
      * argstr - the command to run on the selected task
      *          this will be appended to `task UUID modify `
      */
-    struct task* cur;
-    char* cmd, *uuid;
-    int arglen;
+    struct task*    cur;
+    char*           cmd;
+    char*           uuid;
+    int             arglen;
 
     if (argstr != NULL) {
         arglen = strlen(argstr);

@@ -25,10 +25,13 @@ static void source_fp(const FILE* fp);
 
 void handle_command(char* cmdstr) { /* {{{ */
     /* accept a command string, determine what action to take, and execute */
-    char* command, *args, *modestr, *pos;
+    char*           command;
+    char*           args;
+    char*           modestr;
+    char*           pos;
     struct funcmap* fmap;
-    enum prog_mode mode;
-    int ret = 0;
+    enum prog_mode  mode;
+    int             ret = 0;
 
     /* parse args */
     pos = strchr(cmdstr, '\n');
@@ -63,8 +66,8 @@ void handle_command(char* cmdstr) { /* {{{ */
     }
 
     /* log command */
-    tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: %s - %s (%s)", modestr, command,
-                args);
+    tnc_fprintf(logfp, LOG_DEBUG_VERBOSE, "command: %s - %s (%s)", modestr,
+                command, args);
 
     /* handle command & arguments */
     /* try for exposed command */
@@ -77,8 +80,8 @@ void handle_command(char* cmdstr) { /* {{{ */
 
     /* version: print version string */
     if (str_eq(command, "version")) {
-        statusbar_message(cfg.statusbar_timeout, "%s %s by %s\n", PROGNAME, PROGVERSION,
-                          PROGAUTHOR);
+        statusbar_message(cfg.statusbar_timeout, "%s %s by %s\n", PROGNAME,
+                          PROGVERSION, PROGAUTHOR);
     }
     /* quit/exit: exit tasknc */
     else if (str_eq(command, "quit") || str_eq(command, "exit")) {
@@ -95,8 +98,8 @@ void handle_command(char* cmdstr) { /* {{{ */
     }
     /* dump: write all displayed tasks to log file */
     else if (str_eq(command, "dump")) {
-        struct task* this = head;
-        int counter = 0;
+        struct task*    this = head;
+        int             counter = 0;
 
         while (this != NULL) {
             tnc_fprintf(logfp, 0, "uuid: %s", this->uuid);
@@ -133,12 +136,16 @@ void run_command_bind(char* args) { /* {{{ */
      * create a new keybind
      * syntax - mode key function [funcarg]
      */
-    int key, ret = 0;
-    char* function = NULL, *arg = NULL, *keystr = NULL, *modestr = NULL,
-          *keyname = NULL;
-    void (*func)();
+    int             key;
+    int             ret = 0;
+    char*           function  = NULL;
+    char*           arg       = NULL;
+    char*           keystr    = NULL;
+    char*           modestr   = NULL;
+    char*           keyname   = NULL;
     struct funcmap* fmap;
-    enum prog_mode mode;
+    enum prog_mode  mode;
+    void (*func)();
 
     /* parse command */
     if (args != NULL) {
@@ -204,9 +211,14 @@ void run_command_color(char* args) { /* {{{ */
      * create/modify a color rule
      * syntax: object foreground background [rule]
      */
-    char* object = NULL, *fg = NULL, *bg = NULL, *rule = NULL;
-    enum color_object obj;
-    int ret = 0, fgc, bgc;
+    char*               object  = NULL;
+    char*               fg      = NULL;
+    char*               bg      = NULL;
+    char*               rule    = NULL;
+    enum color_object   obj;
+    int                 ret = 0;
+    int                 fgc;
+    int                 bgc;
 
     if (args != NULL) {
         ret = sscanf(args, "%ms %m[a-z0-9-] %m[a-z0-9-] %m[^\n]", &object, &fg, &bg,
@@ -264,9 +276,11 @@ void run_command_unbind(char* argstr) { /* {{{ */
      * unbind a key
      * syntax - mode key
      */
-    char* modestr = NULL, *keystr = NULL, *keyname = NULL;
-    enum prog_mode mode;
-    int ret = 0;
+    char*           modestr = NULL;
+    char*           keystr  = NULL;
+    char*           keyname = NULL;
+    enum prog_mode  mode;
+    int             ret = 0;
 
     /* parse args */
     if (argstr != NULL) {
@@ -309,8 +323,10 @@ void run_command_set(char* args) { /* {{{ */
      * syntax: variable value
      */
     struct var* this_var;
-    char* message = NULL, *varname = NULL, *value = NULL;
-    int ret = 0;
+    char*       message = NULL;
+    char*       varname = NULL;
+    char*       value   = NULL;
+    int         ret     = 0;
 
     /* parse args */
     if (args != NULL) {
@@ -325,7 +341,7 @@ void run_command_set(char* args) { /* {{{ */
     }
 
     /* find the variable */
-    this_var = (struct var*)find_var(varname);
+    this_var = (struct var*) find_var(varname);
 
     if (this_var == NULL) {
         statusbar_message(cfg.statusbar_timeout, "variable not found: %s", varname);
@@ -347,23 +363,23 @@ void run_command_set(char* args) { /* {{{ */
     /* set the value */
     switch (this_var->type) {
     case VAR_INT:
-        ret = sscanf(value, "%d", (int*)this_var->ptr);
+        ret = sscanf(value, "%d", (int*) this_var->ptr);
         break;
 
     case VAR_CHAR:
-        ret = sscanf(value, "%c", (char*)this_var->ptr);
+        ret = sscanf(value, "%c", (char*) this_var->ptr);
         break;
 
     case VAR_STR:
-        if (*(char**)(this_var->ptr) != NULL) {
-            free(*(char**)(this_var->ptr));
+        if (*(char**) (this_var->ptr) != NULL) {
+            free(*(char**) (this_var->ptr));
         }
 
-        *(char**)(this_var->ptr) = calloc(strlen(value) + 1, sizeof(char));
-        ret = NULL != strcpy(*(char**)(this_var->ptr), value);
+        *(char**) (this_var->ptr) = calloc(strlen(value) + 1, sizeof(char));
+        ret = NULL != strcpy(*(char**) (this_var->ptr), value);
 
         if (ret) {
-            strip_quotes((char**)this_var->ptr, 1);
+            strip_quotes((char**) this_var->ptr, 1);
         }
 
         break;
@@ -395,8 +411,8 @@ void run_command_show(const char* arg) { /* {{{ */
      * syntax: variable
      */
     struct var* this_var;
-    char* message = NULL;
-    int ret = 0;
+    char*       message = NULL;
+    int         ret = 0;
 
     /* parse arg */
     if (arg != NULL) {
@@ -531,9 +547,11 @@ void strip_quotes(char** strptr, bool needsfree) { /* {{{ */
      * the string generated by this function must be freed
      */
     const char* quotes = "\"'";
-    char* newstr, *end, *str = *strptr;
-    bool inquotes = false;
-    int len = 0;
+    char*       newstr;
+    char*       end;
+    char*       str = *strptr;
+    bool        inquotes = false;
+    int         len = 0;
 
     /* walk to end of string */
     end = str;
