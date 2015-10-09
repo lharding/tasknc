@@ -17,11 +17,11 @@ extern config cfg;
 
 /* local functions */
 static char* append_buffer(char* buffer, const char append, int* bufferlen);
-static void append_field(fmt_field** head, fmt_field** last, fmt_field* this);
-static fmt_field* buffer_field(char* buffer, int bufferlen);
+static void append_field(struct fmt_field** head, struct fmt_field** last, struct fmt_field* this);
+static struct fmt_field* buffer_field(char* buffer, int bufferlen);
 static char* eval_conditional(conditional_fmt_field* this, struct task* tsk);
-static char* field_to_str(fmt_field* this, bool* free_field, struct task* tsk);
-static void free_format(fmt_field* this);
+static char* field_to_str(struct fmt_field* this, bool* free_field, struct task* tsk);
+static void free_format(struct fmt_field* this);
 static conditional_fmt_field* parse_conditional(char** str);
 
 char* append_buffer(char* buffer, const char append, int* bufferlen) { /* {{{ */
@@ -39,8 +39,8 @@ char* append_buffer(char* buffer, const char append, int* bufferlen) { /* {{{ */
     return buffer;
 } /* }}} */
 
-void append_field(fmt_field** head, fmt_field** last,
-                  fmt_field* this) { /* {{{ */
+void append_field(struct fmt_field** head, struct fmt_field** last,
+                  struct fmt_field* this) { /* {{{ */
     /**
      * append a format field to a linked list of format fields
      * head      - the first format field
@@ -56,11 +56,11 @@ void append_field(fmt_field** head, fmt_field** last,
     *last = this;
 } /* }}} */
 
-fmt_field* buffer_field(char* buffer, int bufferlen) { /* {{{ */
+struct fmt_field* buffer_field(char* buffer, int bufferlen) { /* {{{ */
     /* create a format struct from a buffer string of a specified length */
-    fmt_field* this;
+    struct fmt_field* this;
 
-    this = calloc(1, sizeof(fmt_field));
+    this = calloc(1, sizeof(struct fmt_field));
     this->field = buffer;
     this->length = bufferlen;
     this->width = bufferlen;
@@ -76,9 +76,9 @@ void compile_formats() { /* {{{ */
     cfg.formats.view_compiled = compile_format_string(cfg.formats.view);
 } /* }}} */
 
-fmt_field* compile_format_string(char* fmt) { /* {{{ */
+struct fmt_field* compile_format_string(char* fmt) { /* {{{ */
     /* compile a given format string */
-    fmt_field* head = NULL, *this, *last = NULL;
+    struct fmt_field* head = NULL, *this, *last = NULL;
     int buffersize = 0, i, width;
     char* buffer = NULL;
     bool next, right_align;
@@ -116,7 +116,7 @@ fmt_field* compile_format_string(char* fmt) { /* {{{ */
 
             /* check for conditional */
             if (*fmt == '?') {
-                this = calloc(1, sizeof(fmt_field));
+                this = calloc(1, sizeof(struct fmt_field));
                 this->type = FIELD_CONDITIONAL;
                 this->conditional = parse_conditional(&fmt);
                 append_field(&head, &last, this);
@@ -146,7 +146,7 @@ fmt_field* compile_format_string(char* fmt) { /* {{{ */
 
             /* check for date */
             if (str_starts_with(fmt, "date")) {
-                this = calloc(1, sizeof(fmt_field));
+                this = calloc(1, sizeof(struct fmt_field));
                 this->type = FIELD_DATE;
                 this->width = width;
                 this->right_align = right_align;
@@ -157,7 +157,7 @@ fmt_field* compile_format_string(char* fmt) { /* {{{ */
 
             /* check for time */
             if (str_starts_with(fmt, "time")) {
-                this = calloc(1, sizeof(fmt_field));
+                this = calloc(1, sizeof(struct fmt_field));
                 this->type = FIELD_TIME;
                 this->width = width;
                 this->right_align = right_align;
@@ -169,7 +169,7 @@ fmt_field* compile_format_string(char* fmt) { /* {{{ */
             /* check for task field */
             for (i = FIELD_PROJECT; i <= FIELD_INDEX; i++) {
                 if (str_starts_with(fmt, task_field_map[i])) {
-                    this = calloc(1, sizeof(fmt_field));
+                    this = calloc(1, sizeof(struct fmt_field));
                     this->type = i;
                     this->width = width;
                     this->right_align = right_align;
@@ -187,7 +187,7 @@ fmt_field* compile_format_string(char* fmt) { /* {{{ */
             /* check for a var */
             for (i = 0; vars[i].name != NULL; i++) {
                 if (str_starts_with(fmt, vars[i].name)) {
-                    this = calloc(1, sizeof(fmt_field));
+                    this = calloc(1, sizeof(struct fmt_field));
                     this->width = width;
                     this->right_align = right_align;
                     this->type = FIELD_VAR;
@@ -267,7 +267,7 @@ static char* eval_conditional(conditional_fmt_field* this,
     return ret;
 } /* }}} */
 
-char* eval_format(fmt_field* fmts, struct task* tsk) { /* {{{ */
+char* eval_format(struct fmt_field* fmts, struct task* tsk) { /* {{{ */
     /**
      * evaluate a linked list of format fields
      * fmts - the first element in the linked list of format fields
@@ -276,7 +276,7 @@ char* eval_format(fmt_field* fmts, struct task* tsk) { /* {{{ */
     int totallen = 1, pos = 0;
     unsigned int fieldwidth, fieldlen, p;
     char* str = NULL, *tmp;
-    fmt_field* this;
+    struct fmt_field* this;
     bool free_tmp;
 
     /* build string */
@@ -335,7 +335,7 @@ char* eval_format(fmt_field* fmts, struct task* tsk) { /* {{{ */
     return str;
 } /* }}} */
 
-static char* field_to_str(fmt_field* this, bool* free_field,
+static char* field_to_str(struct fmt_field* this, bool* free_field,
                           struct task* tsk) { /* {{{ */
     /**
      * evaluate a field and convert it to a string
@@ -411,9 +411,9 @@ static char* field_to_str(fmt_field* this, bool* free_field,
     return ret;
 } /* }}} */
 
-void free_format(fmt_field* this) { /* {{{ */
+void free_format(struct fmt_field* this) { /* {{{ */
     /* walk through a format list and free its elements */
-    fmt_field* last;
+    struct fmt_field* last;
 
     while (this != NULL) {
         last = this;

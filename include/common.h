@@ -107,7 +107,7 @@ enum fmt_field_type {
  * right_align - whether the field should be right aligned
  * next        - the next format field struct
  */
-typedef struct _fmt_field {
+struct fmt_field {
     enum fmt_field_type type;
     struct var* variable;
     char* field;
@@ -115,8 +115,8 @@ typedef struct _fmt_field {
     unsigned int length;
     unsigned int width;
     bool right_align;
-    struct _fmt_field* next;
-} fmt_field;
+    struct fmt_field* next;
+};
 
 /**
  * conditional format field struct
@@ -125,9 +125,9 @@ typedef struct _fmt_field {
  * negative  - the string to be printed if condition was false
  */
 typedef struct _conditional_fmt_field {
-    fmt_field* condition;
-    fmt_field* positive;
-    fmt_field* negative;
+    struct fmt_field* condition;
+    struct fmt_field* positive;
+    struct fmt_field* negative;
 } conditional_fmt_field;
 
 
@@ -172,11 +172,11 @@ typedef struct _config {
     bool follow_task;
     struct {
         char* task;
-        fmt_field* task_compiled;
+        struct fmt_field* task_compiled;
         char* title;
-        fmt_field* title_compiled;
+        struct fmt_field* title_compiled;
         char* view;
-        fmt_field* view_compiled;
+        struct fmt_field* view_compiled;
     } formats;
     struct {
         int description;

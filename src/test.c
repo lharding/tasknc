@@ -72,7 +72,7 @@ void test(const char* args) { /* {{{ */
 
 void test_compile_fmt() { /* {{{ */
     /* test compiling a format to a series of fields */
-    fmt_field* fmts;
+    struct fmt_field* fmts;
     char* eval, *teststr;
 
     teststr = "first $date $-8program_version $4program_name $10program_author ++?$search_string?SEARCH??++ ++?$active_filter??NO?++ second";
