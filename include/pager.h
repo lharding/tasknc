@@ -16,12 +16,12 @@
  * str  - the string contained
  * next - the next line struct
  */
-typedef struct _line {
+struct line {
     char* str;
-    struct _line* next;
-} line;
+    struct line* next;
+};
 
-void free_lines(line* head);
+void free_lines(struct line* head);
 void help_window(void);
 void key_pager_close(void);
 void key_pager_scroll_down(void);

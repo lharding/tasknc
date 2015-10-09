@@ -23,7 +23,7 @@
 #include "tasknc.h"
 
 /* local functions */
-static void pager_window(line* head,
+static void pager_window(struct line* head,
                          const bool fullscreen,
                          int nlines,
                          char* title);
@@ -32,9 +32,9 @@ static void pager_window(line* head,
 int offset, height, linecount;
 bool pager_done;
 
-void free_lines(line* head) { /* {{{ */
+void free_lines(struct line* head) { /* {{{ */
     /* iterate through linked list of lines and free all elements */
-    line* cur, *last;
+    struct line* cur, *last;
 
     cur = head;
 
@@ -48,7 +48,7 @@ void free_lines(line* head) { /* {{{ */
 
 void help_window() { /* {{{ */
     /* display a help window */
-    line* head, *cur, *last;
+    struct line* head, *cur, *last;
     keybind* this;
     char* modestr, *keyname;
     static bool help_running = false;
@@ -63,7 +63,7 @@ void help_window() { /* {{{ */
     help_running = true;
 
     /* list keybinds */
-    head = calloc(1, sizeof(line));
+    head = calloc(1, sizeof(struct line));
     head->str = strdup("keybinds");
 
     last = head;
@@ -75,7 +75,7 @@ void help_window() { /* {{{ */
             continue;
         }
 
-        cur = calloc(1, sizeof(line));
+        cur = calloc(1, sizeof(struct line));
         last->next = cur;
 
         if (this->mode == MODE_TASKLIST) {
@@ -152,7 +152,7 @@ void pager_command(const char* cmdstr, const char* title, const bool fullscreen,
     FILE* cmd;
     char* str;
     int count = 0, maxlen = 0, len;
-    line* head = NULL, *last = NULL, *cur;
+    struct line* head = NULL, *last = NULL, *cur;
 
     /* run command, gathering strs into a buffer */
     cmd = popen(cmdstr, "r");
@@ -167,7 +167,7 @@ void pager_command(const char* cmdstr, const char* title, const bool fullscreen,
         }
 
         /* create line */
-        cur = calloc(1, sizeof(line));
+        cur = calloc(1, sizeof(struct line));
         cur->str = str;
 
         /* place line in list */
@@ -197,7 +197,7 @@ void pager_command(const char* cmdstr, const char* title, const bool fullscreen,
     free_lines(head);
 } /* }}} */
 
-void pager_window(line* head, const bool fullscreen, int nlines,
+void pager_window(struct line* head, const bool fullscreen, int nlines,
                   char* title) { /* {{{ */
     /**
      * page through a linked list of lines
@@ -207,7 +207,7 @@ void pager_window(line* head, const bool fullscreen, int nlines,
      * title      - the title of the pager
      */
     int startx, starty, lineno, c, taskheight;
-    line* tmp;
+    struct line* tmp;
     offset = 0;
     WINDOW* last_pager = NULL;
     const int orig_offset = offset;
