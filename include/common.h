@@ -18,7 +18,12 @@ enum ncurses_mode {
 };
 
 /* var type */
-typedef enum { VAR_UNDEF, VAR_CHAR, VAR_STR, VAR_INT } var_type;
+enum var_type {
+    VAR_UNDEF,
+    VAR_CHAR,
+    VAR_STR,
+    VAR_INT
+};
 
 /* variable permissions */
 typedef enum { VAR_RW, VAR_RC, VAR_RO } var_perms;
@@ -32,7 +37,7 @@ typedef enum { VAR_RW, VAR_RC, VAR_RO } var_perms;
  */
 typedef struct _var {
     char* name;
-    var_type type;
+    enum var_type type;
     var_perms perms;
     void* ptr;
 } var;
