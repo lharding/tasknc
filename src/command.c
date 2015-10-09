@@ -26,7 +26,7 @@ static void source_fp(const FILE* fp);
 void handle_command(char* cmdstr) { /* {{{ */
     /* accept a command string, determine what action to take, and execute */
     char* command, *args, *modestr, *pos;
-    funcmap* fmap;
+    struct funcmap* fmap;
     enum prog_mode mode;
     int ret = 0;
 
@@ -137,7 +137,7 @@ void run_command_bind(char* args) { /* {{{ */
     char* function = NULL, *arg = NULL, *keystr = NULL, *modestr = NULL,
           *keyname = NULL;
     void (*func)();
-    funcmap* fmap;
+    struct funcmap* fmap;
     enum prog_mode mode;
 
     /* parse command */

@@ -140,12 +140,12 @@ struct conditional_fmt_field {
  * argn     - the number of arguments the function takes
  * mode     - the mode that this function should be run in
  */
-typedef struct _funcmap {
+struct funcmap {
     char* name;
     void (*function)();
     int argn;
     enum prog_mode mode;
-} funcmap;
+};
 
 /* log levels */
 typedef enum { LOG_DEFAULT, LOG_ERROR, LOG_WARN, LOG_INFO, LOG_DEBUG,

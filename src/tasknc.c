@@ -79,7 +79,7 @@ struct var vars[] = {
     {"view_format",       VAR_STR,  VAR_RC, &(cfg.formats.view)},
 };
 
-funcmap funcmaps[] = {
+struct funcmap funcmaps[] = {
     {"add", (void*)key_tasklist_add,             0, MODE_TASKLIST},
     {"bind", (void*)run_command_bind,             1, MODE_ANY},
     {"color", (void*)run_command_color,            1, MODE_ANY},
@@ -314,7 +314,7 @@ void configure(void) { /* {{{ */
     compile_formats();
 } /* }}} */
 
-funcmap* find_function(const char* name, const enum prog_mode mode) { /* {{{ */
+struct funcmap* find_function(const char* name, const enum prog_mode mode) { /* {{{ */
     /* search through the function maps to convert a string to a function pointer
      * name - the string naming the function
      * mode - the mode of operation currently active
