@@ -75,7 +75,11 @@ struct task {
 };
 
 /* program modes */
-typedef enum { MODE_TASKLIST, MODE_PAGER, MODE_ANY } prog_mode;
+enum prog_mode {
+    MODE_TASKLIST,
+    MODE_PAGER,
+    MODE_ANY
+};
 
 /* format fields */
 typedef enum { FIELD_DATE, FIELD_PROJECT, FIELD_DESCRIPTION, FIELD_DUE,
@@ -129,7 +133,7 @@ typedef struct _funcmap {
     char* name;
     void (*function)();
     int argn;
-    prog_mode mode;
+    enum prog_mode mode;
 } funcmap;
 
 /* log levels */

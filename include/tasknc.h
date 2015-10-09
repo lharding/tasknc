@@ -28,7 +28,7 @@ void check_resize(void);
 void check_screen_size(void);
 void cleanup(void);
 void configure(void);
-funcmap* find_function(const char* name, const prog_mode mode);
+funcmap* find_function(const char* name, const enum prog_mode mode);
 void find_next_search_result(struct task* head, struct task* pos);
 struct var* find_var(const char* name);
 void force_redraw(void);

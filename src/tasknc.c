@@ -314,7 +314,7 @@ void configure(void) { /* {{{ */
     compile_formats();
 } /* }}} */
 
-funcmap* find_function(const char* name, const prog_mode mode) { /* {{{ */
+funcmap* find_function(const char* name, const enum prog_mode mode) { /* {{{ */
     /* search through the function maps to convert a string to a function pointer
      * name - the string naming the function
      * mode - the mode of operation currently active

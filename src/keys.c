@@ -152,7 +152,7 @@ const int nkeys = sizeof(keymaps) / sizeof(struct keymap);
 /* }}} */
 
 void add_int_keybind(const int key, void* function, const int argint,
-                     const prog_mode mode) { /* {{{ */
+                     const enum prog_mode mode) { /* {{{ */
     /**
      * convert argint to a string, then add keybind
      * key      - the key to be bound
@@ -168,7 +168,7 @@ void add_int_keybind(const int key, void* function, const int argint,
 } /* }}} */
 
 void add_keybind(const int key, void* function, char* arg,
-                 const prog_mode mode) { /* {{{ */
+                 const enum prog_mode mode) { /* {{{ */
     /**
      * add a keybind to the linked list of keybinds
      * key      - the key to be bound
@@ -219,7 +219,7 @@ void add_keybind(const int key, void* function, char* arg,
     free(name);
 } /* }}} */
 
-void handle_keypress(const int c, const prog_mode mode) { /* {{{ */
+void handle_keypress(const int c, const enum prog_mode mode) { /* {{{ */
     /* handle a key press on the main screen */
     /**
      * handle a key pressed
@@ -325,7 +325,7 @@ int parse_key(const char* keystr) { /* {{{ */
     return (int)(*keystr);
 } /* }}} */
 
-int remove_keybinds(const int key, const prog_mode mode) { /* {{{ */
+int remove_keybinds(const int key, const enum prog_mode mode) { /* {{{ */
     /**
      * remove all keybinds to key
      * key  - which key to unbind

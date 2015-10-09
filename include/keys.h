@@ -20,27 +20,27 @@ typedef struct _bind {
     void (*function)();
     int argint;
     char* argstr;
-    prog_mode mode;
+    enum prog_mode mode;
     struct _bind* next;
 } keybind;
 
 void add_int_keybind(const int key,
                      void* function,
                      const int argint,
-                     const prog_mode mode);
+                     const enum prog_mode mode);
 
 void add_keybind(const int key,
                  void* function,
                  char* arg,
-                 const prog_mode mode);
+                 const enum prog_mode mode);
 
-void handle_keypress(const int c, const prog_mode mode);
+void handle_keypress(const int c, const enum prog_mode mode);
 
 char* name_key(const int val);
 
 int parse_key(const char* keystr);
 
-int remove_keybinds(const int key, const prog_mode mode);
+int remove_keybinds(const int key, const enum prog_mode mode);
 
 extern FILE* logfp;
 extern keybind* keybinds;

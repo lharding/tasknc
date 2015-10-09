@@ -27,7 +27,7 @@ void handle_command(char* cmdstr) { /* {{{ */
     /* accept a command string, determine what action to take, and execute */
     char* command, *args, *modestr, *pos;
     funcmap* fmap;
-    prog_mode mode;
+    enum prog_mode mode;
     int ret = 0;
 
     /* parse args */
@@ -138,7 +138,7 @@ void run_command_bind(char* args) { /* {{{ */
           *keyname = NULL;
     void (*func)();
     funcmap* fmap;
-    prog_mode mode;
+    enum prog_mode mode;
 
     /* parse command */
     if (args != NULL) {
@@ -265,7 +265,7 @@ void run_command_unbind(char* argstr) { /* {{{ */
      * syntax - mode key
      */
     char* modestr = NULL, *keystr = NULL, *keyname = NULL;
-    prog_mode mode;
+    enum prog_mode mode;
     int ret = 0;
 
     /* parse args */
