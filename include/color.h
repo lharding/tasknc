@@ -10,22 +10,27 @@
 #include <stdio.h>
 #include "common.h"
 
-typedef enum { OBJECT_TASK, OBJECT_HEADER, OBJECT_ERROR, OBJECT_NONE } color_object;
+enum color_object {
+    OBJECT_TASK,
+    OBJECT_HEADER,
+    OBJECT_ERROR,
+    OBJECT_NONE
+};
 
-short add_color_rule(const color_object object,
+short add_color_rule(const enum color_object object,
                      const char* rule,
                      const short fg,
                      const short bg);
 
 void free_colors(void);
 
-int get_colors(const color_object object,
+int get_colors(const enum color_object object,
                task* tsk,
                const bool selected);
 
 int init_colors(void);
 
-color_object parse_object(const char* name);
+enum color_object parse_object(const char* name);
 
 int parse_color(const char* name);
 

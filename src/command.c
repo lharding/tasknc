@@ -205,7 +205,7 @@ void run_command_color(char* args) { /* {{{ */
      * syntax: object foreground background [rule]
      */
     char* object = NULL, *fg = NULL, *bg = NULL, *rule = NULL;
-    color_object obj;
+    enum color_object obj;
     int ret = 0, fgc, bgc;
 
     if (args != NULL) {

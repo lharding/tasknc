@@ -37,7 +37,7 @@ typedef struct _color {
 typedef struct _color_rule {
     short pair;
     char* rule;
-    color_object object;
+    enum color_object object;
     struct _color_rule* next;
 } color_rule;
 
@@ -104,7 +104,7 @@ short add_color_pair(short askpair, short fg, short bg) { /* {{{ */
     return pair;
 } /* }}} */
 
-short add_color_rule(const color_object object, const char* rule,
+short add_color_rule(const enum color_object object, const char* rule,
                      const short fg, const short bg) { /* {{{ */
     /**
      * add or overwrite a color rule for the provided conditions
@@ -358,7 +358,7 @@ void free_colors() { /* {{{ */
     }
 } /* }}} */
 
-int get_colors(const color_object object, task* tsk,
+int get_colors(const enum color_object object, task* tsk,
                const bool selected) { /* {{{ */
     /**
      * evaluate color rules and return an argument to attrset
@@ -503,11 +503,11 @@ int parse_color(const char* name) { /* {{{ */
     return -2;
 } /* }}} */
 
-color_object parse_object(const char* name) { /* {{{ */
+enum color_object parse_object(const char* name) { /* {{{ */
     /* parse an object from a string */
     unsigned int i;
     struct color_object_map {
-        const color_object object;
+        const enum color_object object;
         const char* name;
     };
 
