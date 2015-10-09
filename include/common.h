@@ -11,7 +11,7 @@
 #include <time.h>
 
 /* ncurses settings */
-typedef enum ncurses_mode {
+enum ncurses_mode {
     NCURSES_MODE_STD,
     NCURSES_MODE_STD_BLOCKING,
     NCURSES_MODE_STRING
