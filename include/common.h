@@ -54,7 +54,7 @@ struct var {
  * prev    - the previous task struct
  * next    - the next task struct
  */
-typedef struct _task {
+struct task {
     /* taskwarrior data */
     unsigned short index;
     char* uuid;
@@ -70,9 +70,9 @@ typedef struct _task {
     int selpair;
     int pair;
     /* linked list pointers */
-    struct _task* prev;
-    struct _task* next;
-} task;
+    struct task* prev;
+    struct task* next;
+};
 
 /* program modes */
 typedef enum { MODE_TASKLIST, MODE_PAGER, MODE_ANY } prog_mode;

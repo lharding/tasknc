@@ -9,15 +9,15 @@
 #include "sort.h"
 
 /* local functions */
-static bool compare_tasks(const task* a,
-                          const task* b,
+static bool compare_tasks(const struct task* a,
+                          const struct task* b,
                           const char* mode_queue);
 
 static int priority_to_int(const char pri);
-static void sort_tasks(task* first, task* last);
-static void swap_tasks(task* a, task* b);
+static void sort_tasks(struct task* first, struct task* last);
+static void swap_tasks(struct task* a, struct task* b);
 
-bool compare_tasks(const task* a, const task* b,
+bool compare_tasks(const struct task* a, const struct task* b,
                    const char* mode_queue) { /* {{{ */
     /**
      * compare two tasks to determine order
@@ -137,12 +137,12 @@ int priority_to_int(const char pri) { /* {{{ */
     }
 } /* }}} */
 
-void sort_wrapper(task* first) { /* {{{ */
+void sort_wrapper(struct task* first) { /* {{{ */
     /**
      * a wrapper around sort_tasks that finds the last element
      * in the linked list to pass to the aforementioned function
      */
-    task* last;
+    struct task* last;
 
     /* loop through looking for last item */
     last = first;
@@ -155,9 +155,9 @@ void sort_wrapper(task* first) { /* {{{ */
     sort_tasks(first, last);
 } /* }}} */
 
-void sort_tasks(task* first, task* last) { /* {{{ */
+void sort_tasks(struct task* first, struct task* last) { /* {{{ */
     /* sort a list of tasks from first to last */
-    task* start, *cur, *oldcur;
+    struct task* start, *cur, *oldcur;
 
     /* check if we are done */
     if (first == last) {
@@ -206,7 +206,7 @@ void sort_tasks(task* first, task* last) { /* {{{ */
     }
 } /* }}} */
 
-void swap_tasks(task* a, task* b) { /* {{{ */
+void swap_tasks(struct task* a, struct task* b) { /* {{{ */
     /* swap the contents of two tasks */
     unsigned short ustmp;
     unsigned int uitmp;

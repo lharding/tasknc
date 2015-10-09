@@ -23,7 +23,7 @@ void strip_quotes(char** strptr, bool needsfree);
 extern bool done;
 extern bool redraw;
 extern bool reload;
-extern task* head;
+extern struct task* head;
 extern FILE* logfp;
 extern WINDOW* pager;
 extern WINDOW* tasklist;

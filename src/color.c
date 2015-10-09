@@ -55,7 +55,7 @@ static short add_color_pair(const short askpair,
 int check_color(int color);
 
 static bool eval_rules(char* rule,
-                       const task*,
+                       const struct task*,
                        const bool selected);
 
 static short find_add_pair(const short fg,
@@ -118,7 +118,7 @@ short add_color_rule(const enum color_object object, const char* rule,
      */
     color_rule* last, *this;
     short ret;
-    task* tsk;
+    struct task* tsk;
 
     /* reset color caches if past configuration */
     if (tasklist != NULL) {
@@ -192,7 +192,7 @@ int check_color(int color) { /* {{{ */
     }
 } /* }}} */
 
-bool eval_rules(char* rule, const task* tsk, const bool selected) { /* {{{ */
+bool eval_rules(char* rule, const struct task* tsk, const bool selected) { /* {{{ */
     /**
      * evaluate a rule set for a task
      * rule     - the rule to be evaluated
@@ -358,7 +358,7 @@ void free_colors() { /* {{{ */
     }
 } /* }}} */
 
-int get_colors(const enum color_object object, task* tsk,
+int get_colors(const enum color_object object, struct task* tsk,
                const bool selected) { /* {{{ */
     /**
      * evaluate color rules and return an argument to attrset

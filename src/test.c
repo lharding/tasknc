@@ -120,7 +120,7 @@ void test_search() { /* {{{ */
     const char pri = 'H';
     const char* unique = "simple";
     FILE* cmdout;
-    task* this;
+    struct task* this;
     bool pass;
 
     asprintf(&addcmdstr, "task add pro:%s pri:%c %s", proj, pri, unique);

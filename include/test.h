@@ -14,7 +14,7 @@ void test(const char* args);
 extern char* searchstring;
 extern config cfg;
 extern int selline;
-extern task* head;
+extern struct task* head;
 
 #endif
 

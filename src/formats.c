@@ -19,8 +19,8 @@ extern config cfg;
 static char* append_buffer(char* buffer, const char append, int* bufferlen);
 static void append_field(fmt_field** head, fmt_field** last, fmt_field* this);
 static fmt_field* buffer_field(char* buffer, int bufferlen);
-static char* eval_conditional(conditional_fmt_field* this, task* tsk);
-static char* field_to_str(fmt_field* this, bool* free_field, task* tsk);
+static char* eval_conditional(conditional_fmt_field* this, struct task* tsk);
+static char* field_to_str(fmt_field* this, bool* free_field, struct task* tsk);
 static void free_format(fmt_field* this);
 static conditional_fmt_field* parse_conditional(char** str);
 
@@ -223,7 +223,7 @@ fmt_field* compile_format_string(char* fmt) { /* {{{ */
 } /* }}} */
 
 static char* eval_conditional(conditional_fmt_field* this,
-                              task* tsk) { /* {{{ */
+                              struct task* tsk) { /* {{{ */
     /**
      * evaluate a conditional struct to a string
      * this - the conditional struct
@@ -267,7 +267,7 @@ static char* eval_conditional(conditional_fmt_field* this,
     return ret;
 } /* }}} */
 
-char* eval_format(fmt_field* fmts, task* tsk) { /* {{{ */
+char* eval_format(fmt_field* fmts, struct task* tsk) { /* {{{ */
     /**
      * evaluate a linked list of format fields
      * fmts - the first element in the linked list of format fields
@@ -336,7 +336,7 @@ char* eval_format(fmt_field* fmts, task* tsk) { /* {{{ */
 } /* }}} */
 
 static char* field_to_str(fmt_field* this, bool* free_field,
-                          task* tsk) { /* {{{ */
+                          struct task* tsk) { /* {{{ */
     /**
      * evaluate a field and convert it to a string
      * this       - the field to be evaluated

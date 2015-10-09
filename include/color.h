@@ -25,7 +25,7 @@ short add_color_rule(const enum color_object object,
 void free_colors(void);
 
 int get_colors(const enum color_object object,
-               task* tsk,
+               struct task* tsk,
                const bool selected);
 
 int init_colors(void);
@@ -35,7 +35,7 @@ enum color_object parse_object(const char* name);
 int parse_color(const char* name);
 
 extern FILE* logfp;
-extern task* head;
+extern struct task* head;
 extern WINDOW* tasklist;
 
 #endif

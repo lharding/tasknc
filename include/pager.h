@@ -34,7 +34,7 @@ void pager_command(const char* cmdstr,
                    const int head_skip,
                    const int tail_skip);
 void view_stats(void);
-void view_task(task* this);
+void view_task(struct task* this);
 
 extern bool redraw;
 extern config cfg;

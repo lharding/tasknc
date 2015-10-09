@@ -346,7 +346,7 @@ void view_stats() { /* {{{ */
     free(cmdstr);
 } /* }}} */
 
-void view_task(task* this) { /* {{{ */
+void view_task(struct task* this) { /* {{{ */
     /* run `task info` and print it to a window */
     char* cmdstr, *title;
 

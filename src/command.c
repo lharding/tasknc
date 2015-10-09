@@ -95,7 +95,7 @@ void handle_command(char* cmdstr) { /* {{{ */
     }
     /* dump: write all displayed tasks to log file */
     else if (str_eq(command, "dump")) {
-        task* this = head;
+        struct task* this = head;
         int counter = 0;
 
         while (this != NULL) {

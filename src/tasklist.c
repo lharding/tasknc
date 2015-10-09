@@ -40,7 +40,7 @@ void key_tasklist_add() { /* {{{ */
 
 void key_tasklist_complete() { /* {{{ */
     /* complete selected task */
-    task* cur = get_task_by_position(selline);
+    struct task* cur = get_task_by_position(selline);
     int ret;
 
     statusbar_message(cfg.statusbar_timeout, "completing task");
@@ -53,7 +53,7 @@ void key_tasklist_complete() { /* {{{ */
 
 void key_tasklist_delete() { /* {{{ */
     /* complete selected task */
-    task* cur = get_task_by_position(selline);
+    struct task* cur = get_task_by_position(selline);
     int ret;
 
     statusbar_message(cfg.statusbar_timeout, "deleting task");
@@ -66,7 +66,7 @@ void key_tasklist_delete() { /* {{{ */
 
 void key_tasklist_edit() { /* {{{ */
     /* edit selected task */
-    task* cur = get_task_by_position(selline);
+    struct task* cur = get_task_by_position(selline);
     int ret;
     char* uuid;
 
@@ -265,7 +265,7 @@ void key_tasklist_sort(const char* arg) { /* {{{ */
      * arg - the mode to sort by (pass NULL to prompt user)
      *       see the manual page for how sort strings are parsed
      */
-    task* cur;
+    struct task* cur;
     char* uuid = NULL;
 
     /* store selected task */
@@ -323,7 +323,7 @@ void key_tasklist_toggle_started() { /* {{{ */
     /* toggle whether a task is started */
     bool started;
     time_t now;
-    task* cur = get_task_by_position(selline);
+    struct task* cur = get_task_by_position(selline);
     char* cmdstr, *action, *actionpast, *reply;
     FILE* cmdout;
     int ret;
@@ -438,7 +438,7 @@ void tasklist_command_message(const int ret, const char* fail,
 void tasklist_window() { /* {{{ */
     /* ncurses main function */
     int c;
-    task* cur;
+    struct task* cur;
     char* uuid = NULL;
 
     /* get field lengths */
@@ -560,7 +560,7 @@ void tasklist_window() { /* {{{ */
     }
 } /* }}} */
 
-void tasklist_print_task(const int tasknum, const task* this,
+void tasklist_print_task(const int tasknum, const struct task* this,
                          const int count) { /* {{{ */
     /* print a task specified by number
      * tasknum - the number of the task to be printed (used to find task object
@@ -605,8 +605,8 @@ void tasklist_print_task(const int tasknum, const task* this,
 
     /* evaluate line */
     wmove(tasklist, 0, 0);
-    wattrset(tasklist, get_colors(OBJECT_TASK, (task*)this, sel));
-    tmp = (char*)eval_format(cfg.formats.task_compiled, (task*)this);
+    wattrset(tasklist, get_colors(OBJECT_TASK, (struct task*)this, sel));
+    tmp = (char*)eval_format(cfg.formats.task_compiled, (struct task*)this);
     umvaddstr_align(tasklist, y, tmp);
     free(tmp);
 
@@ -620,7 +620,7 @@ void tasklist_print_task(const int tasknum, const task* this,
 
 void tasklist_print_task_list() { /* {{{ */
     /* print every task in the task list */
-    task* cur;
+    struct task* cur;
     short counter = 0;
 
     cur = head;
@@ -638,7 +638,7 @@ void tasklist_print_task_list() { /* {{{ */
     }
 } /* }}} */
 
-void tasklist_remove_task(task* this) { /* {{{ */
+void tasklist_remove_task(struct task* this) { /* {{{ */
     /* remove a task from the task list without reloading */
     if (this == head) {
         head = this->next;

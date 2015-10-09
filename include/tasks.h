@@ -10,26 +10,26 @@
 #include <stdbool.h>
 #include "common.h"
 
-char free_task(task* tsk);
-void free_tasks(task* head);
-task* get_task_by_position(int n);
+char free_task(struct task* tsk);
+void free_tasks(struct task* head);
+struct task* get_task_by_position(int n);
 int get_task_position_by_uuid(const char* uuid);
-task* get_tasks(char* uuid);
+struct task* get_tasks(char* uuid);
 unsigned short get_task_id(char* uuid);
-task* malloc_task(void);
-task* parse_task(char* line);
-void reload_task(task* this);
+struct task* malloc_task(void);
+struct task* parse_task(char* line);
+void reload_task(struct task* this);
 void reload_tasks(void);
 void remove_char(char* str, char remove);
 void set_position_by_uuid(const char* uuid);
 int task_background_command(const char* cmdfmt);
 void task_count(void);
 int task_interactive_command(const char* cmdfmt);
-bool task_match(const task* cur, const char* str);
+bool task_match(const struct task* cur, const char* str);
 void task_modify(const char* argstr);
 
 extern FILE* logfp;
-extern task* head;
+extern struct task* head;
 extern bool redraw;
 extern int selline;
 extern int taskcount;

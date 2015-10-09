@@ -42,7 +42,7 @@ int rows, cols;                         /* size of the ncurses window */
 int taskcount;                          /* number of tasks */
 char* active_filter =
     NULL;             /* a string containing the active filter string */
-task* head = NULL;                      /* the current top of the list */
+struct task* head = NULL;               /* the current top of the list */
 FILE* logfp;                            /* handle for log file */
 keybind* keybinds = NULL;
 
@@ -333,12 +333,12 @@ funcmap* find_function(const char* name, const prog_mode mode) { /* {{{ */
     return NULL;
 } /* }}} */
 
-void find_next_search_result(task* head, task* pos) { /* {{{ */
+void find_next_search_result(struct task* head, struct task* pos) { /* {{{ */
     /* find the next search result in the list of tasks
      * head - the first task in the task list
      * pos  - the position in the task list to start searching from
      */
-    task* cur;
+    struct task* cur;
 
     cur = pos;
 
@@ -534,7 +534,7 @@ char max_project_length() { /* {{{ */
      * return is the maximum project length
      */
     char len = 0;
-    task* cur;
+    struct task* cur;
 
     cur = head;
 
