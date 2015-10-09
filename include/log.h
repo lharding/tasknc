@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include "common.h"
 
-extern config cfg;
+extern struct config cfg;
 void tnc_fprintf(FILE* fp,
                  const enum log_mode monloglvl,
                  const char* format,

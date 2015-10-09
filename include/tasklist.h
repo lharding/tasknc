@@ -41,7 +41,7 @@ extern bool redraw;
 extern bool done;
 extern char* active_filter;
 extern char* searchstring;
-extern config cfg;
+extern struct config cfg;
 extern FILE* logfp;
 extern int cols;
 extern int rows;

@@ -9,7 +9,7 @@
 
 void sort_wrapper(struct task* first);
 
-extern config cfg;
+extern struct config cfg;
 extern FILE* logfp;
 
 // vim: et ts=4 sw=4 sts=4

@@ -13,7 +13,7 @@
 
 /* externs */
 extern struct var vars[];
-extern config cfg;
+extern struct config cfg;
 
 /* local functions */
 static char* append_buffer(char* buffer, const char append, int* bufferlen);

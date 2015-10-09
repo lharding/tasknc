@@ -12,7 +12,7 @@
 void test(const char* args);
 
 extern char* searchstring;
-extern config cfg;
+extern struct config cfg;
 extern int selline;
 extern struct task* head;
 

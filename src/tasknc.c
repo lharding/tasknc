@@ -34,7 +34,7 @@ const char* progname = PROGNAME;
 const char* progauthor = PROGAUTHOR;
 const char* progversion = PROGVERSION;
 
-config cfg;                             /* runtime config struct */
+struct config cfg;                      /* runtime config struct */
 short pageoffset = 0;                   /* number of tasks page is offset */
 char* searchstring = NULL;              /* currently active search string */
 int selline = 0;                        /* selected line number */

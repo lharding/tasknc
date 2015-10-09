@@ -37,7 +37,7 @@ void view_stats(void);
 void view_task(struct task* this);
 
 extern bool redraw;
-extern config cfg;
+extern struct config cfg;
 extern FILE* logfp;
 extern int cols;
 extern int rows;

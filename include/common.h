@@ -169,7 +169,7 @@ enum log_mode {
  * formats           - string and compiled printing formats
  * fieldlengths      - width of some task data fields
  */
-typedef struct _config {
+struct config {
     int history_max;
     int nc_timeout;
     int statusbar_timeout;
@@ -190,7 +190,7 @@ typedef struct _config {
         int date;
         int project;
     } fieldlengths;
-} config;
+};
 
 /* string comparison */
 #define str_starts_with(x, y)           (strncmp((x),(y),strlen(y)) == 0)

@@ -21,7 +21,7 @@ void statusbar_message(const int dtmout,
 
 void statusbar_timeout(void);
 
-extern config cfg;
+extern struct config cfg;
 extern FILE* logfp;
 extern WINDOW* statusbar;
 
