@@ -11,9 +11,11 @@
 #include <time.h>
 
 /* ncurses settings */
-typedef enum { NCURSES_MODE_STD, NCURSES_MODE_STD_BLOCKING,
-               NCURSES_MODE_STRING
-             } ncurses_mode;
+typedef enum ncurses_mode {
+    NCURSES_MODE_STD,
+    NCURSES_MODE_STD_BLOCKING,
+    NCURSES_MODE_STRING
+};
 
 /* var type */
 typedef enum { VAR_UNDEF, VAR_CHAR, VAR_STR, VAR_INT } var_type;

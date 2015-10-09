@@ -44,7 +44,7 @@ void ncurses_end(int);
 void ncurses_init(void);
 void print_header(void);
 void print_version(void);
-void set_curses_mode(const ncurses_mode mode);
+void set_curses_mode(const enum ncurses_mode mode);
 char* str_trim(char* str);
 
 int umvaddstr(WINDOW* win,

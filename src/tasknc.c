@@ -672,7 +672,7 @@ void print_version(void) { /* {{{ */
     printf("%s %s by %s\n", PROGNAME, PROGVERSION, PROGAUTHOR);
 } /* }}} */
 
-void set_curses_mode(const ncurses_mode mode) { /* {{{ */
+void set_curses_mode(const enum ncurses_mode mode) { /* {{{ */
     /* set curses settings for various common modes
      * mode - the ncurses_mode describing how to accept input
      */
