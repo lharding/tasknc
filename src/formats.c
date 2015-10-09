@@ -19,10 +19,10 @@ extern config cfg;
 static char* append_buffer(char* buffer, const char append, int* bufferlen);
 static void append_field(struct fmt_field** head, struct fmt_field** last, struct fmt_field* this);
 static struct fmt_field* buffer_field(char* buffer, int bufferlen);
-static char* eval_conditional(conditional_fmt_field* this, struct task* tsk);
+static char* eval_conditional(struct conditional_fmt_field* this, struct task* tsk);
 static char* field_to_str(struct fmt_field* this, bool* free_field, struct task* tsk);
 static void free_format(struct fmt_field* this);
-static conditional_fmt_field* parse_conditional(char** str);
+static struct conditional_fmt_field* parse_conditional(char** str);
 
 char* append_buffer(char* buffer, const char append, int* bufferlen) { /* {{{ */
     /**
@@ -222,7 +222,7 @@ struct fmt_field* compile_format_string(char* fmt) { /* {{{ */
     return head;
 } /* }}} */
 
-static char* eval_conditional(conditional_fmt_field* this,
+static char* eval_conditional(struct conditional_fmt_field* this,
                               struct task* tsk) { /* {{{ */
     /**
      * evaluate a conditional struct to a string
@@ -441,9 +441,9 @@ void free_formats() { /* {{{ */
     free_format(cfg.formats.task_compiled);
 } /* }}} */
 
-conditional_fmt_field* parse_conditional(char** str) { /* {{{ */
+struct conditional_fmt_field* parse_conditional(char** str) { /* {{{ */
     /* parse a conditional struct from a string at a position */
-    conditional_fmt_field* this = calloc(1, sizeof(conditional_fmt_field));
+    struct conditional_fmt_field* this = calloc(1, sizeof(struct conditional_fmt_field));
     char* condition = NULL, *positive = NULL, *negative = NULL;
     int ret, addlen = 0;
 

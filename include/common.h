@@ -96,6 +96,8 @@ enum fmt_field_type {
     FIELD_TIME
 };
 
+struct conditional_fmt_field; /* forward declaration */
+
 /**
  * format field struct - for describing portions of format strings
  * type        - the field type which is to be printed
@@ -111,7 +113,7 @@ struct fmt_field {
     enum fmt_field_type type;
     struct var* variable;
     char* field;
-    struct _conditional_fmt_field* conditional;
+    struct conditional_fmt_field* conditional;
     unsigned int length;
     unsigned int width;
     bool right_align;
@@ -124,11 +126,11 @@ struct fmt_field {
  * positive  - the string to be printed if condition was true
  * negative  - the string to be printed if condition was false
  */
-typedef struct _conditional_fmt_field {
+struct conditional_fmt_field {
     struct fmt_field* condition;
     struct fmt_field* positive;
     struct fmt_field* negative;
-} conditional_fmt_field;
+};
 
 
 /**
