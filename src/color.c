@@ -34,18 +34,18 @@ struct color {
  * object - the type of item that is being colored
  * next   - the next color_rule struct
  */
-typedef struct _color_rule {
+struct color_rule {
     short pair;
     char* rule;
     enum color_object object;
-    struct _color_rule* next;
-} color_rule;
+    struct color_rule* next;
+};
 
 /* global variables */
 bool use_colors;
 bool colors_initialized = false;
 bool* pairs_used = NULL;
-color_rule* color_rules = NULL;
+struct color_rule* color_rules = NULL;
 
 /* local functions */
 static short add_color_pair(const short askpair,
@@ -116,7 +116,7 @@ short add_color_rule(const enum color_object object, const char* rule,
      * fg     - the foreground color to be set when rule is true
      * bg     - the background color to be set when rule is true
      */
-    color_rule* last, *this;
+    struct color_rule* last, *this;
     short ret;
     struct task* tsk;
 
@@ -159,7 +159,7 @@ short add_color_rule(const enum color_object object, const char* rule,
         return ret;
     }
 
-    this = calloc(1, sizeof(color_rule));
+    this = calloc(1, sizeof(struct color_rule));
     this->pair = ret;
 
     if (rule != NULL) {
@@ -344,7 +344,7 @@ short find_add_pair(const short fg, const short bg) { /* {{{ */
 
 void free_colors() { /* {{{ */
     /* clean up memory allocated for colors */
-    color_rule* this, *last;
+    struct color_rule* this, *last;
 
     check_free(pairs_used);
 
@@ -368,7 +368,7 @@ int get_colors(const enum color_object object, struct task* tsk,
      */
     short pair = 0;
     int* tskpair;
-    color_rule* rule;
+    struct color_rule* rule;
     bool done = false;
 
     /* check for cache if task */
