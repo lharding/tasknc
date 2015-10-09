@@ -82,10 +82,19 @@ enum prog_mode {
 };
 
 /* format fields */
-typedef enum { FIELD_DATE, FIELD_PROJECT, FIELD_DESCRIPTION, FIELD_DUE,
-               FIELD_PRIORITY, FIELD_UUID, FIELD_INDEX, FIELD_STRING, FIELD_VAR,
-               FIELD_CONDITIONAL, FIELD_TIME
-             } fmt_field_type;
+enum fmt_field_type {
+    FIELD_DATE,
+    FIELD_PROJECT,
+    FIELD_DESCRIPTION,
+    FIELD_DUE,
+    FIELD_PRIORITY,
+    FIELD_UUID,
+    FIELD_INDEX,
+    FIELD_STRING,
+    FIELD_VAR,
+    FIELD_CONDITIONAL,
+    FIELD_TIME
+};
 
 /**
  * format field struct - for describing portions of format strings
@@ -99,7 +108,7 @@ typedef enum { FIELD_DATE, FIELD_PROJECT, FIELD_DESCRIPTION, FIELD_DUE,
  * next        - the next format field struct
  */
 typedef struct _fmt_field {
-    fmt_field_type type;
+    enum fmt_field_type type;
     struct var* variable;
     char* field;
     struct _conditional_fmt_field* conditional;
