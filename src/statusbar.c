@@ -23,24 +23,24 @@
  * char_history - a cached conversion of the above array to char's
  * next - the next prompt index structure
  */
-typedef struct _prompt_index {
+struct prompt_index {
     char* prompt;
     wchar_t** history;
     char** char_history;
-    struct _prompt_index* next;
-} prompt_index;
+    struct prompt_index* next;
+};
 
 /* global variables */
 time_t sb_timeout = 0;                  /* when statusbar should be cleared */
-prompt_index* prompt_number = NULL;     /* prompt index mapping head */
+struct prompt_index* prompt_number = NULL;     /* prompt index mapping head */
 
 /* local functions */
-static void add_to_history(prompt_index* pindex,
+static void add_to_history(struct prompt_index* pindex,
                            const wchar_t* entry);
 
-static prompt_index* get_prompt_index(const char* prompt);
+static struct prompt_index* get_prompt_index(const char* prompt);
 
-static wchar_t* get_history(const prompt_index* pindex,
+static wchar_t* get_history(const struct prompt_index* pindex,
                             const int count);
 
 static void remove_first_char(wchar_t* str);
@@ -49,13 +49,13 @@ static int replace_entry(wchar_t* str,
                          const int len,
                          const wchar_t* tmp);
 
-static wchar_t* search_history(const prompt_index* pindex,
+static wchar_t* search_history(const struct prompt_index* pindex,
                                const wchar_t* regex_wide,
                                const int start,
                                int end,
                                int* match_index);
 
-void add_to_history(prompt_index* pindex, const wchar_t* entry) { /* {{{ */
+void add_to_history(struct prompt_index* pindex, const wchar_t* entry) { /* {{{ */
     /**
      * add an entry to history
      * pindex - a pointer to the prompt_index whose history is being modified
@@ -74,7 +74,7 @@ void add_to_history(prompt_index* pindex, const wchar_t* entry) { /* {{{ */
 
 void free_prompts() { /* {{{ */
     /* free prompt data */
-    prompt_index* last, *cur = prompt_number;
+    struct prompt_index* last, *cur = prompt_number;
     int p;
 
     while (cur != NULL) {
@@ -93,7 +93,7 @@ void free_prompts() { /* {{{ */
     }
 } /* }}} */
 
-wchar_t* get_history(const prompt_index* pindex, const int count) { /* {{{ */
+wchar_t* get_history(const struct prompt_index* pindex, const int count) { /* {{{ */
     /**
      * retrieve an item from history if available
      * pindex - a pointer to the prompt_index whose history is being modified
@@ -108,10 +108,10 @@ wchar_t* get_history(const prompt_index* pindex, const int count) { /* {{{ */
     return pindex->history[count];
 } /* }}} */
 
-prompt_index* get_prompt_index(const char* prompt) { /* {{{ */
+struct prompt_index* get_prompt_index(const char* prompt) { /* {{{ */
     /* find the index of a specified prompt,
      * creating a new prompt_index if necessary */
-    prompt_index* cur = prompt_number, *last = NULL;
+    struct prompt_index* cur = prompt_number, *last = NULL;
 
     /* iterate through prompt indices */
     while (cur != NULL) {
@@ -124,7 +124,7 @@ prompt_index* get_prompt_index(const char* prompt) { /* {{{ */
     }
 
     /* create a new prompt_index */
-    cur = calloc(1, sizeof(prompt_index));
+    cur = calloc(1, sizeof(struct prompt_index));
     cur->prompt = strdup(prompt);
     cur->history = calloc(cfg.history_max, sizeof(wchar_t*));
     cur->char_history = calloc(cfg.history_max, sizeof(char*));
@@ -181,7 +181,7 @@ done:
     return ret;
 } /* }}} */
 
-wchar_t* search_history(const prompt_index* pindex, const wchar_t* regex_wide,
+wchar_t* search_history(const struct prompt_index* pindex, const wchar_t* regex_wide,
                         const int start, int end, int* match_index) { /* {{{ */
     /**
      * search through the history for a prompt to match a regex
@@ -237,7 +237,7 @@ int statusbar_getstr(char** str, const char* msg) { /* {{{ */
     int position = 0, histindex = -1, str_len = 0, charlen, ret;
     bool done = false;
     const int msglen = strlen(msg);
-    const prompt_index* pindex = get_prompt_index(msg);
+    const struct prompt_index* pindex = get_prompt_index(msg);
     wchar_t* tmp, *wstr = calloc(3 * COLS, sizeof(wchar_t));
     wint_t c;
 
@@ -368,7 +368,7 @@ int statusbar_getstr(char** str, const char* msg) { /* {{{ */
     set_curses_mode(NCURSES_MODE_STD);
 
     /* add to history */
-    add_to_history((prompt_index*)pindex, wstr);
+    add_to_history((struct prompt_index*)pindex, wstr);
 
     return str_len;
 } /* }}} */
