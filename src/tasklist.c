@@ -265,11 +265,10 @@ void key_tasklist_sort(const char* arg) { /* {{{ */
      * arg - the mode to sort by (pass NULL to prompt user)
      *       see the manual page for how sort strings are parsed
      */
-    struct task* cur;
     char*        uuid = NULL;
 
     /* store selected task */
-    cur = get_task_by_position(selline);
+    struct task* cur = get_task_by_position(selline);
 
     if (cur != NULL) {
         uuid = strdup(cur->uuid);
@@ -321,7 +320,6 @@ void key_tasklist_sync(void) { /* {{{ */
 
 void key_tasklist_toggle_started(void) { /* {{{ */
     /* toggle whether a task is started */
-    bool            started;
     time_t          now;
     struct task*    cur = get_task_by_position(selline);
     char*           cmdstr;
@@ -330,9 +328,7 @@ void key_tasklist_toggle_started(void) { /* {{{ */
     char*           reply;
     FILE*           cmdout;
     int             ret;
-
-    /* check whether task is started */
-    started = cur->start > 0;
+    bool            started = cur->start > 0;/* check whether task is started */
 
     /* generate command */
     cmdstr = calloc(UUIDLENGTH + 16, sizeof(char));
@@ -365,9 +361,7 @@ void key_tasklist_toggle_started(void) { /* {{{ */
 
 void key_tasklist_undo(void) { /* {{{ */
     /* handle a keyboard direction to run an undo */
-    int ret;
-
-    ret = task_background_command("task undo");
+    int ret = task_background_command("task undo");
 
     if (ret == 0) {
         statusbar_message(cfg.statusbar_timeout, "undo executed");
@@ -525,7 +519,7 @@ void tasklist_window(void) { /* {{{ */
         if (reload) {
             cur = get_task_by_position(selline);
 
-            if (cur != NULL) {
+            if (cur) {
                 uuid = strdup(cur->uuid);
             }
 
@@ -577,10 +571,7 @@ void tasklist_print_task(const int tasknum,
     bool  sel = false;
     char* tmp;
     int   x;
-    int   y;
-
-    /* determine position to print */
-    y = tasknum - pageoffset;
+    int   y = tasknum - pageoffset; /* determine position to print */
 
     if (y < 0 || y >= rows - 1) {
         return;
@@ -626,10 +617,8 @@ void tasklist_print_task(const int tasknum,
 
 void tasklist_print_task_list(void) { /* {{{ */
     /* print every task in the task list */
-    struct task* cur;
+    struct task* cur     = head;
     short        counter = 0;
-
-    cur = head;
 
     while (cur != NULL) {
         tasklist_print_task(counter, cur, 1);

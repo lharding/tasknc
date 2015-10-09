@@ -284,9 +284,7 @@ struct funcmap* find_function(const char* name, const enum prog_mode mode) { /* 
      * the return is a pointer to the function that was mapped, or NULL
      * if no function is found
      */
-    int i;
-
-    for (i = 0; i < NFUNCS; i++) {
+    for (int i = 0; i < NFUNCS; i++) {
         if (str_eq(name, funcmaps[i].name) && (funcmaps[i].mode == MODE_ANY ||
                                                mode == funcmaps[i].mode || mode == MODE_ANY)) {
             return &(funcmaps[i]);
@@ -301,9 +299,7 @@ void find_next_search_result(struct task* head, struct task* pos) { /* {{{ */
      * head - the first task in the task list
      * pos  - the position in the task list to start searching from
      */
-    struct task* cur;
-
-    cur = pos;
+    struct task* cur = pos;
 
     while (1) {
         /* move to next item */
@@ -342,9 +338,7 @@ struct var* find_var(const char* name) { /* {{{ */
      * name - the name of the variable
      * return is a pointer to the variable found, or NULL on failure
      */
-    int i;
-
-    for (i = 0; i < NVARS; i++) {
+    for (int i = 0; i < NVARS; i++) {
         if (str_eq(name, vars[i].name)) {
             return &(vars[i]);
         }
@@ -357,13 +351,12 @@ void force_redraw(void) { /* {{{ */
     /* force a redraw of active windows */
     WINDOW*     windows[]   = {statusbar, tasklist, pager, header};
     const int   nwins       = sizeof(windows) / sizeof(WINDOW*);
-    int         i;
 
     /* force a resize check */
     handle_resize();
 
     /* wipe windows */
-    for (i = 0; i < nwins; i++) {
+    for (int i = 0; i < nwins; i++) {
         wattrset(windows[i], COLOR_PAIR(0));
 
         if (windows[i] == NULL) {
@@ -384,7 +377,6 @@ void force_redraw(void) { /* {{{ */
 
 void handle_resize(void) { /* {{{ */
     /* handle a change in screen size */
-    int pagerheight;
 
     /* make sure rows and cols are set correctly */
     rows = getmaxy(stdscr);
@@ -402,6 +394,7 @@ void handle_resize(void) { /* {{{ */
 
     /* handle pager */
     if (pager != NULL) {
+        int pagerheight;
         pagerheight = getmaxy(pager);
 
         if (pagerheight > rows - 2) {
@@ -497,12 +490,10 @@ char max_project_length(void) { /* {{{ */
      * return is the maximum project length
      */
     char            len = 0;
-    struct task*    cur;
+    struct task*    cur = head;
 
-    cur = head;
-
-    while (cur != NULL) {
-        if (cur->project != NULL) {
+    while (cur) {
+        if (cur->project) {
             char l = strlen(cur->project);
 
             if (l > len) {
@@ -521,9 +512,7 @@ const char* name_function(void* function) { /* {{{ */
      * function - a pointer to the function to be named
      * return is a string naming the function, or NULL on failure
      */
-    int i;
-
-    for (i = 0; i < NFUNCS; i++) {
+    for (int i = 0; i < NFUNCS; i++) {
         if (function == funcmaps[i].function) {
             return funcmaps[i].name;
         }
