@@ -26,7 +26,11 @@ enum var_type {
 };
 
 /* variable permissions */
-typedef enum { VAR_RW, VAR_RC, VAR_RO } var_perms;
+enum var_perms {
+    VAR_RW,
+    VAR_RC,
+    VAR_RO
+};
 
 /**
  * variable container struct
@@ -38,7 +42,7 @@ typedef enum { VAR_RW, VAR_RC, VAR_RO } var_perms;
 typedef struct _var {
     char* name;
     enum var_type type;
-    var_perms perms;
+    enum var_perms perms;
     void* ptr;
 } var;
 
