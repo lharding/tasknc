@@ -20,14 +20,10 @@ Installation
 
 Installation can be performed by pasting the commands below:
 
-    git clone https://github.com/mjheagle8/tasknc.git
-    cd tasknc.git
+    git clone https://github.com/lharding/tasknc.git
+    cd tasknc
     make
     sudo make install
-
-Similiarily, uninstallation can be done:
-    cd build
-    sudo make uninstall
 
 Requirements
 ------------
