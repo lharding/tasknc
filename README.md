@@ -25,10 +25,6 @@ Installation can be performed by pasting the commands below:
     make
     sudo make install
 
-Similiarily, uninstallation can be done:
-    cd build
-    sudo make uninstall
-
 Requirements
 ------------
 
