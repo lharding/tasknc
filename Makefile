@@ -7,7 +7,7 @@ OUT 		= tasknc
 CC		?= cc
 CFLAGS 		?= -Wall -g -Wextra -std=c99 -O2
 LDFLAGS 	= ${CFLAGS}
-LDLIBS 		= -lncursesw
+LDLIBS 		?= -lncursesw
 VERSION 	= $(shell git describe)
 
 PREFIX 	   ?= /usr/local
@@ -26,6 +26,12 @@ OBJ = $(patsubst %.c,%.o,$(SRC))
 uname_O := $(shell sh -c 'uname -o 2>/dev/null || echo not')
 ifeq ($(uname_O),Cygwin)
 		CFLAGS += -I /usr/include/ncurses
+endif
+
+uname_O := $(shell sh -c 'uname 2>/dev/null || echo not')
+ifeq ($(uname_O),Darwin)
+		@echo ======> You seem to be building on MacOS. You will probably need to run 'brew install ncurses' or the like.
+		LDLIBS += -L/usr/local/opt/ncurses/lib/
 endif
 
 all: $(OUT) doc
