@@ -9,13 +9,13 @@
 
 #include "common.h"
 
-void test(const char *);
+void test(const char* args);
 
-extern char *searchstring;
-extern config cfg;
+extern char* searchstring;
+extern struct config cfg;
 extern int selline;
-extern task *head;
+extern struct task* head;
 
 #endif
 
-// vim: noet ts=4 sw=4 sts=4
+// vim: et ts=4 sw=4 sts=4

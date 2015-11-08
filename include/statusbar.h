@@ -10,15 +10,21 @@
 #include <stdio.h>
 #include "common.h"
 
-void free_prompts();
-int statusbar_getstr(char **, const char *);
-void statusbar_message(const int, const char *, ...) __attribute__((format(printf,2,3)));
-void statusbar_timeout();
+void free_prompts(void);
 
-extern config cfg;
-extern FILE *logfp;
-extern WINDOW *statusbar;
+int statusbar_getstr(char** str,
+                     const char* msg);
+
+void statusbar_message(const int dtmout,
+                       const char* format,
+                       ...) __attribute__((format(printf, 2, 3)));
+
+void statusbar_timeout(void);
+
+extern struct config cfg;
+extern FILE* logfp;
+extern WINDOW* statusbar;
 
 #endif
 
-// vim: noet ts=4 sw=4 sts=4
+// vim: et ts=4 sw=4 sts=4

@@ -16,109 +16,118 @@
 /* externs */
 extern int selline;
 
-bool match_string(const char *haystack, const char *needle) /* {{{ */
-{
-	/* find the regex needle in a haystack */
-	regex_t regex;
-	bool ret;
+bool match_string(const char* haystack, const char* needle) { /* {{{ */
+    /* find the regex needle in a haystack */
+    regex_t regex;
+    bool    ret;
 
-	/* check for NULL haystack or needle */
-	if (haystack==NULL || needle==NULL)
-		return false;
+    /* check for NULL haystack or needle */
+    if (haystack == NULL || needle == NULL) {
+        return false;
+    }
 
-	/* compile regex */
-	if (regcomp(&regex, needle, REGEX_OPTS) != 0)
-		return false;
+    /* compile regex */
+    if (regcomp(&regex, needle, REGEX_OPTS) != 0) {
+        return false;
+    }
 
-	/* run regex */
-	if (regexec(&regex, haystack, 0, 0, 0) != REG_NOMATCH)
-		ret = true;
-	else
-		ret = false;
-	regfree(&regex);
-	return ret;
+    /* run regex */
+    if (regexec(&regex, haystack, 0, 0, 0) != REG_NOMATCH) {
+        ret = true;
+    } else {
+        ret = false;
+    }
+
+    regfree(&regex);
+    return ret;
 } /* }}} */
 
-char *utc_date(const time_t timeint) /* {{{ */
-{
-	/* convert a utc time uint to a string */
-	struct tm *tmr, *now;
-	time_t cur;
-	char *timestr;
+char* utc_date(const time_t timeint) { /* {{{ */
+    /* convert a utc time uint to a string */
+    struct tm*  tmr;
+    struct tm*  now;
+    time_t      cur;
+    char*       timestr;
 
-	/* get current time */
-	time(&cur);
-	now = localtime(&cur);
+    /* get current time */
+    time(&cur);
+    now = localtime(&cur);
 
-	/* set time to either now or the specified time */
-	tmr = timeint == 0  ?  now : localtime(&timeint);
+    /* set time to either now or the specified time */
+    tmr = timeint == 0  ?  now : localtime(&timeint);
 
-	/* convert thte time to a formatted string */
-	timestr = malloc(TIMELENGTH*sizeof(char));
-	if (now->tm_year != tmr->tm_year)
-		strftime(timestr, TIMELENGTH, "%F", tmr);
-	else
-		strftime(timestr, TIMELENGTH, "%b %d", tmr);
+    /* convert thte time to a formatted string */
+    timestr = malloc(TIMELENGTH * sizeof(char));
 
-	return timestr;
+    if (now->tm_year != tmr->tm_year) {
+        strftime(timestr, TIMELENGTH, "%F", tmr);
+    } else {
+        strftime(timestr, TIMELENGTH, "%b %d", tmr);
+    }
+
+    return timestr;
 } /* }}} */
 
-char *utc_time(const time_t timeint) /* {{{ */
-{
-	/* convert a utc time uint to a string */
-	struct tm *tmr, *now;
-	time_t cur;
-	char *timestr;
+char* utc_time(const time_t timeint) { /* {{{ */
+    /* convert a utc time uint to a string */
+    struct tm*  tmr;
+    struct tm*  now;
+    time_t      cur;
+    char*       timestr;
 
-	/* get current time */
-	time(&cur);
-	now = localtime(&cur);
+    /* get current time */
+    time(&cur);
+    now = localtime(&cur);
 
-	/* set time to either now or the specified time */
-	tmr = timeint == 0  ?  now : localtime(&timeint);
+    /* set time to either now or the specified time */
+    tmr = timeint == 0  ?  now : localtime(&timeint);
 
-	/* convert thte time to a formatted string */
-	timestr = malloc(TIMELENGTH*sizeof(char));
-	strftime(timestr, TIMELENGTH, "%H:%M", tmr);
+    /* convert thte time to a formatted string */
+    timestr = malloc(TIMELENGTH * sizeof(char));
+    strftime(timestr, TIMELENGTH, "%H:%M", tmr);
 
-	return timestr;
+    return timestr;
 } /* }}} */
 
-char *var_value_message(var *v, bool printname) /* {{{ */
-{
-	/* format a message containing the name and value of a variable */
-	char *message;
-	char *value;
+char* var_value_message(struct var* v, bool printname) { /* {{{ */
+    /* format a message containing the name and value of a variable */
+    char* message;
+    char* value;
 
-	switch(v->type)
-	{
-		case VAR_INT:
-			if (str_eq(v->name, "selected_line"))
-				asprintf(&value, "%d", selline+1);
-			else
-				asprintf(&value, "%d", *(int *)(v->ptr));
-			break;
-		case VAR_CHAR:
-			asprintf(&value, "%c", *(char *)(v->ptr));
-			break;
-		case VAR_STR:
-			asprintf(&value, "%s", *(char **)(v->ptr));
-			break;
-		default:
-			asprintf(&value, "variable type unhandled");
-			break;
-	}
+    switch (v->type) {
+    case VAR_INT:
+        if (str_eq(v->name, "selected_line")) {
+            asprintf(&value, "%d", selline + 1);
+        } else {
+            asprintf(&value, "%d", *(int*)(v->ptr));
+        }
 
-	if (printname == false)
-		return value;
+        break;
 
-	message = malloc(strlen(v->name) + strlen(value) + 3);
-	strcpy(message, v->name);
-	strcat(message, ": ");
-	strcat(message, value);
-	free(value);
+    case VAR_CHAR:
+        asprintf(&value, "%c", *(char*)(v->ptr));
+        break;
 
-	return message;
+    case VAR_STR:
+        asprintf(&value, "%s", *(char**)(v->ptr));
+        break;
+
+    default:
+        asprintf(&value, "variable type unhandled");
+        break;
+    }
+
+    if (printname == false) {
+        return value;
+    }
+
+    message = malloc(strlen(v->name) + strlen(value) + 3);
+    strcpy(message, v->name);
+    strcat(message, ": ");
+    strcat(message, value);
+    free(value);
+
+    return message;
 } /* }}} */
 
-// vim: noet ts=4 sw=4 sts=4
+// vim: et ts=4 sw=4 sts=4

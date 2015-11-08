@@ -10,9 +10,12 @@
 #include <stdio.h>
 #include "common.h"
 
-extern config cfg;
-void tnc_fprintf(FILE *, const log_mode, const char *, ...) __attribute__((format(printf,3,4)));
+extern struct config cfg;
+void tnc_fprintf(FILE* fp,
+                 const enum log_mode monloglvl,
+                 const char* format,
+                 ...) __attribute__((format(printf, 3, 4)));
 
 #endif
 
-// vim: noet ts=4 sw=4 sts=4
+// vim: et ts=4 sw=4 sts=4

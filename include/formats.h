@@ -9,11 +9,11 @@
 
 #include "common.h"
 
-fmt_field *compile_format_string(char *);
-char *eval_format(fmt_field *, task *);
-void compile_formats();
-void free_formats();
+struct fmt_field* compile_format_string(char* fmt);
+char* eval_format(struct fmt_field* fmts, struct task* tsks);
+void compile_formats(void);
+void free_formats(void);
 
 #endif
 
-// vim: noet ts=4 sw=4 sts=4
+// vim: et ts=4 sw=4 sts=4
