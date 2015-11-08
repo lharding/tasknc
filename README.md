@@ -44,3 +44,5 @@ If you experience a segmentation fault, it would be fantastic if you could go in
 Contributing
 ------------
 Contribution in the form of feedback, patches, bug reports, etc. is greatly appreciated.
+
+Special thanks to @matthiasbeyer on GitHub for a massive code overhaul
