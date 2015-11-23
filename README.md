@@ -1,12 +1,6 @@
 task ncurses
 ===================
 
-by mjheagle
------------
-
-### Transition of maintainers
-`tasknc` is currently in the process of changing maintainers to be maintained by [Leander Harding](http://lsh.io). This repository will soon move to https://github.com/lharding/tasknc.
-
 About
 -----
 
@@ -44,4 +38,4 @@ Contributing
 ------------
 Contribution in the form of feedback, patches, bug reports, etc. is greatly appreciated.
 
-Special thanks to @matthiasbeyer on GitHub for a massive code overhaul
+Original code by [mjheagle8](https://github.com/mjheagle8). Special thanks to [matthiasbeyer](https://github.com/matthiasbeyer) for a massive code overhaul.
