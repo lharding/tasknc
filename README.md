@@ -25,7 +25,9 @@ Requirements
 
 `pod2man` is required to generate the manual page.  In Arch Linux, this is provided by the `perl` package.
 
-`ncursesw` headers are required to compile with unicode support.  In Arch Linux, this is provided by the `ncurses` package. In Debian Linux, you need to install `ncurses-dev` meta-package.
+`ncurses-dev` meta-package is required to compile. In Debian Linux: `sudo apt install ncurses-dev`
+
+`ncursesw` headers are required to compile with unicode support.  In Arch Linux, this is provided by the `ncurses` package. 
 
 Bugs
 ----
