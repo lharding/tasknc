@@ -27,7 +27,7 @@ Requirements
 
 `ncurses-dev` meta-package is required to compile. In Debian Linux: `sudo apt install ncurses-dev`
 
-`ncursesw` headers are required to compile with unicode support.  In Arch Linux, this is provided by the `ncurses` package. 
+`ncursesw` headers are required to compile with unicode support.  In Arch Linux, this is provided by the `ncurses` package. In Debian Linux the package is `libncursesw5-dev`
 
 Bugs
 ----
