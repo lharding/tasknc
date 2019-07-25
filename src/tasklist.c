@@ -668,7 +668,7 @@ void tasklist_task_add(void) { /* {{{ */
     tnc_fprintf(logfp, LOG_DEBUG, "running: %s", cmd);
     cmdout = popen(cmd, "r");
 
-    while (fgets(line, sizeof(struct line) - 1, cmdout) != NULL) {
+    while (fgets(line, TOTALLENGTH, cmdout) != NULL) {
         if (sscanf(line, "Created task %hu.", &tasknum)) {
             break;
         }
