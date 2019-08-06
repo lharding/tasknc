@@ -58,7 +58,7 @@ void key_tasklist_delete(void) { /* {{{ */
 
     statusbar_message(cfg.statusbar_timeout, "deleting task");
 
-    ret = task_background_command("task %s delete");
+    ret = task_background_command("task rc.confirmation=no %s delete");
     tasklist_remove_task(cur);
 
     tasklist_command_message(ret, "delete failed (%d)", "delete successful");
@@ -361,7 +361,7 @@ void key_tasklist_toggle_started(void) { /* {{{ */
 
 void key_tasklist_undo(void) { /* {{{ */
     /* handle a keyboard direction to run an undo */
-    int ret = task_background_command("task undo");
+    int ret = task_background_command("task rc.confirmation=no undo");
 
     if (ret == 0) {
         statusbar_message(cfg.statusbar_timeout, "undo executed");
