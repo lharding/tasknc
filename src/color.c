@@ -327,8 +327,8 @@ short find_add_pair(const short fg, const short bg) { /* {{{ */
      */
     short tmpfg;
     short tmpbg;
-    short pair;
-    short free_pair = -1;
+    int pair;
+    int free_pair = -1;
     int   ret;
 
     /* look for an existing pair */
