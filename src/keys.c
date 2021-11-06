@@ -119,7 +119,10 @@ struct keymap keymaps[] = {
     {KEY_UNDO, "undo"},
     {KEY_MOUSE, "mouse"},
     {KEY_RESIZE, "resize"},
+/* Optional deprecated ncurses feature. */
+#ifdef KEY_EVENT
     {KEY_EVENT, "event"},
+#endif
     {1, "C-a"},
     {2, "C-b"},
     {3, "C-c"},
