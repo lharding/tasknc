@@ -119,7 +119,6 @@ struct keymap keymaps[] = {
     {KEY_UNDO, "undo"},
     {KEY_MOUSE, "mouse"},
     {KEY_RESIZE, "resize"},
-    {KEY_EVENT, "event"},
     {1, "C-a"},
     {2, "C-b"},
     {3, "C-c"},
